@@ -1,0 +1,525 @@
+
+
+import React, { useContext, useEffect, useState } from 'react';
+import useProtectedRoute from '../utils/protectedRoute'; // Ensure this path is correct
+import { Button, Text, Image,TextInput, Select, SimpleGrid, Card, Container, Group, Stack, LoadingOverlay, Tabs, rem, Autocomplete, Flex, NumberInput, Popover } from '@mantine/core';
+import { Dropzone, FileWithPath,IMAGE_MIME_TYPE } from '@mantine/dropzone';
+import axios from '../utils/axiosInstance';
+import classes from '../components/modules.css/FloatingLabelInput.module.css';
+
+import { modals } from '@mantine/modals';
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/router';
+import { AuthContext } from '@/utils/authContext';
+import { IconPhoto, IconMessageCircle, IconSettings, IconSearch, IconBuildingWarehouse, IconBadgeTmFilled, IconCategoryFilled, IconFileDescription, IconIdBadge2 } from '@tabler/icons-react';
+import ActionsGridViewAdmin from '@/components/ActionsGridViewAdmin';
+import UpdateAdmin from '@/components/crudAdmin/updateAdmin';
+import { useCategoryID } from '../utils/categoryIDContext';
+import axiosInstance from '../utils/axiosInstance';
+
+
+interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: string;
+  quantity: number;
+  image: string;
+  productId: string;
+  category: string;
+}
+
+interface Category {
+  categoryId: string;
+  name: string;
+  description: string;
+  icon: string;
+}
+
+
+
+const ProductAddPage = () => {
+  const [images, setImages] = useState<Product[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { state } = useCategoryID();
+  const [prodID, setprodID] = useState<string>('');
+  const [prodName, setprodName] = useState<string>('');
+  const [prodDesc, setprodDesc] = useState<string>('');
+  const [prodPrice, setprodPrice] = useState<number>(0);
+  const [prodQuantity, setprodQuantity] = useState<number>(0);
+  const [prodCategory, setprodCategory] = useState<string>('');
+  const [prodCategoryID, setprodCategoryID] = useState<string>('');
+  const [prodImage, setprodImage] = useState<FileWithPath[]>([]);
+  const [focused, setFocused] = useState<boolean>(false);
+  const [value, setValue] = useState<string>('');
+  const [openedPopoverId, setOpenedPopoverId] = useState<string | null>(null);
+
+  const [nextProductId, setNextProductId] = useState('');
+  const [error, setError] = useState('');
+  const floating = value.trim().length !== 0 || focused || undefined;
+  
+  const iconStyle = { width: rem(12), height: rem(12) };
+
+  let categoryData = [];
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  // const { role } = useContext(AuthContext);
+  const role = Cookies.get('Role');
+  const {loading} = useContext(AuthContext);
+  console.log("loadingsaAuth",loading);
+
+
+  // Custom hook to protect the route based on roles
+  const {isRoleAllowed} = useProtectedRoute({ allowedRoles: ['student', 'admin'] });
+  console.log("isRoleAllowed",isRoleAllowed);
+
+  // if(!isRoleAllowed){
+  //   <LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />  }
+
+  
+  
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const { categoryID } = state;
+        console.log('Category ID:', categoryID);
+
+        if (categoryID) {  // Only send the categoryID if it is not empty
+          const response = await axios.get('getImages/', {
+            params: { categoryID }
+          });
+          setImages(response.data.images);
+          console.log('Images:', response.data.images);
+        } else {
+          const response = await axios.get('getImages/');  // Fetch all images when categoryID is empty
+          setImages(response.data.images);
+        }
+
+      } catch (error) {
+        console.error('Error fetching images:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchImages();
+}, [state.categoryID]);
+
+  // useEffect(() => {
+  //   const modalAppear = async () => {
+  //     if (isRoleAllowed) {
+  //       modals.openConfirmModal({
+  //         title: 'Please confirm your action',
+  //         closeOnConfirm: false,
+  //         labels: { confirm: 'Next modal', cancel: 'Close modal' },
+  //         children: (
+  //           <Text size="sm">
+  //             This action is so important that you are required to confirm it with a modal. Please click one of these buttons to proceed.
+  //           </Text>
+  //         ),
+  //         onConfirm: () =>
+  //           modals.openConfirmModal({
+  //             title: 'This is modal at second layer',
+  //             labels: { confirm: 'Close modal', cancel: 'Back' },
+  //             closeOnConfirm: false,
+  //             children: (
+  //               <Text size="sm">
+  //                 When this modal is closed modals state will revert to first modal
+  //               </Text>
+  //             ),
+  //             onConfirm: modals.closeAll,
+  //           }),
+  //       });
+  //       console.log('Modal appeared');
+  //     }
+  //   };
+    
+  //   // Call the function
+  //   modalAppear();
+  // }, []); // This will run the effect whenever `isRoleAllowed` changes
+  
+
+  //
+
+  const router = useRouter();
+ 
+  useEffect(() => {
+    if(!isRoleAllowed){
+      
+      console.log('Role not allowed:', isRoleAllowed);
+      modals.openConfirmModal({
+        title: 'Please confirm your action',
+        children: (
+          <Text size="sm">
+            Your role is <b><i>{role}</i></b> and is currently unauthorized, please login as student/admin first.
+          </Text>
+        ),
+        labels: { confirm: 'Login', cancel: 'Go back to home page' },
+        onCancel: () => router.push('/'), 
+        onConfirm: () => router.push('/login'),
+        withCloseButton: false,
+      });
+    }
+    else{
+      console.log('Role allowed:', isRoleAllowed);
+    }
+
+    // if(isRoleAllowed===null){
+
+    // }
+    // else if(isRoleAllowed===false){
+    // }
+
+    // else if(isRoleAllowed===true){
+    //   console.log('Role allowed:', isRoleAllowed);
+    // }
+  }, []); // This will run the effect whenever `isRoleAllowed` changes
+  
+  
+
+    
+    
+    // useEffect(() => {
+    //   if (prodCategory==='Alcohol') {
+    //     setprodCategoryID('ALC');
+    //   }
+    //   else if (prodCategory==='Glassware') {
+    //     setprodCategoryID('GLW');
+    //   }
+    //   else if (prodCategory==='Linens') {
+    //     setprodCategoryID('LIN');
+    //   }
+    //   else if (prodCategory==='Plates') {
+    //     setprodCategoryID('PLT');
+    // }
+    // else if (prodCategory==='Utensils') {
+    //   setprodCategoryID('UTN');
+    // }
+
+
+    //   else if (prodCategory==='Tableware/Furniture') {
+    //     setprodCategoryID('TWF');
+    //   }
+        
+    // }
+    // , [prodCategory]);
+  
+    const categoryMap: { [key: string]: string } = {
+      'Alcohol': 'ALC',
+      'Glassware': 'GLW',
+      'Linens': 'LIN',
+      'Plates': 'PLT',
+      'Utensils': 'UTN',
+      'Tableware/Furniture': 'TWF'
+    };
+  
+    useEffect(() => {
+      // Update prodCategoryID based on the current prodCategory
+      setprodCategoryID(categoryMap[prodCategory] || '');
+      if(prodCategory===''){
+        setprodCategory('');}
+        setNextProductId('');
+        
+    }, [prodCategory]);
+  
+
+    useEffect(() => {
+      const fetchNextProductId = async () => {
+        if (!prodCategoryID) return; // Exit early if prodCategoryID is not set
+  
+        try {
+          const response = await axiosInstance.post('getProduct/', { // Use POST request
+            categoryID: prodCategoryID // Send prodCategory in the request body
+          }, {
+            
+          });
+  
+          if (response.status === 200) {
+            setNextProductId(response.data.nextProductId);
+          } else {
+            setError('Failed to retrieve the next product ID');
+          }
+        } catch (error) {
+          setError((error as Error).message || 'An error occurred');
+        }
+      };
+  
+      fetchNextProductId();
+    }, [prodCategoryID]); // The effect depends on prodCategory
+  
+
+   
+    const previews = prodImage.map((file, index) => {
+      const imageUrl = URL.createObjectURL(file);
+      return <Image key={index} src={imageUrl} onLoad={() => URL.revokeObjectURL(imageUrl)} />;
+    });
+
+    
+    const handleUpload = async () => {
+      const formData = new FormData();
+      formData.append('name', prodName);
+      formData.append('description', prodDesc);
+      formData.append('price', prodPrice.toString());
+      formData.append('quantity', prodQuantity.toString());
+      formData.append('category', prodCategory);
+      if (prodImage.length > 0) {
+        formData.append('image', prodImage[0]);
+      }
+  
+      try {
+        const response = await axios.post('uploadProduct/', formData);
+
+        console.log('Image uploaded successfully:', response.data);
+      } catch (error) {
+        console.error('Error uploading image:', error);
+      }
+    };
+    
+
+    const handleUpdate = async () => {
+      const formData = new FormData();
+      formData.append('productId', prodID);
+      formData.append('name', prodName);
+      formData.append('description', prodDesc);
+      formData.append('price', prodPrice.toString());
+      formData.append('quantity', prodQuantity.toString());
+      formData.append('category', prodCategory);
+      if (prodImage.length > 0) {
+        formData.append('image', prodImage[0]);
+      }
+  
+      try {
+        const response = await axios.put('updateProduct/', formData);
+
+        console.log('Image uploaded successfully:', response.data);
+      } catch (error) {
+        console.error('Error uploading image:', error);
+      }
+    };
+
+
+    const handleDelete = async () => {
+      try {
+        const response = await axios.delete(`http://localhost:8000/api/deleteProduct/?productId=${prodID}`);
+        console.log('Product deleted successfully:', response.data);
+      } catch (error) {
+        console.error('Error deleting product:', error);
+      }
+    };
+   
+    useEffect(() => {
+      const fetchCategories = async () => {
+        try {
+          const response = await axios.get('getCategories/');
+          categoryData = response.data.categories;
+          setCategories(response.data.categories);
+          console.log('Categories:', categoryData);
+        } catch (error) {
+          console.error('Error fetching categories:', error);
+        }
+      };
+      
+  
+      fetchCategories();
+    }
+    , []);
+    
+  return (
+    <Container>
+      <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+      
+    {isRoleAllowed ? (
+      
+      <Tabs color="teal" variant="pills" defaultValue="Create">
+      <Tabs.List grow>
+          <Tabs.Tab value="Create" leftSection={<IconPhoto style={iconStyle} />}>
+            Create
+          </Tabs.Tab>
+          <Tabs.Tab color="yellow" value="Update/Delete" leftSection={<IconMessageCircle style={iconStyle} />}>
+            Update
+          </Tabs.Tab>
+         
+        </Tabs.List>
+        
+        <Tabs.Panel value="Create">
+            <Stack gap="xl">
+              <Card shadow="sm" padding="lg">
+                <Text size="lg" fw={500}>Product Details</Text>
+
+                <TextInput
+                label="Product ID"
+                placeholder="Choose category to create new productID"
+                leftSection={focused ? <IconIdBadge2 style={iconStyle} /> : null}
+                  required
+                  classNames={classes}
+                  value={nextProductId}
+                  onChange={(event) => setprodID(event.currentTarget.value)}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  mt="md"
+                  disabled
+                  autoComplete="nope"
+                  data-floating={floating}
+                  labelProps={{ 'data-floating': floating }} />
+
+
+                <TextInput
+                  label="Product Name"
+                  placeholder="Enter product name"
+                  leftSection={focused ? <IconBadgeTmFilled style={iconStyle} /> : null}
+                  required
+                  classNames={classes}
+                  value={prodName}
+                  onChange={(event) => setprodName(event.currentTarget.value)}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  mt="md"
+                  autoComplete="nope"
+                  data-floating={floating}
+                  labelProps={{ 'data-floating': floating }} />
+                <TextInput
+                  label="Product Description"
+                  placeholder="Enter product description"
+                  leftSection={focused ? <IconFileDescription style={iconStyle} /> : null}
+
+                  required
+                  classNames={classes}
+                  value={prodDesc}
+                  onChange={(event) => setprodDesc(event.currentTarget.value)}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  mt="md"
+                  autoComplete="nope"
+                  data-floating={floating}
+                  labelProps={{ 'data-floating': floating }} />
+                <NumberInput
+                  leftSection={ focused ? "₱" : null}
+                  label="Product Price"
+                  placeholder="Enter product price"
+                  required
+                  classNames={classes}
+                  value={prodPrice !== 0 ? prodPrice.toString() : ''}
+                  allowDecimal={false}
+                  onChange={(value) => setprodPrice(Number(value))}
+                  onClick={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  mt="md"
+                  autoComplete="nope"
+                  data-floating={floating}
+                  labelProps={{ 'data-floating': floating }}
+                />
+
+                <NumberInput
+                  label="Product Quantity"
+                  placeholder="Enter product quantity"
+                  required
+                  classNames={classes}
+                  leftSection={focused ? <IconBuildingWarehouse style={iconStyle} /> : null}
+                  value={prodQuantity!==0 ? prodQuantity.toString() : ''}
+                  onChange={(value) => setprodQuantity(Number(value))}
+                  onClick={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  data-floating={floating}
+                  labelProps={{ 'data-floating': floating }}
+                  mt="md" />
+                <Select
+                
+                  mt="md"
+                  classNames={classes}
+                  leftSection={focused ? <IconCategoryFilled style={iconStyle} /> : null}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  data={categories.map((category: { name: any; }) => category.name)}
+                  placeholder="Pick a category"
+                  label="Product Category"
+                  data-floating={floating}
+                  labelProps={{ 'data-floating': floating }}
+                  onChange={(value: string | null) => setprodCategory(value ?? '')} />
+                <Dropzone my={20} accept={IMAGE_MIME_TYPE} onDrop={setprodImage}>
+                  <Text ta="center">Drop images here</Text>
+                </Dropzone>
+                <SimpleGrid type="container"  cols={{ base: 1, sm: 2, lg: 5 }}
+      spacing={{ base: 10, sm: 'xl' }}
+      verticalSpacing={{ base: 'md', sm: 'xl' }} mt={previews.length > 0 ? 'xl' : 0}>
+        {previews}
+      </SimpleGrid>
+                <Group justify='center' mt="xl">
+                  <Button onClick={handleUpload}>Upload</Button>
+                 
+                </Group>
+              </Card>
+              <ActionsGridViewAdmin />
+            <Autocomplete
+        placeholder="Search reservations using reservation ids"
+        mt={20}
+        leftSection={<IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />}
+        mb="md"
+        data={[
+          { group: 'ReservationIDs', items: [] },
+          { group: 'Reservation Status', items: [''] },
+        ]}
+        limit={5}
+        comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 },dropdownPadding: 10, shadow:'xl' }}
+      />
+             {/* pangload ng pics */}
+             <Card shadow="sm" padding="lg">
+                <Text size="lg" fw={500}>Recently Uploaded Products</Text>
+                {isLoading ? (
+                  <p>Loading images...</p>
+                ) : (
+                  <div>
+                    {images && images.length > 0 ? (
+                      images.map((product) => (
+                        
+
+                        <Card key={product.id} shadow="sm" padding="lg" mt="md">
+                          <Flex
+                           direction={{ base: 'column', sm: 'row' }}
+                           gap={{ base: 'sm', sm: 'lg' }}
+                           justify={{ sm: 'center' }}
+                           align="center"
+      
+                          wrap="nowrap"
+                           >
+                            <Stack >
+                            <Text><b>Product ID: </b>{product.productId}</Text>
+                          <Text><b>Product Category:</b> {product.category}</Text>
+                          <Text><b>Product Name:</b> {product.name}</Text>
+                          <Text lineClamp={4}><b>Product Description:</b> {product.description}</Text>
+                          <Text><b>Product Price (₱): </b>{product.price}</Text>
+                          <Text><b>Quantity:</b> {product.quantity}</Text>
+                            </Stack>
+                          <Image mx={'auto'} src={`http://localhost:8000${product.image}`} alt={product.name}radius="md"
+                        h={200} w={500} /></Flex>
+                          
+                        </Card>
+                      ))
+                    ) : (
+                      <p>No images found.</p>
+                    )}
+                  </div>
+                )}
+              </Card>
+            </Stack>
+          </Tabs.Panel>
+
+          <Tabs.Panel color="yellow" value="Update/Delete">
+          
+         <Container fluid ><UpdateAdmin /></Container>
+
+         
+          </Tabs.Panel>
+
+          
+          
+          </Tabs>
+      
+
+    ) : (
+      <p>Access Denied</p>
+    )}
+  </Container>
+  );
+};
+
+export default ProductAddPage;

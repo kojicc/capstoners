@@ -1,0 +1,87 @@
+.wrapper {
+  height: 830px;
+  width: 100%;
+    position: relative;
+    padding-top: rem(180px);
+    padding-bottom: rem(130px);
+    background-image: url('/RAFAEL.jpg');
+    background-size: cover;
+    overflow: auto;
+  
+  
+    @media (max-width:mantine-breakpoint-xs) {
+      padding-top: rem(80px);
+      padding-bottom: rem(50px);
+    }
+  }
+  
+  .inner {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .title {
+    font-weight: 800;
+    font-size: rem(40px);
+    letter-spacing: rem(-1px);
+    padding-left: var(--mantine-spacing-md);
+    padding-right: var(--mantine-spacing-md);
+    color: var(--mantine-color-white);
+    margin-bottom: var(--mantine-spacing-xs);
+    text-align: center;
+    font-family:
+      Greycliff CF,
+      var(--mantine-font-family);
+  
+    @media (max-width: mantine-breakpoint-xs) {
+      font-size: rem(28px);
+      text-align: left;
+    }
+  }
+  
+  .highlight {
+    color: var(--mantine-color-primary-4);
+  }
+  
+  .controls {
+   
+    display: flex;
+    justify-content: center;
+     margin-top: calc(var(--mantine-spacing-xl) * 1.5);
+    padding-left: var(--mantine-spacing-md);
+    padding-right: var(--mantine-spacing-md);
+    gap: 10px;
+
+
+    
+    @media (max-width: mantine-breakpoint-xs) {
+      flex-direction: column;
+    
+    }
+  }
+  
+  .disabled {
+    
+    
+      border-color: gray;
+      background-color: transparent;
+  
+  }
+ 
+  .buttonContent{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  }
+  
+
+  .icon{
+    margin-top: -10px;
+  margin-bottom: 3px; 
+  color:#f3c565;
+}
+
+.thIcon{
+margin-top: auto;    
+}
