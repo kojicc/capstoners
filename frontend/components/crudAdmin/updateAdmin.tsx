@@ -198,22 +198,6 @@ useEffect(() => {
   , []);
 
 
-  // const fetchReservations = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const response = await axiosInstance.get('adminReservationDetail/');
-  //     if (response.status === 200) {
-  //       setReservations(response.data.reservations);
-  //       setError('');
-  //     } else {
-  //       setError('No reservations found');
-  //     }
-  //   } catch (error) {
-  //     setError('Failed to fetch reservations');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const handleSort = (field: keyof Product) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
@@ -294,34 +278,7 @@ const handleEdit = async () => {
   const [value, setValue] = useState<string[]>([]);
 
 
-  // const cards = selectedProducts?.items.map((item: { product: { image: any; productId: boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<AwaitedReactNode> | Key | null | undefined; }; quantity: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; }) => {
-  //   const fullImageUrl = `http://localhost:8000${item.product.image}`;
-    
-  //   return (
-  //     <Checkbox.Card className={classes.root} radius="md" value={item.product.productId} key={item.product.productId}>
-  //       <Group wrap="nowrap" align="flex-start">
-  //         <Checkbox.Indicator />
-  //         <div>
-  //           <Text className={classes.label}>Product ID: {item.product.productId}</Text>
-  //           <Text className={classes.description}>Quantity: {item.quantity}</Text>
-  //           {/* Display the product image with full URL */}
-  //           <img src={fullImageUrl} alt={`Product ${item.product.productId}`} className={classes.image} style={{ width: '100px', height: '100px' }} />
-  //         </div>
-  //       </Group>
-  //     </Checkbox.Card>
-  //   );
-  // }) || [];
   
-  
-  // useEffect(() => {
-  //   if (selectedProducts?.items) {
-  //     // Initialize the quantity state based on selectedProducts items
-  //     const initialQuantities = selectedProducts.items.map((item: { quantity: any; }) => item.quantity);
-  //     setQuantity(initialQuantities);
-  //   }
-  // }, [selectedProducts]);
-  
-
   const handleCloseModal = () => {
     setEditModalOpened(false);
     setSelectedProducts(null);

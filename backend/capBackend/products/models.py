@@ -18,6 +18,9 @@ class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     image = models.ImageField(upload_to='products/images/', blank=True, default='products/images/default.png')
+    # created_at = models.DateTimeField(auto_now_add=True)
+    
+
 
     def __str__(self):
         return self.name

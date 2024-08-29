@@ -3,7 +3,7 @@ import useProtectedRoute from '../utils/protectedRoute'; // Ensure this path is 
 import { Button, Text, Skeleton, Image,TextInput, Select, SimpleGrid } from '@mantine/core';
 import { Dropzone, DropzoneProps,FileWithPath,IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import axios from '../utils/axiosInstance';
-import classes from '../components/floatinglabelIn/FloatingLabelInput.module.css';
+import classes from '../components/modules.css/FloatingLabelInput.module.css';
 import { DatesProvider, DateTimePicker } from '@mantine/dates';
 import moment from 'moment-timezone';
 

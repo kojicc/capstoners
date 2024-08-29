@@ -129,7 +129,9 @@ class RetrieveProductIDView(APIView):
                 products = Product.objects.filter(category_id=categoryID)
                 
                 if not products.exists():
-                    return Response({'message': 'No products found for the given category'}, status=404)
+                    prefix = Category.objects.get(categoryId=categoryID).name[:3].upper()
+                    return Response({'nextProductId': f'{prefix}-1'}, status=200)
+                
 
                 products = ProductImageSerializer(products, many=True)
 
@@ -160,8 +162,9 @@ class RetrieveProductImage(APIView):
 
             print(f"Category ID: {categoryID}")
 
-            if not categoryID:  # If categoryID is None or an empty string, return all products
-                images = Product.objects.all()
+            # Check if categoryID is either None, an empty string, or any other falsy value
+            if not categoryID or categoryID is None:  # If categoryID is falsy (None, empty, etc.), return all products
+                images = Product.objects.all().order_by('productId')
             else:
                 images = Product.objects.filter(category_id=categoryID)
 
@@ -175,8 +178,7 @@ class RetrieveProductImage(APIView):
                 'message': 'An error occurred',
                 'error': str(e)
             }, status=400)
-
-
+  
 class RetrieveProduct(APIView):
     def get(self, request):
         try:
@@ -227,7 +229,7 @@ class UploadProduct(APIView):
                 }, status=400)
 
             if category:
-                category = Category.objects.get(name=category)
+                category = Category.objects.get(name=category.lower())
             else:
                 category, created = Category.objects.get_or_create(categoryId='DEF', name='Default Category', defaults={'description': 'This is a default category.'})
 

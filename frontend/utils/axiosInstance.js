@@ -30,40 +30,40 @@ axiosInstance.interceptors.request.use(
   }
 );
 // Response interceptor: Handle token refresh
-axiosInstance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  async (error) => {
-    const originalRequest = error.config;
+// axiosInstance.interceptors.response.use(
+//   (response) => {
+//     return response;
+//   },
+//   async (error) => {
+//     const originalRequest = error.config;
 
-    // Check if error status is 401 (Unauthorized)
-    if (error.response.status === 401 && !originalRequest._retry) {
+//     // Check if error status is 401 (Unauthorized)
+//     if (error.response.status === 401 && !originalRequest._retry) {
      
-      originalRequest._retry = true;
-      router.push('/login');
-      try {
-        // Attempt to refresh token
-        const response = await axios.post('token/refresh/', {
-          refresh: Cookies.get('jwt_refresh_token'),
-        });
+//       originalRequest._retry = true;
+//       router.push('/login');
+//       try {
+//         // Attempt to refresh token
+//         const response = await axios.post('token/refresh/', {
+//           refresh: Cookies.get('jwt_refresh_token'),
+//         });
 
-        // Update cookies with new access token
-        Cookies.set('jwt_access_token', response.data.access, { path: '/' });
+//         // Update cookies with new access token
+//         Cookies.set('jwt_access_token', response.data.access, { path: '/' });
 
-        // Update the original request with the new token
-        axios.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.access;
-        return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        console.error('Refresh token error:', refreshError);
-        handleLogout();
+//         // Update the original request with the new token
+//         axios.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.access;
+//         return axiosInstance(originalRequest);
+//       } catch (refreshError) {
+//         console.error('Refresh token error:', refreshError);
+//         handleLogout();
         
-        // Logout the user or redirect to login page
-      }
-    }
+//         // Logout the user or redirect to login page
+//       }
+//     }
 
-    return Promise.reject(error);
-  }
-);
+//     return Promise.reject(error);
+//   }
+// );
 
 export default axiosInstance;

@@ -336,7 +336,8 @@ useEffect(() => {
       justify="center"
       align="center"
       direction="row"
-      wrap="wrap" className={classes.inner}>
+      wrap="wrap" 
+      className={classes.inner}>
 <Container fluid >
       <Title c={'white'} order={2} >Transaction History - Admin</Title>
       <Autocomplete

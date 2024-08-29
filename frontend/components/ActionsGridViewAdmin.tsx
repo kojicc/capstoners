@@ -22,6 +22,7 @@ import {
   import { modals } from '@mantine/modals';
   import { notifications } from '@mantine/notifications';
   import { useState, useEffect } from 'react';
+import { useDisclosure } from '@mantine/hooks';
   
   interface Category {
     categoryId: string;
@@ -42,8 +43,9 @@ import {
     const [createCategoryDescription, setCreateCategoryDescription] = useState('');
     const [createCategoryIcon, setCreateCategoryIcon] = useState('');
     const [opened, setOpened] = useState(false);
+    const [editOpened, setEditOpened] = useState(false);
     const [popoverOpened, setPopoverOpened] = useState<{ [key: string]: boolean }>({});
-  
+    const [hoverOpened, { close, open }] = useDisclosure(false);
     const theme = useMantineTheme();
   
     const getCategories = async () => {
@@ -68,6 +70,19 @@ import {
       console.log('Button clicked, setting categoryID to:', id);
       setCategoryID(id);
       dispatch({ type: 'SET_CATEGORY_ID', payload: id });
+
+
+      
+      const selectedCategory = categories.find((category) => category.categoryId === id);
+      console.log('id:', id);
+      console.log('Selected Category:', selectedCategory);
+    
+      if (selectedCategory) {
+        setCreateCategoryID(selectedCategory.categoryId);
+        setCreateCategoryName(selectedCategory.name);
+        setCreateCategoryDescription(selectedCategory.description);
+        setCreateCategoryIcon(selectedCategory.icon);
+      }
     };
   
     const handleDeleteButtonClick = (id: string) => {
@@ -97,99 +112,24 @@ import {
               autoClose: true,
               autoCloseIn: 5000,
             });
+           
           } catch (error) {
             console.error('Error:', error);
           }
+          dispatch({ type: 'SET_CATEGORY_ID', payload: '' });
         },
       });
     };
 
 
     const handleEditButtonClick = (id: string) => {
-        setPopoverOpened((prev) => ({ ...prev, [id]: false })); // Close the specific popover
-        modals.openConfirmModal({
-          title: `Edit Category - ${id}`,
-          labels: { confirm: 'Edit Category', cancel: "No don't edit it" },
-          children: (
-            <Stack>
-              <TextInput
-              disabled
-                label="Category ID"
-                placeholder="Enter category ID"
-                required
-                value={id}
-                onChange={(event) => setCategoryID(event.currentTarget.value)}
-                style={{ width: '100%' }}
-              />
-              <TextInput
-                label="Category Name"
-                placeholder="Enter category name"
-                required
-                value={id}
-                onChange={(event) => setCreateCategoryName(event.currentTarget.value)}
-                style={{ width: '100%' }}
-              />
-              <TextInput
-                label="Category Description"
-                placeholder="Enter category description"
-                required
-                value={createCategoryDescription}
-                onChange={(event) => setCreateCategoryDescription(event.currentTarget.value)}
-                style={{ width: '100%' }}
-              />
-              <TextInput
-                label="Category Icon"
-                placeholder="Enter category icon"
-                required
-                value={createCategoryIcon}
-                onChange={(event) => setCreateCategoryIcon(event.currentTarget.value)}
-                style={{ width: '100%' }}
-              />
-              <Button
-                onClick={() => {
-                  setLoading(true);
-                  axios
-                    .post('editCategory/', {
-                      categoryId: createCategoryID,
-                      name: createCategoryName,
-                      description: createCategoryDescription,
-                      icon: createCategoryIcon,
-                    })
-                    .then((response) => {
-                      console.log('Response:', response);
-                      setLoading(false);
-                      getCategories();
-                      notifications.show({
-                        title: 'Category Edited',
-                        message: `Category with ID ${createCategoryID} has been edited successfully`,
-                        color: 'blue',
-                        icon: '🎉',
-                        autoClose: true,
-                        autoCloseIn: 5000,
-                      });
-                      setOpened(false);
-                      setCreateCategoryID('');
-                      setCreateCategoryName('');
-                      setCreateCategoryIcon('');
-                      setCreateCategoryDescription('');
-                    })
-                    .catch((error) => {
-                      console.error('Error:', error);
-                      setLoading(false);
-                    })
-                    .finally(() => {
-                      console.log('Finally block executed');
-                      setLoading(false);
-                    });
-                }}
-              >
-                Edit Category
-              </Button>
-            </Stack>
-          ),
-        });
-      };
-  
+              setPopoverOpened((prev) => ({ ...prev, [id]: false })); // Close the specific popover
+
+     
+    }
+
+
+    
     const items = mockdata.map((item) => (
 
       <Popover
@@ -198,7 +138,7 @@ import {
         position="bottom"
         withArrow
         shadow="md"
-        opened={popoverOpened[item.id] || false}
+        opened={popoverOpened[item.id] || hoverOpened ||false}
         onClose={() => setPopoverOpened((prev) => ({ ...prev, [item.id]: false }))}
       >
         <Popover.Target>
@@ -225,9 +165,12 @@ import {
             <Button color="red" onClick={() => handleDeleteButtonClick(item.id)}>
               Delete
             </Button>
-            <Button color="blue" onClick={() => handleEditButtonClick(item.id)}>
+            <Button color="blue" onClick={() => {handleEditButtonClick(item.id); setEditOpened(true);}}>
               Edit
             </Button>
+           {/* <Button onClick={() => setEditOpened(true)}>
+            Edit
+            </Button>  */}
           </Flex>
         </Popover.Dropdown>
        
@@ -247,11 +190,13 @@ import {
             {items}
           </SimpleGrid>
         </Card>
-  
-        <Modal opened={opened} onClose={() => setOpened(false)} title="Add Category">
-          <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
+
+        <Modal title="Edit Category" opened={editOpened} onClose={() => setEditOpened(false)}>
+        <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
+
           <Stack>
             <TextInput
+              disabled
               label="Category ID"
               placeholder="Enter category ID"
               required
@@ -276,10 +221,90 @@ import {
               style={{ width: '100%' }}
             />
             <TextInput
+              description={<span>Enter the icon name from the <Anchor href='https://tabler.io/icons'>Tabler Icons library</Anchor></span>}
               label="Category Icon"
               placeholder="Enter category icon"
               required
               value={createCategoryIcon}
+              onChange={(event) => setCreateCategoryIcon(event.currentTarget.value)}
+              style={{ width: '100%' }}
+            />
+            <Button
+              onClick={() => {
+                setLoading(true);
+                axios
+                  .put('editCategory/', {
+                    categoryId: createCategoryID,
+                    name: createCategoryName,
+                    description: createCategoryDescription,
+                    icon: createCategoryIcon,
+                  })
+                  .then((response) => {
+                    console.log('Response:', response);
+                    setLoading(false);
+                    getCategories();
+                    notifications.show({
+                      title: 'Category Edited',
+                      message: `Category with ID ${createCategoryID} has been edited successfully`,
+                      color: 'blue',
+                      icon: '🎉',
+                      autoClose: true,
+                      autoCloseIn: 5000,
+                    });
+                    setEditOpened(false);
+                    setCreateCategoryID('');
+                    setCreateCategoryName('');
+                    setCreateCategoryIcon('');
+                    setCreateCategoryDescription('');
+                    ;
+                  })
+                  .catch((error) => {
+                    console.error('Error:', error);
+                    setLoading(false);
+                  })
+                  .finally(() => {
+                    console.log('Finally block executed');
+                    setLoading(false);
+                  });
+              }}
+            >
+              Edit Category
+            </Button>
+          </Stack>
+        </Modal>
+  
+        <Modal opened={opened} onClose={() => setOpened(false)} title="Add Category">
+          <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
+          <Stack>
+            <TextInput
+              label="Category ID"
+              placeholder="Enter category ID"
+              required
+              value={undefined}
+              onChange={(event) => setCreateCategoryID(event.currentTarget.value)}
+              style={{ width: '100%' }}
+            />
+            <TextInput
+              label="Category Name"
+              placeholder="Enter category name"
+              required
+              value={undefined}
+              onChange={(event) => setCreateCategoryName(event.currentTarget.value)}
+              style={{ width: '100%' }}
+            />
+            <TextInput
+              label="Category Description"
+              placeholder="Enter category description"
+              required
+              value={undefined}
+              onChange={(event) => setCreateCategoryDescription(event.currentTarget.value)}
+              style={{ width: '100%' }}
+            />
+            <TextInput
+              label="Category Icon"
+              placeholder="Enter category icon"
+              required
+              value={undefined}
               onChange={(event) => setCreateCategoryIcon(event.currentTarget.value)}
               style={{ width: '100%' }}
             />
@@ -318,8 +343,10 @@ import {
                   .finally(() => {
                     console.log('Finally block executed');
                     setLoading(false);
+                    dispatch({ type: 'SET_CATEGORY_ID', payload: '' });
                   });
               }}
+              
             >
               Add Category
             </Button>

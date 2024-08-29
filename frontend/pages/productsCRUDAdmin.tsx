@@ -2,7 +2,7 @@
 
 import React, { useContext, useEffect, useState } from 'react';
 import useProtectedRoute from '../utils/protectedRoute'; // Ensure this path is correct
-import { Button, Text, Image,TextInput, Select, SimpleGrid, Card, Container, Group, Stack, LoadingOverlay, Tabs, rem, Autocomplete, Flex, NumberInput, Popover } from '@mantine/core';
+import { Button, Text, Image,TextInput, Select, SimpleGrid, Card, Container, Group, Stack, LoadingOverlay, Tabs, rem, Autocomplete, Flex, NumberInput, Popover, Overlay } from '@mantine/core';
 import { Dropzone, FileWithPath,IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import axios from '../utils/axiosInstance';
 import classes from '../components/modules.css/FloatingLabelInput.module.css';
@@ -16,6 +16,9 @@ import ActionsGridViewAdmin from '@/components/ActionsGridViewAdmin';
 import UpdateAdmin from '@/components/crudAdmin/updateAdmin';
 import { useCategoryID } from '../utils/categoryIDContext';
 import axiosInstance from '../utils/axiosInstance';
+import { notifications } from '@mantine/notifications';
+import { Header } from '@/components/LandingPage/header/HeaderLP';
+import { useForm } from '@mantine/form';
 
 
 interface Product {
@@ -39,7 +42,7 @@ interface Category {
 
 
 const ProductAddPage = () => {
-  const [images, setImages] = useState<Product[] | null>(null);
+  const [images, setImages] = useState<Product[] >([]);
   const [isLoading, setIsLoading] = useState(true);
   const { state } = useCategoryID();
   const [prodID, setprodID] = useState<string>('');
@@ -47,16 +50,22 @@ const ProductAddPage = () => {
   const [prodDesc, setprodDesc] = useState<string>('');
   const [prodPrice, setprodPrice] = useState<number>(0);
   const [prodQuantity, setprodQuantity] = useState<number>(0);
-  const [prodCategory, setprodCategory] = useState<string>('');
+  const [prodCategory, setprodCategory] = useState<string >('');
+  console.log('prodCategory',prodCategory);
   const [prodCategoryID, setprodCategoryID] = useState<string>('');
   const [prodImage, setprodImage] = useState<FileWithPath[]>([]);
   const [focused, setFocused] = useState<boolean>(false);
   const [value, setValue] = useState<string>('');
   const [openedPopoverId, setOpenedPopoverId] = useState<string | null>(null);
+  
 
   const [nextProductId, setNextProductId] = useState('');
   const [error, setError] = useState('');
   const floating = value.trim().length !== 0 || focused || undefined;
+  const [searchProduct, setSearchProduct] = useState<Product[]>([]);
+
+  const [searchInput, setSearchInput] = useState<string>('');
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   
   const iconStyle = { width: rem(12), height: rem(12) };
 
@@ -80,30 +89,34 @@ const ProductAddPage = () => {
   
   useEffect(() => {
     const fetchImages = async () => {
-      try {
-        const { categoryID } = state;
-        console.log('Category ID:', categoryID);
+        try {
+            const { categoryID } = state;
+            console.log('Category ID:', categoryID);
 
-        if (categoryID) {  // Only send the categoryID if it is not empty
-          const response = await axios.get('getImages/', {
-            params: { categoryID }
-          });
-          setImages(response.data.images);
-          console.log('Images:', response.data.images);
-        } else {
-          const response = await axios.get('getImages/');  // Fetch all images when categoryID is empty
-          setImages(response.data.images);
+            if (categoryID) {  // Only send the categoryID if it is truthy (not null, undefined, or empty)
+                const response = await axios.get('getImages/', {
+                    params: { categoryID }
+                });
+                setImages(response.data.images);
+                console.log('Images:', response.data.images);
+            } else {
+                const response = await axios.get('getImages/',{
+                  params: { categoryID: '' }
+                });  // Fetch all images when categoryID is falsy (null, empty, etc.)
+                setImages(response.data.images);
+                setSearchProduct(response.data.images);
+            }
+
+        } catch (error) {
+            console.error('Error fetching images:', error);
+        } finally {
+            setIsLoading(false);
         }
-
-      } catch (error) {
-        console.error('Error fetching images:', error);
-      } finally {
-        setIsLoading(false);
-      }
     };
 
     fetchImages();
 }, [state.categoryID]);
+
 
   // useEffect(() => {
   //   const modalAppear = async () => {
@@ -216,9 +229,9 @@ const ProductAddPage = () => {
     useEffect(() => {
       // Update prodCategoryID based on the current prodCategory
       setprodCategoryID(categoryMap[prodCategory] || '');
-      if(prodCategory===''){
-        setprodCategory('');}
-        setNextProductId('');
+      
+      
+     
         
     }, [prodCategory]);
   
@@ -256,6 +269,8 @@ const ProductAddPage = () => {
 
     
     const handleUpload = async () => {
+      // setprodCategory("")
+      setIsLoading(true);
       const formData = new FormData();
       formData.append('name', prodName);
       formData.append('description', prodDesc);
@@ -269,256 +284,313 @@ const ProductAddPage = () => {
       try {
         const response = await axios.post('uploadProduct/', formData);
 
-        console.log('Image uploaded successfully:', response.data);
-      } catch (error) {
-        console.error('Error uploading image:', error);
-      }
-    };
-    
-
-    const handleUpdate = async () => {
-      const formData = new FormData();
-      formData.append('productId', prodID);
-      formData.append('name', prodName);
-      formData.append('description', prodDesc);
-      formData.append('price', prodPrice.toString());
-      formData.append('quantity', prodQuantity.toString());
-      formData.append('category', prodCategory);
-      if (prodImage.length > 0) {
-        formData.append('image', prodImage[0]);
-      }
-  
-      try {
-        const response = await axios.put('updateProduct/', formData);
-
-        console.log('Image uploaded successfully:', response.data);
-      } catch (error) {
-        console.error('Error uploading image:', error);
-      }
-    };
-
-
-    const handleDelete = async () => {
-      try {
-        const response = await axios.delete(`http://localhost:8000/api/deleteProduct/?productId=${prodID}`);
-        console.log('Product deleted successfully:', response.data);
-      } catch (error) {
-        console.error('Error deleting product:', error);
-      }
-    };
-   
-    useEffect(() => {
-      const fetchCategories = async () => {
-        try {
-          const response = await axios.get('getCategories/');
-          categoryData = response.data.categories;
-          setCategories(response.data.categories);
-          console.log('Categories:', categoryData);
-        } catch (error) {
-          console.error('Error fetching categories:', error);
-        }
-      };
       
-  
-      fetchCategories();
-    }
-    , []);
-    
-  return (
-    <Container>
-      <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
-      
-    {isRoleAllowed ? (
-      
-      <Tabs color="teal" variant="pills" defaultValue="Create">
-      <Tabs.List grow>
-          <Tabs.Tab value="Create" leftSection={<IconPhoto style={iconStyle} />}>
-            Create
-          </Tabs.Tab>
-          <Tabs.Tab color="yellow" value="Update/Delete" leftSection={<IconMessageCircle style={iconStyle} />}>
-            Update
-          </Tabs.Tab>
-         
-        </Tabs.List>
+          setIsLoading(false);
+          notifications.show({
+            title: 'Success',
+            message: 'Product uploaded successfully',
+            color: 'teal',
+            icon: <IconSettings />,
+          });
+          setprodCategoryID('');
+          setprodName('');
+          setprodDesc('');
+          setprodPrice(0);
+          setprodQuantity(0);
+          setprodCategory('');
+          
+          setprodImage([]);
+          setNextProductId('');
         
-        <Tabs.Panel value="Create">
-            <Stack gap="xl">
-              <Card shadow="sm" padding="lg">
-                <Text size="lg" fw={500}>Product Details</Text>
+         
+        console.log('Image uploaded successfully:', response.data);
 
-                <TextInput
-                label="Product ID"
-                placeholder="Choose category to create new productID"
-                leftSection={focused ? <IconIdBadge2 style={iconStyle} /> : null}
-                  required
-                  classNames={classes}
-                  value={nextProductId}
-                  onChange={(event) => setprodID(event.currentTarget.value)}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  mt="md"
-                  disabled
-                  autoComplete="nope"
-                  data-floating={floating}
-                  labelProps={{ 'data-floating': floating }} />
+        if(response.status === 400){
+          notifications.show({
+            title: 'Error',
+            message: 'Product not uploaded',
+            color: 'red',
+            icon: <IconSettings />,
+          });
+          setIsLoading(false);
+        }
+        
+      } catch (error) {
+        console.error('Error uploading image:', error);
+      }
+    };
+    
 
+    
+   
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('getCategories/');
+        categoryData = response.data.categories;
+        setCategories(response.data.categories);
+        console.log('Categories:', categoryData);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    }
 
-                <TextInput
-                  label="Product Name"
-                  placeholder="Enter product name"
-                  leftSection={focused ? <IconBadgeTmFilled style={iconStyle} /> : null}
-                  required
-                  classNames={classes}
-                  value={prodName}
-                  onChange={(event) => setprodName(event.currentTarget.value)}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  mt="md"
-                  autoComplete="nope"
-                  data-floating={floating}
-                  labelProps={{ 'data-floating': floating }} />
-                <TextInput
-                  label="Product Description"
-                  placeholder="Enter product description"
-                  leftSection={focused ? <IconFileDescription style={iconStyle} /> : null}
+      useEffect(() => {
+        fetchCategories();
+      }
+      , []); 
 
-                  required
-                  classNames={classes}
-                  value={prodDesc}
-                  onChange={(event) => setprodDesc(event.currentTarget.value)}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  mt="md"
-                  autoComplete="nope"
-                  data-floating={floating}
-                  labelProps={{ 'data-floating': floating }} />
-                <NumberInput
-                  leftSection={ focused ? "₱" : null}
-                  label="Product Price"
-                  placeholder="Enter product price"
-                  required
-                  classNames={classes}
-                  value={prodPrice !== 0 ? prodPrice.toString() : ''}
-                  allowDecimal={false}
-                  onChange={(value) => setprodPrice(Number(value))}
-                  onClick={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  mt="md"
-                  autoComplete="nope"
-                  data-floating={floating}
-                  labelProps={{ 'data-floating': floating }}
-                />
-
-                <NumberInput
-                  label="Product Quantity"
-                  placeholder="Enter product quantity"
-                  required
-                  classNames={classes}
-                  leftSection={focused ? <IconBuildingWarehouse style={iconStyle} /> : null}
-                  value={prodQuantity!==0 ? prodQuantity.toString() : ''}
-                  onChange={(value) => setprodQuantity(Number(value))}
-                  onClick={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  data-floating={floating}
-                  labelProps={{ 'data-floating': floating }}
-                  mt="md" />
-                <Select
-                
-                  mt="md"
-                  classNames={classes}
-                  leftSection={focused ? <IconCategoryFilled style={iconStyle} /> : null}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  data={categories.map((category: { name: any; }) => category.name)}
-                  placeholder="Pick a category"
-                  label="Product Category"
-                  data-floating={floating}
-                  labelProps={{ 'data-floating': floating }}
-                  onChange={(value: string | null) => setprodCategory(value ?? '')} />
-                <Dropzone my={20} accept={IMAGE_MIME_TYPE} onDrop={setprodImage}>
-                  <Text ta="center">Drop images here</Text>
-                </Dropzone>
-                <SimpleGrid type="container"  cols={{ base: 1, sm: 2, lg: 5 }}
-      spacing={{ base: 10, sm: 'xl' }}
-      verticalSpacing={{ base: 'md', sm: 'xl' }} mt={previews.length > 0 ? 'xl' : 0}>
-        {previews}
-      </SimpleGrid>
-                <Group justify='center' mt="xl">
-                  <Button onClick={handleUpload}>Upload</Button>
-                 
-                </Group>
-              </Card>
-              <ActionsGridViewAdmin />
-            <Autocomplete
-        placeholder="Search reservations using reservation ids"
-        mt={20}
-        leftSection={<IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />}
-        mb="md"
-        data={[
-          { group: 'ReservationIDs', items: [] },
-          { group: 'Reservation Status', items: [''] },
-        ]}
-        limit={5}
-        comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 },dropdownPadding: 10, shadow:'xl' }}
-      />
-             {/* pangload ng pics */}
-             <Card shadow="sm" padding="lg">
-                <Text size="lg" fw={500}>Recently Uploaded Products</Text>
-                {isLoading ? (
-                  <p>Loading images...</p>
-                ) : (
-                  <div>
-                    {images && images.length > 0 ? (
-                      images.map((product) => (
-                        
-
-                        <Card key={product.id} shadow="sm" padding="lg" mt="md">
-                          <Flex
-                           direction={{ base: 'column', sm: 'row' }}
-                           gap={{ base: 'sm', sm: 'lg' }}
-                           justify={{ sm: 'center' }}
-                           align="center"
       
-                          wrap="nowrap"
-                           >
-                            <Stack >
-                            <Text><b>Product ID: </b>{product.productId}</Text>
-                          <Text><b>Product Category:</b> {product.category}</Text>
-                          <Text><b>Product Name:</b> {product.name}</Text>
-                          <Text lineClamp={4}><b>Product Description:</b> {product.description}</Text>
-                          <Text><b>Product Price (₱): </b>{product.price}</Text>
-                          <Text><b>Quantity:</b> {product.quantity}</Text>
-                            </Stack>
-                          <Image mx={'auto'} src={`http://localhost:8000${product.image}`} alt={product.name}radius="md"
-                        h={200} w={500} /></Flex>
-                          
-                        </Card>
-                      ))
-                    ) : (
-                      <p>No images found.</p>
-                    )}
-                  </div>
-                )}
-              </Card>
-            </Stack>
-          </Tabs.Panel>
 
-          <Tabs.Panel color="yellow" value="Update/Delete">
-          
-         <Container fluid ><UpdateAdmin /></Container>
+      const handleSearch = (value: string) => {
+        setSearchInput(value);
+        const filtered = searchProduct.filter((product) =>
+          product.productId.toLowerCase().includes(value.toLowerCase())
+        );
+        setFilteredProducts(filtered);
+      };
+    
+
+      useEffect(() => {
+        if (searchInput === '') {
+          setFilteredProducts(searchProduct);
+        }
+        else{
+          handleSearch(searchInput);
+        }
+      }, [searchInput, searchProduct]);
+        
+
+
+  return (
+    <Container pl={0} fluid bg={'#2F5933'}>
+     <Header />
+    
+
+
+    <Container fluid  pt={80}>
+     
+    <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+
+    
+     
+   {isRoleAllowed ? (
+     
+     <Tabs color="teal" variant="pills" defaultValue="Create" classNames={classes}>
+     <Tabs.List grow>
+         <Tabs.Tab value="Create" leftSection={<IconPhoto style={iconStyle} />}>
+           Create
+         </Tabs.Tab>
+         <Tabs.Tab color="yellow" value="Update/Delete" leftSection={<IconMessageCircle style={iconStyle} />}>
+           Update
+         </Tabs.Tab>
+        
+       </Tabs.List>
+       
+       <Tabs.Panel value="Create">
+           <Stack gap="xl">
+             <Card shadow="sm" padding="lg">
+               <Text size="lg" fw={500}>Product Details</Text>
+
+               <TextInput
+               label="Product ID"
+               placeholder="Choose category to create new productID"
+               leftSection={focused ? <IconIdBadge2 style={iconStyle} /> : null}
+                 required
+                 classNames={classes}
+                 value={nextProductId}
+                 onChange={(event) => setprodID(event.currentTarget.value)}
+                 onFocus={() => setFocused(true)}
+                 onBlur={() => setFocused(false)}
+                 mt="md"
+                 disabled
+                 autoComplete="nope"
+                 data-floating={floating}
+                 labelProps={{ 'data-floating': floating }} />
+
+
+               <TextInput
+                 label="Product Name"
+                 placeholder="Enter product name"
+                 leftSection={focused ? <IconBadgeTmFilled style={iconStyle} /> : null}
+                 required
+                 aria-required
+                 classNames={classes}
+                 value={prodName}
+                 onChange={(event) => setprodName(event.currentTarget.value)}
+                 onFocus={() => setFocused(true)}
+                 onBlur={() => setFocused(false)}
+                 mt="md"
+                 autoComplete="nope"
+                 data-floating={floating}
+                 labelProps={{ 'data-floating': floating }} />
+               <TextInput
+                 label="Product Description"
+                 placeholder="Enter product description"
+                 leftSection={focused ? <IconFileDescription style={iconStyle} /> : null}
+
+                 required
+                 classNames={classes}
+                 value={prodDesc}
+                 onChange={(event) => setprodDesc(event.currentTarget.value)}
+                 onFocus={() => setFocused(true)}
+                 onBlur={() => setFocused(false)}
+                 mt="md"
+                 autoComplete="nope"
+                 data-floating={floating}
+                 labelProps={{ 'data-floating': floating }} />
+               <NumberInput
+                 leftSection={ focused ? "₱" : null}
+                 label="Product Price"
+                 placeholder="Enter product price"
+                 required
+                 classNames={classes}
+                 value={prodPrice !== 0 ? prodPrice.toString() : ''}
+                 allowDecimal={false}
+                 onChange={(value) => setprodPrice(Number(value))}
+                 onClick={() => setFocused(true)}
+                 onBlur={() => setFocused(false)}
+                 mt="md"
+                 autoComplete="nope"
+                 data-floating={floating}
+                 labelProps={{ 'data-floating': floating }}
+               />
+
+               <NumberInput
+                 label="Product Quantity"
+                 placeholder="Enter product quantity"
+                 required
+                 classNames={classes}
+                 leftSection={focused ? <IconBuildingWarehouse style={iconStyle} /> : null}
+                 value={prodQuantity!==0 ? prodQuantity.toString() : ''}
+                 onChange={(value) => setprodQuantity(Number(value))}
+                 onClick={() => setFocused(true)}
+                 onBlur={() => setFocused(false)}
+                 data-floating={floating}
+                 labelProps={{ 'data-floating': floating }}
+                 mt="md" />
+               {/* <Select
+              mt="md"
+              classNames={classes}
+              leftSection={focused ? <IconCategoryFilled style={iconStyle} /> : null}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              data={categories.map((category: { name: any; }) => category.name)}
+              placeholder="Pick a category"
+              label="Product Category"
+              
+              data-floating={floating}
+              labelProps={{ 'data-floating': floating }}
+              onChange={(value: string | null) => setprodCategory(value ?? '')}
+/> */}
+ <Select
+  mt="md"
+  classNames={classes}
+  leftSection={focused ? <IconCategoryFilled style={iconStyle} /> : null}
+  defaultSearchValue={prodCategory}
+  onFocus={() => setFocused(true)}
+  onBlur={() => setFocused(false)}
+  data={categories.map((category: { name: any; }) => category.name)}
+  placeholder="Pick a category"
+  label="Product Category"
+  labelProps={{ 'data-floating': floating }}
+      clearable
+      onChange={(value: string | null) => setprodCategory(value ?? '')}
+    />
+               <Dropzone my={20} accept={IMAGE_MIME_TYPE} onDrop={setprodImage}>
+                 <Text ta="center">Drop images here</Text>
+               </Dropzone>
+               <SimpleGrid type="container"  cols={{ base: 1, sm: 2, lg: 5 }}
+     spacing={{ base: 10, sm: 'xl' }}
+     verticalSpacing={{ base: 'md', sm: 'xl' }} mt={previews.length > 0 ? 'xl' : 0}>
+       {previews}
+     </SimpleGrid>
+               <Group justify='center' mt="xl">
+                 <Button  onClick={handleUpload}>Upload</Button>
+                
+               </Group>
+             </Card>
+             <ActionsGridViewAdmin />
+             
+           <Autocomplete
+       placeholder="Search reservations using reservation ids"
+       mt={20}
+       leftSection={<IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />}
+       mb="md"
+       data={[
+         { group: 'Category IDs', items: categories.map((category: { categoryId: any; }) => category.categoryId) },
+         { group: 'Product IDs', items: searchProduct.map((product: { productId: any; }) => product.productId) },
+       ]}
+       limit={5}
+       comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 },dropdownPadding: 10, shadow:'xl' }}
+       value={searchInput}
+                onChange={handleSearch}
+     />
+            {/* pangload ng pics */}
+            <Card shadow="sm" padding="lg">
+               <Text size="lg" fw={500}>Recently Uploaded Products</Text>
+               {isLoading ? (
+                 <p>Loading images...</p>
+               ) : (
+                 <div>
+                  
+           
+                
+
+
+                   {filteredProducts && filteredProducts.length > 0 ? (
+                     filteredProducts.map((product) => (
+                       
+
+                       <Card key={product.id} shadow="sm" padding="lg" mt="md">
+                         <Flex
+                          direction={{ base: 'column', sm: 'row' }}
+                          gap={{ base: 'sm', sm: 'lg' }}
+                          justify={{ sm: 'center' }}
+                          align="center"
+     
+                         wrap="nowrap"
+                          >
+                           <Stack >
+                           <Text><b>Product ID: </b>{product.productId}</Text>
+                         <Text><b>Product Category:</b> {product.category}</Text>
+                         <Text><b>Product Name:</b> {product.name}</Text>
+                         <Text lineClamp={4}><b>Product Description:</b> {product.description}</Text>
+                         <Text><b>Product Price (₱): </b>{product.price}</Text>
+                         <Text><b>Quantity:</b> {product.quantity}</Text>
+                           </Stack>
+                         <Image mx={'auto'} src={`http://localhost:8000${product.image}`} alt={product.name}radius="md"
+                       h={200} w={500} /></Flex>
+                         
+                       </Card>
+                     ))
+                   ) : (
+                     <p>No images found.</p>
+                   ) }
+                 </div>
+               )}
+             </Card>
+           </Stack>
+         </Tabs.Panel>
+
+         <Tabs.Panel color="yellow" value="Update/Delete">
+         
+        <Container fluid bg={'#417A46'} ><UpdateAdmin /></Container>
+
+        
+         </Tabs.Panel>
 
          
-          </Tabs.Panel>
+         
+         </Tabs>
+     
 
-          
-          
-          </Tabs>
-      
-
-    ) : (
-      <p>Access Denied</p>
-    )}
-  </Container>
+   ) : (
+     <p>Access Denied</p>
+   )}
+ </Container>
+ 
+     </Container>
+  
   );
 };
 
