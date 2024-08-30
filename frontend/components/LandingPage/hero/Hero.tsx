@@ -80,7 +80,7 @@ useEffect(() => {
           {role === 'admin' ? (
              <>
              <Button className={classes.disabled} component="a"
-         href="https://mantine.dev"
+         href="adminDashboard"
          data-disabled={isDisabled} 
          onClick={isDisabled ? (event) => event.preventDefault() : undefined}
          size="xl"
@@ -91,7 +91,7 @@ useEffect(() => {
        <IconBuildingStore className={classes.icon} size={35}/>
        
  
-       <Text fw={700} c='white'>Reserve</Text>
+       <Text fw={700} c='white'>Dashboard</Text>
      </div>
  
        
