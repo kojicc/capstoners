@@ -164,7 +164,7 @@ class RetrieveProductImage(APIView):
 
             # Check if categoryID is either None, an empty string, or any other falsy value
             if not categoryID or categoryID is None:  # If categoryID is falsy (None, empty, etc.), return all products
-                images = Product.objects.all().order_by('productId')
+                images = Product.objects.all().order_by('-created_at')
             else:
                 images = Product.objects.filter(category_id=categoryID)
 
@@ -179,7 +179,7 @@ class RetrieveProductImage(APIView):
                 'error': str(e)
             }, status=400)
   
-class RetrieveProduct(APIView):
+class RetrieveProductAdmin(APIView):
     def get(self, request):
         try:
             categoryID = request.data.get('categoryID')  # Use query params to get categoryID

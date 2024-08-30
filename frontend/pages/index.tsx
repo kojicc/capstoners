@@ -20,9 +20,8 @@ export default function HomePage() {
   return (
     <>
         
-        <Button component='a'href='/productsCRUDAdmin'>Crud Test</Button>
-        <Button component='a'href='/cart'>Cart Test</Button>
-        <Button component='a'href='/test'>Notification Test</Button>
+        {/* <Button component='a'href='/productsCRUDAdmin'>Crud Test</Button> */}
+        
     <Header />
     <Hero/>
     <About/>
@@ -33,7 +32,8 @@ export default function HomePage() {
    
     <Products/>
 <ContactUs/>
-    
+<Button component='a'href='/cart'>Cart Test</Button>
+<Button component='a'href='/test'>Notification Test</Button>
     <Footer/>
     
     </>

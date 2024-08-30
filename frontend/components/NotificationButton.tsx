@@ -123,6 +123,7 @@ const NotificationButton = () => {
       },
       onConfirm: () => {
         const reservationId = extractReservationId(notification.message);
+        console.log('Reservation ID:', reservationId);
         router.push({
           pathname: '/transactionsAdmin',
           query: { searchQuery: reservationId },
@@ -135,9 +136,23 @@ const NotificationButton = () => {
   };
 
   const extractReservationId = (message: string): string => {
-    const regex = /reservation\s(\d+_\d{2}-\d{2}-\d{4}-\d{2}_\w+)/;
-    const match = message.match(regex);
-    return match ? match[1] : '';
+    const regex1 = /Reservation\s(\d+_\d{2}-\d{2}-\d{4}-\d{2}_\w+)/;
+    const regex2 = /Your reservation\s(\d+_\d{2}-\d{2}-\d{4}-\d{2}_\w+)/;
+    const regex3 = /New reservation\s(\d+_\d{2}-\d{2}-\d{4}-\d{2}_\w+)/;
+    
+    const match1 = message.match(regex1);
+    const match2 = message.match(regex2);
+    const match3 = message.match(regex3);
+    
+    if (match1) {
+      return match1[1];
+    } else if (match2) {
+      return match2[1];
+    } else if (match3) {
+      return match3[1];
+    } else {
+      return '';
+    }
   };
 
   const toggleMenu = () => {

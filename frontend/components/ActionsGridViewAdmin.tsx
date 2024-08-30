@@ -22,8 +22,8 @@ import {
   import { modals } from '@mantine/modals';
   import { notifications } from '@mantine/notifications';
   import { useState, useEffect } from 'react';
-import { useDisclosure } from '@mantine/hooks';
-  
+import { useDisclosure, useLocalStorage } from '@mantine/hooks';
+
   interface Category {
     categoryId: string;
     name: string;
@@ -47,6 +47,11 @@ import { useDisclosure } from '@mantine/hooks';
     const [popoverOpened, setPopoverOpened] = useState<{ [key: string]: boolean }>({});
     const [hoverOpened, { close, open }] = useDisclosure(false);
     const theme = useMantineTheme();
+
+    const [globalCategoryChanged, setGlobalCategoryChanged, removeValue] = useLocalStorage({
+      key: 'categoryChanged',
+      defaultValue: '0',
+    })
   
     const getCategories = async () => {
       const response = await axios.get('getCategories/');
@@ -70,12 +75,11 @@ import { useDisclosure } from '@mantine/hooks';
       console.log('Button clicked, setting categoryID to:', id);
       setCategoryID(id);
       dispatch({ type: 'SET_CATEGORY_ID', payload: id });
+      
 
 
       
       const selectedCategory = categories.find((category) => category.categoryId === id);
-      console.log('id:', id);
-      console.log('Selected Category:', selectedCategory);
     
       if (selectedCategory) {
         setCreateCategoryID(selectedCategory.categoryId);
@@ -112,6 +116,7 @@ import { useDisclosure } from '@mantine/hooks';
               autoClose: true,
               autoCloseIn: 5000,
             });
+            setGlobalCategoryChanged('1')
            
           } catch (error) {
             console.error('Error:', error);
@@ -179,6 +184,7 @@ import { useDisclosure } from '@mantine/hooks';
   
     return (
       <>
+      
         <Card withBorder radius="md" className={classes.card}>
           <Group justify="space-between">
             <Text className={classes.title}>Categories</Text>
@@ -335,6 +341,7 @@ import { useDisclosure } from '@mantine/hooks';
                     setCreateCategoryName('');
                     setCreateCategoryIcon('');
                     setCreateCategoryDescription('');
+                    setGlobalCategoryChanged('1')
                   })
                   .catch((error) => {
                     console.error('Error:', error);
@@ -344,6 +351,7 @@ import { useDisclosure } from '@mantine/hooks';
                     console.log('Finally block executed');
                     setLoading(false);
                     dispatch({ type: 'SET_CATEGORY_ID', payload: '' });
+                    // setGlobalCategoryChanged('0')
                   });
               }}
               

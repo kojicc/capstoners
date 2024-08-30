@@ -123,27 +123,6 @@ const updateAdmin = () => {
     return <img key={index} src={imageUrl} onLoad={() => URL.revokeObjectURL(imageUrl)} />;
   });
 
-// Function to handle change and update disabled state
-// const handleCheckboxChange = (selectedValues: string[]) => {
-//   setValue(selectedValues);
-
-//   // Logic to enable or disable NumberInput components
-//   selectedProducts?.items.forEach((item: { product: { productId: string; }; }, index: string | number) => {
-//     if (selectedValues.includes(item.product.productId)) {
-//       setDisabled((prevDisabled) => {
-//         const newDisabled = [...prevDisabled];
-//         newDisabled[index] = false; // Enable the corresponding NumberInput
-//         return newDisabled;
-//       });
-//     } else {
-//       setDisabled((prevDisabled) => {
-//         const newDisabled = [...prevDisabled];
-//         newDisabled[index] = true; // Disable the corresponding NumberInput
-//         return newDisabled;
-//       });
-//     }
-//   });
-// };
 
 useEffect(() => {
   if(router.query.searchQuery){
@@ -153,20 +132,9 @@ useEffect(() => {
 }
 , [router.query.searchQuery]);
 
-// useEffect(() => {
-//   if (selectedProducts) {
-//     // Initialize disabled state to true for all items
-//     setDisabled(new Array(selectedProducts.items.length).fill(true));
-//   }
-// }, [selectedProducts]);
-
-  
-  // useEffect(() => {
-  //   fetchReservations();
-  // }, []);
 
 
-  //pampakita ng data sa table
+  //pampakita ng data sa table na sinosort muna thru sortData function
   useEffect(() => {
     setSortedData(sortData(products, { sortBy, reversed: reverseSortDirection, search: searchQuery }));
   }, [products, sortBy, reverseSortDirection, searchQuery]);
@@ -334,7 +302,7 @@ useEffect(() => {
         <Container>
         
 
-<Title my={20} c={'black'} order={2} >Transaction History - Admin</Title>
+<Title my={20} c={'black'} order={2} >Product History - Admin</Title>
 <Autocomplete
 placeholder="Search products using products ids"
 value={searchQuery}
@@ -513,8 +481,8 @@ comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, dropdown
         <Text ta="center">Drop images here</Text>
       </Dropzone>
 <>
-<Title order={2}  c={'black'}>Product Image</Title>
-{files.length? previews : <img src={`http://localhost:8000${selectedProducts?.image}`} alt={selectedProducts?.name} />
+
+{files.length? <><Title order={2}  c={'black'}>New Product Image</Title> {previews}</> : <><Title order={2}  c={'black'}> Old Product Image</Title><img src={`http://localhost:8000${selectedProducts?.image}`} alt={selectedProducts?.name} /></>
       }
       </>
       

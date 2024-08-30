@@ -19,6 +19,7 @@ import axiosInstance from '../utils/axiosInstance';
 import { notifications } from '@mantine/notifications';
 import { Header } from '@/components/LandingPage/header/HeaderLP';
 import { useForm } from '@mantine/form';
+import { readLocalStorageValue, useLocalStorage } from '@mantine/hooks';
 
 
 interface Product {
@@ -59,6 +60,7 @@ const ProductAddPage = () => {
   const [openedPopoverId, setOpenedPopoverId] = useState<string | null>(null);
   
 
+
   const [nextProductId, setNextProductId] = useState('');
   const [error, setError] = useState('');
   const floating = value.trim().length !== 0 || focused || undefined;
@@ -86,37 +88,36 @@ const ProductAddPage = () => {
   //   <LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />  }
 
   
-  
-  useEffect(() => {
-    const fetchImages = async () => {
-        try {
-            const { categoryID } = state;
-            console.log('Category ID:', categoryID);
+  const fetchImages = async () => {
+    try {
+        const { categoryID } = state;
+        console.log('Category ID sa pagfetch:', categoryID);
 
-            if (categoryID) {  // Only send the categoryID if it is truthy (not null, undefined, or empty)
-                const response = await axios.get('getImages/', {
-                    params: { categoryID }
-                });
-                setImages(response.data.images);
-                console.log('Images:', response.data.images);
-            } else {
-                const response = await axios.get('getImages/',{
-                  params: { categoryID: '' }
-                });  // Fetch all images when categoryID is falsy (null, empty, etc.)
-                setImages(response.data.images);
-                setSearchProduct(response.data.images);
-            }
-
-        } catch (error) {
-            console.error('Error fetching images:', error);
-        } finally {
-            setIsLoading(false);
+        if (categoryID) {  // Only send the categoryID if it is truthy (not null, undefined, or empty)
+            const response = await axios.get('getImages/', {
+                params: { categoryID }
+            });
+            setImages(response.data.images);
+            setSearchProduct(response.data.images);
+            console.log('Images:', response.data.images);
+        } else {
+            const response = await axios.get('getImages/',{
+              params: { categoryID: '' }
+            });  // Fetch all images when categoryID is falsy (null, empty, etc.)
+            setImages(response.data.images);
+            setSearchProduct(response.data.images);
         }
-    };
 
+    } catch (error) {
+        console.error('Error fetching images:', error);
+    } finally {
+        setIsLoading(false);
+    }
+  };
+  useEffect(() => {
     fetchImages();
-}, [state.categoryID]);
-
+  }
+  , [state.categoryID]); // Fetch images when the component mounts
 
   // useEffect(() => {
   //   const modalAppear = async () => {
@@ -264,7 +265,7 @@ const ProductAddPage = () => {
    
     const previews = prodImage.map((file, index) => {
       const imageUrl = URL.createObjectURL(file);
-      return <Image key={index} src={imageUrl} onLoad={() => URL.revokeObjectURL(imageUrl)} />;
+      return <Flex justify={'center'}><Image  w={400} h={400} key={index} src={imageUrl} onLoad={() => URL.revokeObjectURL(imageUrl)} /></Flex>;
     });
 
     
@@ -301,9 +302,10 @@ const ProductAddPage = () => {
           
           setprodImage([]);
           setNextProductId('');
-        
+          fetchImages();
          
         console.log('Image uploaded successfully:', response.data);
+        
 
         if(response.status === 400){
           notifications.show({
@@ -321,8 +323,46 @@ const ProductAddPage = () => {
     };
     
 
+
+  
     
+    const [categoryChanged, setCategoryChanged,removeValue] = useLocalStorage({
+      key: 'categoryChanged',
+      defaultValue: '0',
+    });
+  
    
+    useEffect(() => {
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === 'categoryChanged') {
+          setCategoryChanged(event.newValue ?? '0');
+          console.log('Category changed listener:', event.newValue);
+          
+        }
+      };
+  
+     
+      window.addEventListener('storage', handleStorageChange);
+  
+     
+      return () => {
+        window.removeEventListener('storage', handleStorageChange);
+       
+      };
+    }, [setCategoryChanged]);
+  
+    useEffect(() => {
+      console.log('Category changed:', categoryChanged);
+    
+      fetchCategories();
+      removeValue();
+    }, [categoryChanged]);
+
+useEffect(() => {
+  const value = readLocalStorageValue({ key: 'categoryChanged' });
+  console.log('Value:', value);
+}
+, []);
     const fetchCategories = async () => {
       try {
         const response = await axios.get('getCategories/');
@@ -334,17 +374,17 @@ const ProductAddPage = () => {
       }
     }
 
-      useEffect(() => {
-        fetchCategories();
-      }
-      , []); 
+      
 
       
 
       const handleSearch = (value: string) => {
+        
         setSearchInput(value);
+        const filteredValue = value.split(' - ')[0];
+        
         const filtered = searchProduct.filter((product) =>
-          product.productId.toLowerCase().includes(value.toLowerCase())
+          product.productId.toLowerCase().includes(value.toLowerCase()) || product.name.toLowerCase().includes(value.toLowerCase()) || product.productId.toLowerCase().includes(filteredValue.toLowerCase())
         );
         setFilteredProducts(filtered);
       };
@@ -373,225 +413,213 @@ const ProductAddPage = () => {
 
     
      
-   {isRoleAllowed ? (
+     {isRoleAllowed ? (
      
      <Tabs color="teal" variant="pills" defaultValue="Create" classNames={classes}>
      <Tabs.List grow>
-         <Tabs.Tab value="Create" leftSection={<IconPhoto style={iconStyle} />}>
-           Create
-         </Tabs.Tab>
-         <Tabs.Tab color="yellow" value="Update/Delete" leftSection={<IconMessageCircle style={iconStyle} />}>
-           Update
-         </Tabs.Tab>
-        
+       <Tabs.Tab value="Create" leftSection={<IconPhoto style={iconStyle} />}>
+         Create
+       </Tabs.Tab>
+       <Tabs.Tab color="yellow" value="Update/Delete" leftSection={<IconMessageCircle style={iconStyle} />}>
+         Update
+       </Tabs.Tab>
+      
        </Tabs.List>
        
-       <Tabs.Panel value="Create">
-           <Stack gap="xl">
-             <Card shadow="sm" padding="lg">
-               <Text size="lg" fw={500}>Product Details</Text>
+       <Tabs.Panel value="Create" > 
+         <Stack gap="xl">
+         <Card shadow="sm" padding="lg">
+           <Text size="lg" fw={500}>Product Details</Text>
 
-               <TextInput
-               label="Product ID"
-               placeholder="Choose category to create new productID"
-               leftSection={focused ? <IconIdBadge2 style={iconStyle} /> : null}
-                 required
-                 classNames={classes}
-                 value={nextProductId}
-                 onChange={(event) => setprodID(event.currentTarget.value)}
-                 onFocus={() => setFocused(true)}
-                 onBlur={() => setFocused(false)}
-                 mt="md"
-                 disabled
-                 autoComplete="nope"
-                 data-floating={floating}
-                 labelProps={{ 'data-floating': floating }} />
+           <TextInput
+           label="Product ID"
+           placeholder="Choose category to create new productID"
+           leftSection={focused ? <IconIdBadge2 style={iconStyle} /> : null}
+           required
+           classNames={classes}
+           value={nextProductId}
+           onChange={(event) => setprodID(event.currentTarget.value)}
+           onFocus={() => setFocused(true)}
+           onBlur={() => setFocused(false)}
+           mt="md"
+           disabled
+           autoComplete="nope"
+           data-floating={floating}
+           labelProps={{ 'data-floating': floating }} />
 
 
-               <TextInput
-                 label="Product Name"
-                 placeholder="Enter product name"
-                 leftSection={focused ? <IconBadgeTmFilled style={iconStyle} /> : null}
-                 required
-                 aria-required
-                 classNames={classes}
-                 value={prodName}
-                 onChange={(event) => setprodName(event.currentTarget.value)}
-                 onFocus={() => setFocused(true)}
-                 onBlur={() => setFocused(false)}
-                 mt="md"
-                 autoComplete="nope"
-                 data-floating={floating}
-                 labelProps={{ 'data-floating': floating }} />
-               <TextInput
-                 label="Product Description"
-                 placeholder="Enter product description"
-                 leftSection={focused ? <IconFileDescription style={iconStyle} /> : null}
+           <TextInput
+           label="Product Name"
+           placeholder="Enter product name"
+           leftSection={focused ? <IconBadgeTmFilled style={iconStyle} /> : null}
+           required
+           aria-required
+           classNames={classes}
+           value={prodName}
+           onChange={(event) => setprodName(event.currentTarget.value)}
+           onFocus={() => setFocused(true)}
+           onBlur={() => setFocused(false)}
+           mt="md"
+           autoComplete="nope"
+           data-floating={floating}
+           labelProps={{ 'data-floating': floating }} />
+           <TextInput
+           label="Product Description"
+           placeholder="Enter product description"
+           leftSection={focused ? <IconFileDescription style={iconStyle} /> : null}
 
-                 required
-                 classNames={classes}
-                 value={prodDesc}
-                 onChange={(event) => setprodDesc(event.currentTarget.value)}
-                 onFocus={() => setFocused(true)}
-                 onBlur={() => setFocused(false)}
-                 mt="md"
-                 autoComplete="nope"
-                 data-floating={floating}
-                 labelProps={{ 'data-floating': floating }} />
-               <NumberInput
-                 leftSection={ focused ? "₱" : null}
-                 label="Product Price"
-                 placeholder="Enter product price"
-                 required
-                 classNames={classes}
-                 value={prodPrice !== 0 ? prodPrice.toString() : ''}
-                 allowDecimal={false}
-                 onChange={(value) => setprodPrice(Number(value))}
-                 onClick={() => setFocused(true)}
-                 onBlur={() => setFocused(false)}
-                 mt="md"
-                 autoComplete="nope"
-                 data-floating={floating}
-                 labelProps={{ 'data-floating': floating }}
-               />
+           required
+           classNames={classes}
+           value={prodDesc}
+           onChange={(event) => setprodDesc(event.currentTarget.value)}
+           onFocus={() => setFocused(true)}
+           onBlur={() => setFocused(false)}
+           mt="md"
+           autoComplete="nope"
+           data-floating={floating}
+           labelProps={{ 'data-floating': floating }} />
+           <NumberInput
+           leftSection={ focused ? "₱" : null}
+           label="Product Price"
+           placeholder="Enter product price"
+           required
+           classNames={classes}
+           value={prodPrice !== 0 ? prodPrice.toString() : ''}
+           allowDecimal={false}
+           onChange={(value) => setprodPrice(Number(value))}
+           onClick={() => setFocused(true)}
+           onBlur={() => setFocused(false)}
+           mt="md"
+           autoComplete="nope"
+           data-floating={floating}
+           labelProps={{ 'data-floating': floating }}
+           />
 
-               <NumberInput
-                 label="Product Quantity"
-                 placeholder="Enter product quantity"
-                 required
-                 classNames={classes}
-                 leftSection={focused ? <IconBuildingWarehouse style={iconStyle} /> : null}
-                 value={prodQuantity!==0 ? prodQuantity.toString() : ''}
-                 onChange={(value) => setprodQuantity(Number(value))}
-                 onClick={() => setFocused(true)}
-                 onBlur={() => setFocused(false)}
-                 data-floating={floating}
-                 labelProps={{ 'data-floating': floating }}
-                 mt="md" />
-               {/* <Select
-              mt="md"
-              classNames={classes}
-              leftSection={focused ? <IconCategoryFilled style={iconStyle} /> : null}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
-              data={categories.map((category: { name: any; }) => category.name)}
-              placeholder="Pick a category"
-              label="Product Category"
-              
-              data-floating={floating}
-              labelProps={{ 'data-floating': floating }}
-              onChange={(value: string | null) => setprodCategory(value ?? '')}
-/> */}
- <Select
-  mt="md"
-  classNames={classes}
-  leftSection={focused ? <IconCategoryFilled style={iconStyle} /> : null}
-  defaultSearchValue={prodCategory}
-  onFocus={() => setFocused(true)}
-  onBlur={() => setFocused(false)}
-  data={categories.map((category: { name: any; }) => category.name)}
-  placeholder="Pick a category"
-  label="Product Category"
-  labelProps={{ 'data-floating': floating }}
+           <NumberInput
+           label="Product Quantity"
+           placeholder="Enter product quantity"
+           required
+           classNames={classes}
+           leftSection={focused ? <IconBuildingWarehouse style={iconStyle} /> : null}
+           value={prodQuantity!==0 ? prodQuantity.toString() : ''}
+           onChange={(value) => setprodQuantity(Number(value))}
+           onClick={() => setFocused(true)}
+           onBlur={() => setFocused(false)}
+           data-floating={floating}
+           labelProps={{ 'data-floating': floating }}
+           mt="md" />
+           
+   <Select
+    mt="md"
+    classNames={classes}
+    leftSection={focused ? <IconCategoryFilled style={iconStyle} /> : null}
+    defaultSearchValue={prodCategory}
+    onFocus={() => setFocused(true)}
+    onBlur={() => setFocused(false)}
+    data={categories.map((category: { name: any; }) => category.name)}
+    placeholder="Pick a category"
+    label="Product Category"
+    labelProps={{ 'data-floating': floating }}
       clearable
       onChange={(value: string | null) => setprodCategory(value ?? '')}
     />
-               <Dropzone my={20} accept={IMAGE_MIME_TYPE} onDrop={setprodImage}>
-                 <Text ta="center">Drop images here</Text>
-               </Dropzone>
-               <SimpleGrid type="container"  cols={{ base: 1, sm: 2, lg: 5 }}
+           <Dropzone my={20} accept={IMAGE_MIME_TYPE} onDrop={setprodImage}>
+           <Text ta="center">Drop images here</Text>
+           </Dropzone>
+           <SimpleGrid type="container"  cols={{ base: 1, sm: 2, lg: 5 }}
      spacing={{ base: 10, sm: 'xl' }}
      verticalSpacing={{ base: 'md', sm: 'xl' }} mt={previews.length > 0 ? 'xl' : 0}>
-       {previews}
+       {previews.slice(0, 5)}
      </SimpleGrid>
-               <Group justify='center' mt="xl">
-                 <Button  onClick={handleUpload}>Upload</Button>
-                
-               </Group>
-             </Card>
-             <ActionsGridViewAdmin />
-             
-           <Autocomplete
-       placeholder="Search reservations using reservation ids"
+           <Group justify='center' mt="xl">
+           <Button  onClick={handleUpload}>Upload</Button>
+          
+           </Group>
+         </Card>
+         <ActionsGridViewAdmin />
+         
+         <Autocomplete
+       placeholder="Search products using Product IDs or Category IDs"
        mt={20}
        leftSection={<IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />}
        mb="md"
        data={[
-         { group: 'Category IDs', items: categories.map((category: { categoryId: any; }) => category.categoryId) },
-         { group: 'Product IDs', items: searchProduct.map((product: { productId: any; }) => product.productId) },
+       { group: 'Category IDs',  items: categories.map((category: { categoryId: any; name: any; }) => `${category.categoryId} - ${category.name}`) },
+       { group: 'Product IDs', items: searchProduct.map((product: { productId: any; }) => product.productId) },
        ]}
        limit={5}
        comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 },dropdownPadding: 10, shadow:'xl' }}
        value={searchInput}
-                onChange={handleSearch}
+          onChange={handleSearch}
      />
-            {/* pangload ng pics */}
-            <Card shadow="sm" padding="lg">
-               <Text size="lg" fw={500}>Recently Uploaded Products</Text>
-               {isLoading ? (
-                 <p>Loading images...</p>
-               ) : (
-                 <div>
-                  
-           
-                
+        {/* pangload ng pics */}
+        <Card shadow="sm" padding="lg">
+           <Text size="lg" fw={500}>Recently Uploaded Products</Text>
+           {isLoading ? (
+           <p>Loading images...</p>
+           ) : (
+           <div>
+            
+          
+          
 
 
-                   {filteredProducts && filteredProducts.length > 0 ? (
-                     filteredProducts.map((product) => (
-                       
+             {filteredProducts && filteredProducts.length > 0 ? (
+             filteredProducts.slice(0, 5).map((product) =>  (
+               
 
-                       <Card key={product.id} shadow="sm" padding="lg" mt="md">
-                         <Flex
-                          direction={{ base: 'column', sm: 'row' }}
-                          gap={{ base: 'sm', sm: 'lg' }}
-                          justify={{ sm: 'center' }}
-                          align="center"
+               <Card key={product.id} shadow="sm" padding="lg" mt="md">
+               <Flex
+                direction={{ base: 'column', sm: 'row' }}
+                gap={{ base: 'sm', sm: 'lg' }}
+                justify={{ sm: 'center' }}
+                align="center"
      
-                         wrap="nowrap"
-                          >
-                           <Stack >
-                           <Text><b>Product ID: </b>{product.productId}</Text>
-                         <Text><b>Product Category:</b> {product.category}</Text>
-                         <Text><b>Product Name:</b> {product.name}</Text>
-                         <Text lineClamp={4}><b>Product Description:</b> {product.description}</Text>
-                         <Text><b>Product Price (₱): </b>{product.price}</Text>
-                         <Text><b>Quantity:</b> {product.quantity}</Text>
-                           </Stack>
-                         <Image mx={'auto'} src={`http://localhost:8000${product.image}`} alt={product.name}radius="md"
-                       h={200} w={500} /></Flex>
-                         
-                       </Card>
-                     ))
-                   ) : (
-                     <p>No images found.</p>
-                   ) }
-                 </div>
-               )}
-             </Card>
-           </Stack>
-         </Tabs.Panel>
-
-         <Tabs.Panel color="yellow" value="Update/Delete">
-         
-        <Container fluid bg={'#417A46'} ><UpdateAdmin /></Container>
-
+               wrap="nowrap"
+                >
+                 <Stack >
+                 <Text><b>Product ID: </b>{product.productId}</Text>
+               <Text><b>Product Category:</b> {product.category}</Text>
+               <Text><b>Product Name:</b> {product.name}</Text>
+               <Text lineClamp={4}><b>Product Description:</b> {product.description}</Text>
+               <Text><b>Product Price (₱): </b>{product.price}</Text>
+               <Text><b>Quantity:</b> {product.quantity}</Text>
+                 </Stack>
+               <Image mx={'auto'} src={`http://localhost:8000${product.image}`} alt={product.name}radius="md"
+               h={200} w={500} /></Flex>
+               
+               </Card>
+             ))
+             ) : (
+             <p>No images found.</p>
+             ) }
+           </div>
+           )}
+         </Card>
         
-         </Tabs.Panel>
+         </Stack>
+       </Tabs.Panel>
 
-         
-         
-         </Tabs>
+       <Tabs.Panel color="yellow" value="Update/Delete">
+       
+      <Container fluid bg={'#417A46'} ><UpdateAdmin /></Container>
+
+      
+       </Tabs.Panel>
+
+       
+       
+       </Tabs>
      
 
-   ) : (
+     ) : (
      <p>Access Denied</p>
-   )}
- </Container>
- 
+     )}
+   </Container>
+   
      </Container>
-  
-  );
+    
+    );
 };
 
 export default ProductAddPage;

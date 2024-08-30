@@ -1,5 +1,9 @@
 from django.db import models
 import re
+from django.utils import timezone
+import pytz
+from datetime import timedelta
+TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
 
 class Category(models.Model):
     categoryId = models.CharField(max_length=10, primary_key=True, default='DEFAULT')
@@ -18,10 +22,10 @@ class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     image = models.ImageField(upload_to='products/images/', blank=True, default='products/images/default.png')
-    # created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
     
-
-
+   
     def __str__(self):
         return self.name
 
