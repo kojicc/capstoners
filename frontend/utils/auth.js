@@ -37,6 +37,7 @@ export const fetchDecodedAccessToken = async () => {
   }
 };
 
+
 export const fetchAccessToken = async () => {
   const response = await axios.get('/get-access-token/');
     // console.log('Response data:', response.data);

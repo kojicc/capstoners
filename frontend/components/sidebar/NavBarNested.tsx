@@ -13,7 +13,7 @@ import { LinksGroup } from './NavbarLinksGroup';
 import { Logo } from './Logo';
 import classes from './NavbarNested.module.css';
 
-const mockdata = [
+const linkdata = [
   { label: 'Dashboard', icon: IconGauge },
   {
     label: 'Market news',
@@ -50,7 +50,7 @@ const mockdata = [
 ];
 
 export function NavbarNested() {
-  const links = mockdata.map((item) => <LinksGroup {...item} key={item.label} />);
+  const links = linkdata.map((item) => <LinksGroup {...item} key={item.label} />);
 
   return (
     <nav className={classes.navbar}>

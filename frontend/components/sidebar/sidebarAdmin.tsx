@@ -1,37 +1,125 @@
-import { AppShell, Burger, Group, ScrollArea, Skeleton } from "@mantine/core";
+import React, { useState } from "react";
+import {
+  AppShell,
+  Box,
+  Burger,
+  Divider,
+  Group,
+  NavLink,
+  ScrollArea,
+  Title,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { Header } from '../LandingPage/header/HeaderLP';
-import { NavbarNested } from "./NavBarNested";
+import {
+  IconGauge,
+  IconHistory,
+  IconEdit,
+  IconTablePlus,
+  IconUsers,
+} from "@tabler/icons-react";
+import TransactionHistory from "@/pages/transactionsAdmin"; // Ensure this path is correct
+import { Dashboard } from "./dashboardMain";
+import ProductAddPage from "@/pages/productsCRUDAdmin";
+import { Header } from "../LandingPage/header/HeaderLP";
+
+
+const ManageUserAccount = () => <div>Manage User Account Component</div>;
 
 export function NavbarSection() {
   const [opened, { toggle }] = useDisclosure();
+  const [activeMain, setActiveMain] = useState("Dashboard");
+  const [activeSub, setActiveSub] = useState("");
+
+  const nestedLinks = [
+    {
+      label: "Dashboard",
+      icon: IconGauge,
+      component: <Dashboard />, // Component for Dashboard
+    },
+    {
+      label: "Transactions",
+      icon: IconHistory,
+      component: <TransactionHistory />, // Component for Transactions
+    },
+    {
+      label: "Inventory Management",
+      icon: IconHistory, 
+      component: <ProductAddPage />
+      
+    },
+    {
+      label: "User Settings",
+      icon: IconHistory,
+      links: [
+        { label: "Manage User Account", component: <ManageUserAccount /> },
+      ],
+    },
+  ];
+
+  const handleMainClick = (label: React.SetStateAction<string>) => {
+    setActiveMain(label);
+    setActiveSub(""); 
+  };
+
+  const handleSubClick = (subItem: { label: any; component?: React.JSX.Element; }) => {
+    setActiveSub(subItem.label);
+  };
+
+  const getComponent = () => {
+    const activeMainItem = nestedLinks.find((item) => item.label === activeMain);
+    if (activeMainItem && activeMainItem.links) {
+      const activeSubItem = activeMainItem.links.find((subItem) => subItem.label === activeSub);
+      return activeSubItem ? activeSubItem.component : activeMainItem.component;
+    }
+    return activeMainItem ? activeMainItem.component : null;
+  };
+
+  const items = nestedLinks.map((item) => (
+    <React.Fragment key={item.label}>
+      <NavLink
+      w={'100%'}
+        href="#required-for-focus"
+        active={activeMain === item.label}
+        label={item.label}
+        leftSection={<item.icon size="1rem" stroke={1.5} />}
+        onClick={() => handleMainClick(item.label)} // Update active main item
+      >
+        {item.links &&
+          item.links.map((subItem) => (
+            <NavLink
+              key={subItem.label}
+              label={subItem.label}
+              onClick={() => handleSubClick(subItem)} // Update active subitem
+              childrenOffset={28}
+            />
+          ))}
+      </NavLink>
+      <Divider my="md" />
+    </React.Fragment>
+  ));
 
   return (
     <AppShell
       header={{ height: 60 }}
-      navbar={{ width: 300, breakpoint: 'sm', collapsed: { mobile: !opened } }}
+      navbar={{ width: 300, breakpoint: "sm", collapsed: { mobile: !opened } }}
       padding="md"
+      withBorder={true}
     >
-      <AppShell.Header bg={'#2F5933'}>
-        <Group h="100%" px="md">
-          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" pos={'absolute'} />
-          {/* <Header /> */}
+      <AppShell.Header bg={"#2F5933"}>
+        <Group h="100%" mx={'auto'}>
+          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" pos={"absolute"} />
+          <Header  />
         </Group>
       </AppShell.Header>
-      <AppShell.Navbar p="md">
-        <AppShell.Section>Navbar header</AppShell.Section>
+      <AppShell.Navbar p="md" m={'auto'}>
         <AppShell.Section grow my="md" component={ScrollArea}>
-          {/* 60 links in a scrollable section
-          {Array(60)
-            .fill(0)
-            .map((_, index) => (
-              <Skeleton key={index} h={28} mt="sm" animate={false} />
-            ))} */}
-            <NavbarNested/>
+          <Title pb={"lg"} order={2}>Admin Dashboard</Title>
+          <Box pt={"lg"} w={'100%'}>{items}</Box>
         </AppShell.Section>
-        <AppShell.Section>Navbar footer – always at the bottom</AppShell.Section>
       </AppShell.Navbar>
-      <AppShell.Main>Main</AppShell.Main>
+      <AppShell.Main style={{backgroundColor:'#2F5933'}}>
+        {getComponent()} 
+      </AppShell.Main>
     </AppShell>
   );
 }

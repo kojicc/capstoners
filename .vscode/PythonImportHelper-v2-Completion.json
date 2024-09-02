@@ -1,0 +1,2213 @@
+[
+    {
+        "label": "django.contrib.auth.models",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "django.contrib.auth.models",
+        "description": "django.contrib.auth.models",
+        "detail": "django.contrib.auth.models",
+        "documentation": {}
+    },
+    {
+        "label": "AbstractUser",
+        "importPath": "django.contrib.auth.models",
+        "description": "django.contrib.auth.models",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.models",
+        "documentation": {}
+    },
+    {
+        "label": "django.utils.timezone",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "django.utils.timezone",
+        "description": "django.utils.timezone",
+        "detail": "django.utils.timezone",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "transaction",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "AppConfig",
+        "importPath": "django.apps",
+        "description": "django.apps",
+        "isExtraImport": true,
+        "detail": "django.apps",
+        "documentation": {}
+    },
+    {
+        "label": "AppConfig",
+        "importPath": "django.apps",
+        "description": "django.apps",
+        "isExtraImport": true,
+        "detail": "django.apps",
+        "documentation": {}
+    },
+    {
+        "label": "AppConfig",
+        "importPath": "django.apps",
+        "description": "django.apps",
+        "isExtraImport": true,
+        "detail": "django.apps",
+        "documentation": {}
+    },
+    {
+        "label": "serializers",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "status",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "serializers",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "serializers",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "generics",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "status",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "status",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "status",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "TestCase",
+        "importPath": "django.test",
+        "description": "django.test",
+        "isExtraImport": true,
+        "detail": "django.test",
+        "documentation": {}
+    },
+    {
+        "label": "TestCase",
+        "importPath": "django.test",
+        "description": "django.test",
+        "isExtraImport": true,
+        "detail": "django.test",
+        "documentation": {}
+    },
+    {
+        "label": "TestCase",
+        "importPath": "django.test",
+        "description": "django.test",
+        "isExtraImport": true,
+        "detail": "django.test",
+        "documentation": {}
+    },
+    {
+        "label": "path",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "path",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "include",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "path",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "re_path",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "path",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "TokenRefreshView",
+        "importPath": "rest_framework_simplejwt.views",
+        "description": "rest_framework_simplejwt.views",
+        "isExtraImport": true,
+        "detail": "rest_framework_simplejwt.views",
+        "documentation": {}
+    },
+    {
+        "label": "TokenObtainPairView",
+        "importPath": "rest_framework_simplejwt.views",
+        "description": "rest_framework_simplejwt.views",
+        "isExtraImport": true,
+        "detail": "rest_framework_simplejwt.views",
+        "documentation": {}
+    },
+    {
+        "label": "TokenObtainPairView",
+        "importPath": "rest_framework_simplejwt.views",
+        "description": "rest_framework_simplejwt.views",
+        "isExtraImport": true,
+        "detail": "rest_framework_simplejwt.views",
+        "documentation": {}
+    },
+    {
+        "label": "APIView",
+        "importPath": "rest_framework.views",
+        "description": "rest_framework.views",
+        "isExtraImport": true,
+        "detail": "rest_framework.views",
+        "documentation": {}
+    },
+    {
+        "label": "APIView",
+        "importPath": "rest_framework.views",
+        "description": "rest_framework.views",
+        "isExtraImport": true,
+        "detail": "rest_framework.views",
+        "documentation": {}
+    },
+    {
+        "label": "APIView",
+        "importPath": "rest_framework.views",
+        "description": "rest_framework.views",
+        "isExtraImport": true,
+        "detail": "rest_framework.views",
+        "documentation": {}
+    },
+    {
+        "label": "Response",
+        "importPath": "rest_framework.response",
+        "description": "rest_framework.response",
+        "isExtraImport": true,
+        "detail": "rest_framework.response",
+        "documentation": {}
+    },
+    {
+        "label": "Response",
+        "importPath": "rest_framework.response",
+        "description": "rest_framework.response",
+        "isExtraImport": true,
+        "detail": "rest_framework.response",
+        "documentation": {}
+    },
+    {
+        "label": "Response",
+        "importPath": "rest_framework.response",
+        "description": "rest_framework.response",
+        "isExtraImport": true,
+        "detail": "rest_framework.response",
+        "documentation": {}
+    },
+    {
+        "label": "Response",
+        "importPath": "rest_framework.response",
+        "description": "rest_framework.response",
+        "isExtraImport": true,
+        "detail": "rest_framework.response",
+        "documentation": {}
+    },
+    {
+        "label": "Response",
+        "importPath": "rest_framework.response",
+        "description": "rest_framework.response",
+        "isExtraImport": true,
+        "detail": "rest_framework.response",
+        "documentation": {}
+    },
+    {
+        "label": "AuthenticationFailed",
+        "importPath": "rest_framework.exceptions",
+        "description": "rest_framework.exceptions",
+        "isExtraImport": true,
+        "detail": "rest_framework.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "AuthenticationFailed",
+        "importPath": "rest_framework.exceptions",
+        "description": "rest_framework.exceptions",
+        "isExtraImport": true,
+        "detail": "rest_framework.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "jwt",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "jwt",
+        "description": "jwt",
+        "detail": "jwt",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "JsonResponse",
+        "importPath": "django.http",
+        "description": "django.http",
+        "isExtraImport": true,
+        "detail": "django.http",
+        "documentation": {}
+    },
+    {
+        "label": "JsonResponse",
+        "importPath": "django.http",
+        "description": "django.http",
+        "isExtraImport": true,
+        "detail": "django.http",
+        "documentation": {}
+    },
+    {
+        "label": "RefreshToken",
+        "importPath": "rest_framework_simplejwt.tokens",
+        "description": "rest_framework_simplejwt.tokens",
+        "isExtraImport": true,
+        "detail": "rest_framework_simplejwt.tokens",
+        "documentation": {}
+    },
+    {
+        "label": "InvalidToken",
+        "importPath": "rest_framework_simplejwt.exceptions",
+        "description": "rest_framework_simplejwt.exceptions",
+        "isExtraImport": true,
+        "detail": "rest_framework_simplejwt.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "get_asgi_application",
+        "importPath": "django.core.asgi",
+        "description": "django.core.asgi",
+        "isExtraImport": true,
+        "detail": "django.core.asgi",
+        "documentation": {}
+    },
+    {
+        "label": "channels.routing",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "channels.routing",
+        "description": "channels.routing",
+        "detail": "channels.routing",
+        "documentation": {}
+    },
+    {
+        "label": "channels.auth",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "channels.auth",
+        "description": "channels.auth",
+        "detail": "channels.auth",
+        "documentation": {}
+    },
+    {
+        "label": "reservations.routing",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "reservations.routing",
+        "description": "reservations.routing",
+        "detail": "reservations.routing",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "datetime",
+        "description": "datetime",
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "static",
+        "importPath": "django.conf.urls.static",
+        "description": "django.conf.urls.static",
+        "isExtraImport": true,
+        "detail": "django.conf.urls.static",
+        "documentation": {}
+    },
+    {
+        "label": "get_wsgi_application",
+        "importPath": "django.core.wsgi",
+        "description": "django.core.wsgi",
+        "isExtraImport": true,
+        "detail": "django.core.wsgi",
+        "documentation": {}
+    },
+    {
+        "label": "django.db.models.deletion",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "django.db.models.deletion",
+        "description": "django.db.models.deletion",
+        "detail": "django.db.models.deletion",
+        "documentation": {}
+    },
+    {
+        "label": "re",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "re",
+        "description": "re",
+        "detail": "re",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "django.utils",
+        "description": "django.utils",
+        "isExtraImport": true,
+        "detail": "django.utils",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "django.utils",
+        "description": "django.utils",
+        "isExtraImport": true,
+        "detail": "django.utils",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "django.utils",
+        "description": "django.utils",
+        "isExtraImport": true,
+        "detail": "django.utils",
+        "documentation": {}
+    },
+    {
+        "label": "pytz",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pytz",
+        "description": "pytz",
+        "detail": "pytz",
+        "documentation": {}
+    },
+    {
+        "label": "render",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "get_object_or_404",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "AsyncWebsocketConsumer",
+        "importPath": "channels.generic.websocket",
+        "description": "channels.generic.websocket",
+        "isExtraImport": true,
+        "detail": "channels.generic.websocket",
+        "documentation": {}
+    },
+    {
+        "label": "uuid",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "uuid",
+        "description": "uuid",
+        "detail": "uuid",
+        "documentation": {}
+    },
+    {
+        "label": "Product",
+        "importPath": "products.models",
+        "description": "products.models",
+        "isExtraImport": true,
+        "detail": "products.models",
+        "documentation": {}
+    },
+    {
+        "label": "Product",
+        "importPath": "products.models",
+        "description": "products.models",
+        "isExtraImport": true,
+        "detail": "products.models",
+        "documentation": {}
+    },
+    {
+        "label": "parse_datetime",
+        "importPath": "django.utils.dateparse",
+        "description": "django.utils.dateparse",
+        "isExtraImport": true,
+        "detail": "django.utils.dateparse",
+        "documentation": {}
+    },
+    {
+        "label": "parse_datetime",
+        "importPath": "django.utils.dateparse",
+        "description": "django.utils.dateparse",
+        "isExtraImport": true,
+        "detail": "django.utils.dateparse",
+        "documentation": {}
+    },
+    {
+        "label": "ProductImageonlySerializer",
+        "importPath": "products.serializers",
+        "description": "products.serializers",
+        "isExtraImport": true,
+        "detail": "products.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "logging",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "logging",
+        "description": "logging",
+        "detail": "logging",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "auth_app.models",
+        "description": "auth_app.models",
+        "isExtraImport": true,
+        "detail": "auth_app.models",
+        "documentation": {}
+    },
+    {
+        "label": "Cart",
+        "importPath": "reservations.models",
+        "description": "reservations.models",
+        "isExtraImport": true,
+        "detail": "reservations.models",
+        "documentation": {}
+    },
+    {
+        "label": "ReservationItem",
+        "importPath": "reservations.models",
+        "description": "reservations.models",
+        "isExtraImport": true,
+        "detail": "reservations.models",
+        "documentation": {}
+    },
+    {
+        "label": "Notification",
+        "importPath": "reservations.models",
+        "description": "reservations.models",
+        "isExtraImport": true,
+        "detail": "reservations.models",
+        "documentation": {}
+    },
+    {
+        "label": "IsAuthenticated",
+        "importPath": "rest_framework.permissions",
+        "description": "rest_framework.permissions",
+        "isExtraImport": true,
+        "detail": "rest_framework.permissions",
+        "documentation": {}
+    },
+    {
+        "label": "traceback",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "traceback",
+        "description": "traceback",
+        "detail": "traceback",
+        "documentation": {}
+    },
+    {
+        "label": "get_channel_layer",
+        "importPath": "channels.layers",
+        "description": "channels.layers",
+        "isExtraImport": true,
+        "detail": "channels.layers",
+        "documentation": {}
+    },
+    {
+        "label": "async_to_sync",
+        "importPath": "asgiref.sync",
+        "description": "asgiref.sync",
+        "isExtraImport": true,
+        "detail": "asgiref.sync",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "stringify",
+        "importPath": "flatted",
+        "description": "flatted",
+        "isExtraImport": true,
+        "detail": "flatted",
+        "documentation": {}
+    },
+    {
+        "label": "parse",
+        "importPath": "flatted",
+        "description": "flatted",
+        "isExtraImport": true,
+        "detail": "flatted",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.migrations.0001_initial",
+        "description": "backend.capBackend.auth_app.migrations.0001_initial",
+        "peekOfCode": "class Migration(migrations.Migration):\n    initial = True\n    dependencies = [\n        ('auth', '0012_alter_user_first_name_max_length'),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='User',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),",
+        "detail": "backend.capBackend.auth_app.migrations.0001_initial",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.migrations.0002_user_role",
+        "description": "backend.capBackend.auth_app.migrations.0002_user_role",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('auth_app', '0001_initial'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='user',\n            name='role',\n            field=models.CharField(choices=[('admin', 'Admin'), ('customer', 'Customer'), ('guest', 'Guest')], default='guest', max_length=20),\n        ),",
+        "detail": "backend.capBackend.auth_app.migrations.0002_user_role",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.migrations.0003_alter_user_role",
+        "description": "backend.capBackend.auth_app.migrations.0003_alter_user_role",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('auth_app', '0002_user_role'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='user',\n            name='role',\n            field=models.CharField(choices=[('admin', 'Admin'), ('student', 'Student'), ('guest', 'Guest')], default='guest', max_length=20),\n        ),",
+        "detail": "backend.capBackend.auth_app.migrations.0003_alter_user_role",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.migrations.0004_alter_user_role",
+        "description": "backend.capBackend.auth_app.migrations.0004_alter_user_role",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('auth_app', '0003_alter_user_role'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='user',\n            name='role',\n            field=models.CharField(choices=[('Admin', 'Admin'), ('Student', 'Student'), ('Guest', 'Guest')], default='guest', max_length=20),\n        ),",
+        "detail": "backend.capBackend.auth_app.migrations.0004_alter_user_role",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.migrations.0005_alter_user_role",
+        "description": "backend.capBackend.auth_app.migrations.0005_alter_user_role",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('auth_app', '0004_alter_user_role'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='user',\n            name='role',\n            field=models.CharField(choices=[('admin', 'Admin'), ('student', 'Student'), ('guest', 'Guest')], default='guest', max_length=20),\n        ),",
+        "detail": "backend.capBackend.auth_app.migrations.0005_alter_user_role",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.migrations.0006_alter_user_role",
+        "description": "backend.capBackend.auth_app.migrations.0006_alter_user_role",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('auth_app', '0005_alter_user_role'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='user',\n            name='role',\n            field=models.CharField(choices=[('admin', 'Admin'), ('guest', 'Guest'), ('student', 'Student')], default='guest', max_length=50),\n        ),",
+        "detail": "backend.capBackend.auth_app.migrations.0006_alter_user_role",
+        "documentation": {}
+    },
+    {
+        "label": "AuthAppConfig",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.apps",
+        "description": "backend.capBackend.auth_app.apps",
+        "peekOfCode": "class AuthAppConfig(AppConfig):\n    default_auto_field = 'django.db.models.BigAutoField'\n    name = 'auth_app'",
+        "detail": "backend.capBackend.auth_app.apps",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.models",
+        "description": "backend.capBackend.auth_app.models",
+        "peekOfCode": "class User(AbstractUser):\n    first_name = models.CharField(max_length=255)  # Pangalan ng user\n    last_name = models.CharField(max_length=255)   # Apelyido ng user\n    email = models.CharField(max_length=255, unique=True)  # Email ng user, dapat unique\n    username = models.CharField(max_length=150, unique=True)\n    password = models.CharField(max_length=255)   # Password ng user\n    role = models.CharField(max_length=50, choices=[('admin', 'Admin'), ('guest', 'Guest'), ('student', 'Student')], default='guest')  # Role ng user, base role is student\n    USERNAME_FIELD = 'username'\n    REQUIRED_FIELDS = []  # Walang additional fields na required para makagawa ng user",
+        "detail": "backend.capBackend.auth_app.models",
+        "documentation": {}
+    },
+    {
+        "label": "UserSerializer",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.serializers",
+        "description": "backend.capBackend.auth_app.serializers",
+        "peekOfCode": "class UserSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = User\n        fields = ['id', 'first_name', 'last_name', 'email','username', 'password','role']  # Mga field ng User model\n        extra_kwargs = {\n            'password': {'write_only': True}  # Ang password field ay para lang sa write, hindi ipapakita sa mga response\n        }\n    # Function para sa pag-create ng user base sa validated_data\n    def create(self, validated_data):\n        password = validated_data.pop('password', None)  # Alisin ang password mula sa validated_data",
+        "detail": "backend.capBackend.auth_app.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "urlpatterns",
+        "kind": 5,
+        "importPath": "backend.capBackend.auth_app.urls",
+        "description": "backend.capBackend.auth_app.urls",
+        "peekOfCode": "urlpatterns = [\n    path('register/', RegisterView.as_view()),\n    path('login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),  # Custom token obtain view\n    path('token/refresh-from-cookie/', RefreshTokenView.as_view(), name='token_refresh_from_cookie'),\n    path('user/', UserView.as_view()),\n    path('logout/', LogoutView.as_view()),\n    path('get-access-token/', get_access_token),\n]",
+        "detail": "backend.capBackend.auth_app.urls",
+        "documentation": {}
+    },
+    {
+        "label": "RegisterView",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.views",
+        "description": "backend.capBackend.auth_app.views",
+        "peekOfCode": "class RegisterView(APIView):    \n    def post(self, request):\n        serializer = UserSerializer(data=request.data)  # Gamitin ang UserSerializer para sa validation ng data\n        serializer.is_valid(raise_exception=True)  # I-validate ang data, kung may error, itaas ang exception\n        serializer.save()  # I-save ang validated na data sa database\n        return Response(serializer.data)  # I-return ang serialized na data bilang response\n# API view para kunin ang details ng user gamit ang JWT token\nclass UserView(APIView):\n    def get(self, request):\n        token = request.COOKIES.get('jwt_access_token')  # Retrieve token from cookies (adjust as needed)",
+        "detail": "backend.capBackend.auth_app.views",
+        "documentation": {}
+    },
+    {
+        "label": "UserView",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.views",
+        "description": "backend.capBackend.auth_app.views",
+        "peekOfCode": "class UserView(APIView):\n    def get(self, request):\n        token = request.COOKIES.get('jwt_access_token')  # Retrieve token from cookies (adjust as needed)\n        if not token:\n            raise AuthenticationFailed('Unauthenticated')\n        try:\n            # Decode token with 'secret' key using HS256 algorithm\n            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])\n            print(payload)\n        except jwt.ExpiredSignatureError:",
+        "detail": "backend.capBackend.auth_app.views",
+        "documentation": {}
+    },
+    {
+        "label": "LogoutView",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.views",
+        "description": "backend.capBackend.auth_app.views",
+        "peekOfCode": "class LogoutView(APIView):\n    def get(self, request):\n        response = Response()\n        response.delete_cookie('jwt_access_token')\n        response.delete_cookie('jwt_refresh_token')\n        token = request.COOKIES.get('jwt_access_token')\n        token2 = request.COOKIES.get('jwt_refresh_token')\n        response.data = {\n            'message': 'success',\n            'message2': {token},",
+        "detail": "backend.capBackend.auth_app.views",
+        "documentation": {}
+    },
+    {
+        "label": "MyTokenObtainPairView",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.views",
+        "description": "backend.capBackend.auth_app.views",
+        "peekOfCode": "class MyTokenObtainPairView(TokenObtainPairView):\n    def post(self, request, *args, **kwargs):\n        try:\n            response = super().post(request, *args, **kwargs)\n            print(response.data)\n            if 'access' in response.data:\n                access_token = response.data['access']\n                refresh_token = response.data['refresh']\n                # Get user and role\n                user = User.objects.get(username=request.data['username'])",
+        "detail": "backend.capBackend.auth_app.views",
+        "documentation": {}
+    },
+    {
+        "label": "RefreshTokenView",
+        "kind": 6,
+        "importPath": "backend.capBackend.auth_app.views",
+        "description": "backend.capBackend.auth_app.views",
+        "peekOfCode": "class RefreshTokenView(APIView):\n    def post(self, request, *args, **kwargs):\n        refresh_token = request.COOKIES.get('jwt_refresh_token')\n        if refresh_token is None:\n            return Response({'error': 'Refresh token not found'}, status=400)\n        try:\n            token = RefreshToken(refresh_token)\n            access_token = token.access_token\n            response = Response({'access': str(access_token)}, status=200)\n            response.set_cookie(key='jwt_access_token', value=str(access_token), httponly=True)",
+        "detail": "backend.capBackend.auth_app.views",
+        "documentation": {}
+    },
+    {
+        "label": "get_access_token",
+        "kind": 2,
+        "importPath": "backend.capBackend.auth_app.views",
+        "description": "backend.capBackend.auth_app.views",
+        "peekOfCode": "def get_access_token(request):\n    token = request.COOKIES.get('jwt_access_token')\n    if token:\n        return JsonResponse({'jwt_access_token': token})\n    else:\n        return JsonResponse({'jwt_access_token': None})\nclass RefreshTokenView(APIView):\n    def post(self, request, *args, **kwargs):\n        refresh_token = request.COOKIES.get('jwt_refresh_token')\n        if refresh_token is None:",
+        "detail": "backend.capBackend.auth_app.views",
+        "documentation": {}
+    },
+    {
+        "label": "application",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.asgi",
+        "description": "backend.capBackend.capBackend.asgi",
+        "peekOfCode": "application = get_asgi_application()\napplication = channels.routing.ProtocolTypeRouter({\n    \"http\": application,\n    \"websocket\": channels.auth.AuthMiddlewareStack(\n        channels.routing.URLRouter(\n            reservations.routing.websocket_urlpatterns\n        )\n    ),\n})",
+        "detail": "backend.capBackend.capBackend.asgi",
+        "documentation": {}
+    },
+    {
+        "label": "application",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.asgi",
+        "description": "backend.capBackend.capBackend.asgi",
+        "peekOfCode": "application = channels.routing.ProtocolTypeRouter({\n    \"http\": application,\n    \"websocket\": channels.auth.AuthMiddlewareStack(\n        channels.routing.URLRouter(\n            reservations.routing.websocket_urlpatterns\n        )\n    ),\n})",
+        "detail": "backend.capBackend.capBackend.asgi",
+        "documentation": {}
+    },
+    {
+        "label": "BASE_DIR",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "BASE_DIR = Path(__file__).resolve().parent.parent\n# Quick-start development settings - unsuitable for production\n# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/\n# SECURITY WARNING: keep the secret key used in production secret!\nSECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@'\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "SECRET_KEY",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@'\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'daphne',\n    'channels',\n    'django.contrib.admin',\n    'django.contrib.auth',",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "DEBUG",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "DEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'daphne',\n    'channels',\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ALLOWED_HOSTS",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "ALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'daphne',\n    'channels',\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "INSTALLED_APPS",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "INSTALLED_APPS = [\n    'daphne',\n    'channels',\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',\n    'rest_framework',",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "MIDDLEWARE",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "MIDDLEWARE = [\n    'django.middleware.security.SecurityMiddleware',\n    'django.contrib.sessions.middleware.SessionMiddleware',\n    'django.middleware.common.CommonMiddleware',\n    'django.middleware.csrf.CsrfViewMiddleware',\n    'django.contrib.auth.middleware.AuthenticationMiddleware',\n    'django.contrib.messages.middleware.MessageMiddleware',\n    'django.middleware.clickjacking.XFrameOptionsMiddleware',\n    'corsheaders.middleware.CorsMiddleware',\n]",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ROOT_URLCONF",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "ROOT_URLCONF = 'capBackend.urls'\nTEMPLATES = [\n    {\n        'BACKEND': 'django.template.backends.django.DjangoTemplates',\n        'DIRS': [],\n        'APP_DIRS': True,\n        'OPTIONS': {\n            'context_processors': [\n                'django.template.context_processors.debug',\n                'django.template.context_processors.request',",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "TEMPLATES",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "TEMPLATES = [\n    {\n        'BACKEND': 'django.template.backends.django.DjangoTemplates',\n        'DIRS': [],\n        'APP_DIRS': True,\n        'OPTIONS': {\n            'context_processors': [\n                'django.template.context_processors.debug',\n                'django.template.context_processors.request',\n                'django.contrib.auth.context_processors.auth',",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ASGI_APPLICATION",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "ASGI_APPLICATION = 'capBackend.asgi.application'\nWSGI_APPLICATION = 'capBackend.wsgi.application'\n#pang testing lang need redis for production\nCHANNEL_LAYERS = {\n    \"default\": {\n        \"BACKEND\": \"channels.layers.InMemoryChannelLayer\"\n    }\n}\n# CHANNELS = {\n#     'authentication_backends': (",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "WSGI_APPLICATION",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "WSGI_APPLICATION = 'capBackend.wsgi.application'\n#pang testing lang need redis for production\nCHANNEL_LAYERS = {\n    \"default\": {\n        \"BACKEND\": \"channels.layers.InMemoryChannelLayer\"\n    }\n}\n# CHANNELS = {\n#     'authentication_backends': (\n#         'channels.auth.AuthMiddlewareStack',",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CHANNEL_LAYERS",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "CHANNEL_LAYERS = {\n    \"default\": {\n        \"BACKEND\": \"channels.layers.InMemoryChannelLayer\"\n    }\n}\n# CHANNELS = {\n#     'authentication_backends': (\n#         'channels.auth.AuthMiddlewareStack',\n#         'django.contrib.auth.backends.ModelBackend',\n#     ),",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "DATABASES",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "DATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.mysql',\n        'NAME': 'cthmDB',\n        'USER': 'root',  #  MySQL username to\n        'PASSWORD': '12345',  #  MySQL password to\n        'HOST': 'localhost',\n        'PORT': '3306',\n    }\n}",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "AUTH_PASSWORD_VALIDATORS",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "AUTH_PASSWORD_VALIDATORS = [\n    {\n        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',\n    },",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "LANGUAGE_CODE",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "LANGUAGE_CODE = 'en-us'\nTIME_ZONE = 'PST'\nUSE_L10N = True\nUSE_I18N = True\nUSE_TZ = False\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\n# STATICFILES_DIRS = [\n#     os.path.join(BASE_DIR, 'static')",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "TIME_ZONE",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "TIME_ZONE = 'PST'\nUSE_L10N = True\nUSE_I18N = True\nUSE_TZ = False\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\n# STATICFILES_DIRS = [\n#     os.path.join(BASE_DIR, 'static')\n# ]",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "USE_L10N",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "USE_L10N = True\nUSE_I18N = True\nUSE_TZ = False\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\n# STATICFILES_DIRS = [\n#     os.path.join(BASE_DIR, 'static')\n# ]\nMEDIA_URL = '/media/'",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "USE_I18N",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "USE_I18N = True\nUSE_TZ = False\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\n# STATICFILES_DIRS = [\n#     os.path.join(BASE_DIR, 'static')\n# ]\nMEDIA_URL = '/media/'\nMEDIA_ROOT = os.path.join(BASE_DIR, 'media')",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "USE_TZ",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "USE_TZ = False\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\n# STATICFILES_DIRS = [\n#     os.path.join(BASE_DIR, 'static')\n# ]\nMEDIA_URL = '/media/'\nMEDIA_ROOT = os.path.join(BASE_DIR, 'media')\n# Default primary key field type",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "STATIC_URL",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "STATIC_URL = 'static/'\n# STATICFILES_DIRS = [\n#     os.path.join(BASE_DIR, 'static')\n# ]\nMEDIA_URL = '/media/'\nMEDIA_ROOT = os.path.join(BASE_DIR, 'media')\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nREST_FRAMEWORK = {",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "MEDIA_URL",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "MEDIA_URL = '/media/'\nMEDIA_ROOT = os.path.join(BASE_DIR, 'media')\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nREST_FRAMEWORK = {\n    'DEFAULT_AUTHENTICATION_CLASSES': (\n        'rest_framework_simplejwt.authentication.JWTAuthentication',\n    ),\n}",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "MEDIA_ROOT",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "MEDIA_ROOT = os.path.join(BASE_DIR, 'media')\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nREST_FRAMEWORK = {\n    'DEFAULT_AUTHENTICATION_CLASSES': (\n        'rest_framework_simplejwt.authentication.JWTAuthentication',\n    ),\n}\n# JWT settings",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "DEFAULT_AUTO_FIELD",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nREST_FRAMEWORK = {\n    'DEFAULT_AUTHENTICATION_CLASSES': (\n        'rest_framework_simplejwt.authentication.JWTAuthentication',\n    ),\n}\n# JWT settings\nSIMPLE_JWT = {\n    'ACCESS_TOKEN_LIFETIME': timedelta(hours=10),\n    'REFRESH_TOKEN_LIFETIME': timedelta(seconds=20),",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "REST_FRAMEWORK",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "REST_FRAMEWORK = {\n    'DEFAULT_AUTHENTICATION_CLASSES': (\n        'rest_framework_simplejwt.authentication.JWTAuthentication',\n    ),\n}\n# JWT settings\nSIMPLE_JWT = {\n    'ACCESS_TOKEN_LIFETIME': timedelta(hours=10),\n    'REFRESH_TOKEN_LIFETIME': timedelta(seconds=20),\n    'ROTATE_REFRESH_TOKENS': True,",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "SIMPLE_JWT",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "SIMPLE_JWT = {\n    'ACCESS_TOKEN_LIFETIME': timedelta(hours=10),\n    'REFRESH_TOKEN_LIFETIME': timedelta(seconds=20),\n    'ROTATE_REFRESH_TOKENS': True,\n    'BLACKLIST_AFTER_ROTATION': True,\n     \"AUTH_HEADER_TYPES\": (\"Bearer\",),\n}\nAUTH_USER_MODEL = 'auth_app.User'\nCORS_ORIGIN_ALLOW_ALL = True\n# para maallow frontend maaccess cookies kase naglologin thru cookies",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "AUTH_USER_MODEL",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "AUTH_USER_MODEL = 'auth_app.User'\nCORS_ORIGIN_ALLOW_ALL = True\n# para maallow frontend maaccess cookies kase naglologin thru cookies\nCORS_ALLOW_CREDENTIALS = True\n# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\n# EMAIL_HOST = 'smtp.gmail.com'\n# EMAIL_PORT = 587\n# EMAIL_USE_TLS = True\n# EMAIL_HOST_USER = 'dektorsu@gmail.com'\n# EMAIL_HOST_PASSWORD = 'qovf dpgs lytx kloo'",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CORS_ORIGIN_ALLOW_ALL",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "CORS_ORIGIN_ALLOW_ALL = True\n# para maallow frontend maaccess cookies kase naglologin thru cookies\nCORS_ALLOW_CREDENTIALS = True\n# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\n# EMAIL_HOST = 'smtp.gmail.com'\n# EMAIL_PORT = 587\n# EMAIL_USE_TLS = True\n# EMAIL_HOST_USER = 'dektorsu@gmail.com'\n# EMAIL_HOST_PASSWORD = 'qovf dpgs lytx kloo'\n# DEFAULT_FROM_EMAIL = 'your-email@example.com'",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CORS_ALLOW_CREDENTIALS",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.settings",
+        "description": "backend.capBackend.capBackend.settings",
+        "peekOfCode": "CORS_ALLOW_CREDENTIALS = True\n# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\n# EMAIL_HOST = 'smtp.gmail.com'\n# EMAIL_PORT = 587\n# EMAIL_USE_TLS = True\n# EMAIL_HOST_USER = 'dektorsu@gmail.com'\n# EMAIL_HOST_PASSWORD = 'qovf dpgs lytx kloo'\n# DEFAULT_FROM_EMAIL = 'your-email@example.com'\n# ADMIN_EMAIL = 'admin@example.com'  # Add this line",
+        "detail": "backend.capBackend.capBackend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "urlpatterns",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.urls",
+        "description": "backend.capBackend.capBackend.urls",
+        "peekOfCode": "urlpatterns = [\n    path('admin/', admin.site.urls),\n    path('api/', include('auth_app.urls')),\n    path('api/', include('products.urls')),\n    path('api/', include('reservations.urls')),\n]\nurlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)",
+        "detail": "backend.capBackend.capBackend.urls",
+        "documentation": {}
+    },
+    {
+        "label": "application",
+        "kind": 5,
+        "importPath": "backend.capBackend.capBackend.wsgi",
+        "description": "backend.capBackend.capBackend.wsgi",
+        "peekOfCode": "application = get_wsgi_application()",
+        "detail": "backend.capBackend.capBackend.wsgi",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.migrations.0001_initial",
+        "description": "backend.capBackend.products.migrations.0001_initial",
+        "peekOfCode": "class Migration(migrations.Migration):\n    initial = True\n    dependencies = [\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='Category',\n            fields=[\n                ('categoryId', models.CharField(default='DEFAULT', max_length=10, primary_key=True, serialize=False)),\n                ('name', models.CharField(max_length=255)),",
+        "detail": "backend.capBackend.products.migrations.0001_initial",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.migrations.0002_category_icon_alter_product_image",
+        "description": "backend.capBackend.products.migrations.0002_category_icon_alter_product_image",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('products', '0001_initial'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='category',\n            name='icon',\n            field=models.CharField(default='IconToolsKitchen', max_length=255),\n        ),",
+        "detail": "backend.capBackend.products.migrations.0002_category_icon_alter_product_image",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.migrations.0003_product_created_at",
+        "description": "backend.capBackend.products.migrations.0003_product_created_at",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('products', '0002_category_icon_alter_product_image'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='product',\n            name='created_at',\n            field=models.DateTimeField(blank=True, default='2024-01-01 00:00:00'),\n        ),",
+        "detail": "backend.capBackend.products.migrations.0003_product_created_at",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.migrations.0004_alter_product_created_at",
+        "description": "backend.capBackend.products.migrations.0004_alter_product_created_at",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('products', '0003_product_created_at'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='product',\n            name='created_at',\n            field=models.DateTimeField(auto_now_add=True),\n        ),",
+        "detail": "backend.capBackend.products.migrations.0004_alter_product_created_at",
+        "documentation": {}
+    },
+    {
+        "label": "ProductsConfig",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.apps",
+        "description": "backend.capBackend.products.apps",
+        "peekOfCode": "class ProductsConfig(AppConfig):\n    default_auto_field = 'django.db.models.BigAutoField'\n    name = 'products'",
+        "detail": "backend.capBackend.products.apps",
+        "documentation": {}
+    },
+    {
+        "label": "Category",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.models",
+        "description": "backend.capBackend.products.models",
+        "peekOfCode": "class Category(models.Model):\n    categoryId = models.CharField(max_length=10, primary_key=True, default='DEFAULT')\n    name = models.CharField(max_length=255)\n    description = models.TextField()\n    icon = models.CharField(max_length=255, default='IconToolsKitchen')\n    def __str__(self):\n        return self.name\nclass Product(models.Model):\n    productId = models.CharField(max_length=20, unique=True,primary_key=True)\n    name = models.CharField(max_length=255)",
+        "detail": "backend.capBackend.products.models",
+        "documentation": {}
+    },
+    {
+        "label": "Product",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.models",
+        "description": "backend.capBackend.products.models",
+        "peekOfCode": "class Product(models.Model):\n    productId = models.CharField(max_length=20, unique=True,primary_key=True)\n    name = models.CharField(max_length=255)\n    description = models.TextField()\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    category = models.ForeignKey(Category, on_delete=models.CASCADE)\n    quantity = models.IntegerField()\n    image = models.ImageField(upload_to='products/images/', blank=True, default='products/images/default.png')\n    created_at = models.DateTimeField(default=timezone.now)\n    def __str__(self):",
+        "detail": "backend.capBackend.products.models",
+        "documentation": {}
+    },
+    {
+        "label": "TIMEZONES",
+        "kind": 5,
+        "importPath": "backend.capBackend.products.models",
+        "description": "backend.capBackend.products.models",
+        "peekOfCode": "TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))\nclass Category(models.Model):\n    categoryId = models.CharField(max_length=10, primary_key=True, default='DEFAULT')\n    name = models.CharField(max_length=255)\n    description = models.TextField()\n    icon = models.CharField(max_length=255, default='IconToolsKitchen')\n    def __str__(self):\n        return self.name\nclass Product(models.Model):\n    productId = models.CharField(max_length=20, unique=True,primary_key=True)",
+        "detail": "backend.capBackend.products.models",
+        "documentation": {}
+    },
+    {
+        "label": "ProductImageSerializer",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.serializers",
+        "description": "backend.capBackend.products.serializers",
+        "peekOfCode": "class ProductImageSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Product\n        fields = ['name', 'description', 'price', 'category', 'quantity', 'image','productId']\nclass ProductImageonlySerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Product\n        fields = '__all__'\n        # fields = ['image','productId']\nclass CategorySerializer(serializers.ModelSerializer):",
+        "detail": "backend.capBackend.products.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "ProductImageonlySerializer",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.serializers",
+        "description": "backend.capBackend.products.serializers",
+        "peekOfCode": "class ProductImageonlySerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Product\n        fields = '__all__'\n        # fields = ['image','productId']\nclass CategorySerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Category\n        fields = '__all__'",
+        "detail": "backend.capBackend.products.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "CategorySerializer",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.serializers",
+        "description": "backend.capBackend.products.serializers",
+        "peekOfCode": "class CategorySerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Category\n        fields = '__all__'",
+        "detail": "backend.capBackend.products.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "urlpatterns",
+        "kind": 5,
+        "importPath": "backend.capBackend.products.urls",
+        "description": "backend.capBackend.products.urls",
+        "peekOfCode": "urlpatterns = [\n    path('addCategory/', createCategory.as_view(), name='addCategory'),\n    path('getImages/', RetrieveProductImage.as_view()),\n    path('uploadProduct/', UploadProduct.as_view(), name='uploadProduct'),\n    path('updateProduct/', updateProductView.as_view()),\n    path('deleteProduct/', deleteProductView.as_view()),\n    path('getCategories/', RetrieveCategory.as_view()),\n    path('getProduct/', RetrieveProductIDView.as_view()),\n    path('getadminProductDetail/', RetrieveProductAdmin.as_view()),\n    path('deleteCategory/', deleteCategory.as_view()),",
+        "detail": "backend.capBackend.products.urls",
+        "documentation": {}
+    },
+    {
+        "label": "createCategory",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.views",
+        "description": "backend.capBackend.products.views",
+        "peekOfCode": "class createCategory(APIView):\n    def post(self, request):\n        try:\n            categoryId = request.data.get('categoryId')\n            name = request.data.get('name')\n            description = request.data.get('description')\n            icon = request.data.get('icon')\n            if not all([name, description, categoryId]):\n                return Response({\n                    'message': 'All fields are required'",
+        "detail": "backend.capBackend.products.views",
+        "documentation": {}
+    },
+    {
+        "label": "editCategory",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.views",
+        "description": "backend.capBackend.products.views",
+        "peekOfCode": "class editCategory(APIView):\n    def put(self, request):\n        try:\n            categoryId = request.data.get('categoryId')\n            name = request.data.get('name')\n            description = request.data.get('description')\n            icon = request.data.get('icon')\n            if not categoryId:\n                return Response({\n                    'message': 'Category ID is required'",
+        "detail": "backend.capBackend.products.views",
+        "documentation": {}
+    },
+    {
+        "label": "deleteCategory",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.views",
+        "description": "backend.capBackend.products.views",
+        "peekOfCode": "class deleteCategory(APIView):\n    def delete(self, request):\n        try:\n            categoryId = request.data.get('categoryId')\n            if not categoryId:\n                return Response({\n                    'message': 'Category ID is required'\n                }, status=400)\n            category = Category.objects.get(categoryId=categoryId)\n            category.delete()",
+        "detail": "backend.capBackend.products.views",
+        "documentation": {}
+    },
+    {
+        "label": "RetrieveCategory",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.views",
+        "description": "backend.capBackend.products.views",
+        "peekOfCode": "class RetrieveCategory(APIView):\n    def get(self,request):\n        try:\n            categories = Category.objects.all()\n            categories = CategorySerializer(categories, many=True)\n            return Response({\n                'categories': categories.data,\n                'message': 'Categories retrieved successfully'\n            }, status=200)\n        except:",
+        "detail": "backend.capBackend.products.views",
+        "documentation": {}
+    },
+    {
+        "label": "RetrieveProductIDView",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.views",
+        "description": "backend.capBackend.products.views",
+        "peekOfCode": "class RetrieveProductIDView(APIView):\n    def post(self, request):\n        categoryID = request.data.get('categoryID')\n        try:\n            if Product.objects.all().exists():\n                products = Product.objects.filter(category_id=categoryID)\n                if not products.exists():\n                    prefix = Category.objects.get(categoryId=categoryID).name[:3].upper()\n                    return Response({'nextProductId': f'{prefix}-1'}, status=200)\n                products = ProductImageSerializer(products, many=True)",
+        "detail": "backend.capBackend.products.views",
+        "documentation": {}
+    },
+    {
+        "label": "RetrieveProductImage",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.views",
+        "description": "backend.capBackend.products.views",
+        "peekOfCode": "class RetrieveProductImage(APIView):\n    def get(self, request):\n        try:\n            categoryID = request.query_params.get('categoryID')  # Get categoryID from query params\n            print(f\"Category ID: {categoryID}\")\n            # Check if categoryID is either None, an empty string, or any other falsy value\n            if not categoryID or categoryID is None:  # If categoryID is falsy (None, empty, etc.), return all products\n                images = Product.objects.all().order_by('-created_at')\n            else:\n                images = Product.objects.filter(category_id=categoryID)",
+        "detail": "backend.capBackend.products.views",
+        "documentation": {}
+    },
+    {
+        "label": "RetrieveProductAdmin",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.views",
+        "description": "backend.capBackend.products.views",
+        "peekOfCode": "class RetrieveProductAdmin(APIView):\n    def get(self, request):\n        try:\n            categoryID = request.data.get('categoryID')  # Use query params to get categoryID\n            if categoryID:\n                products = Product.objects.filter(category_id=categoryID)\n                products = ProductImageSerializer(products, many=True)\n                return Response({\n                    'products': products.data,\n                    'message': 'Products retrieved successfully',",
+        "detail": "backend.capBackend.products.views",
+        "documentation": {}
+    },
+    {
+        "label": "UploadProduct",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.views",
+        "description": "backend.capBackend.products.views",
+        "peekOfCode": "class UploadProduct(APIView):\n    def post(self, request):\n        try:\n            name = request.data.get('name')\n            description = request.data.get('description')\n            price = request.data.get('price')\n            quantity = request.data.get('quantity')\n            category = request.data.get('category')\n            image = request.FILES.get('image')\n            print(f\"Received data: name={name}, description={description}, price={price}, quantity={quantity}, category={category}, image={image}\")",
+        "detail": "backend.capBackend.products.views",
+        "documentation": {}
+    },
+    {
+        "label": "updateProductView",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.views",
+        "description": "backend.capBackend.products.views",
+        "peekOfCode": "class updateProductView(APIView):\n    def put(self, request):\n        try:\n            productId = request.data.get('productId')\n            name = request.data.get('name')\n            description = request.data.get('description')\n            price = request.data.get('price')\n            category = request.data.get('category')\n            quantity = request.data.get('quantity')\n            image = request.FILES.get('image')",
+        "detail": "backend.capBackend.products.views",
+        "documentation": {}
+    },
+    {
+        "label": "deleteProductView",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.views",
+        "description": "backend.capBackend.products.views",
+        "peekOfCode": "class deleteProductView(APIView):\n    def delete(self, request):\n        try:\n            productId = request.data.get('productId')\n            if not productId:\n                return Response({\n                    'message': 'Product ID is required'\n                }, status=400)\n            product = Product.objects.get(productId=productId)\n            product.delete()",
+        "detail": "backend.capBackend.products.views",
+        "documentation": {}
+    },
+    {
+        "label": "SearchProductView",
+        "kind": 6,
+        "importPath": "backend.capBackend.products.views",
+        "description": "backend.capBackend.products.views",
+        "peekOfCode": "class SearchProductView(APIView):\n    def get(self, request):\n        try:\n            searchWord = request.query_params.get('searchWord')\n            if searchWord:\n                # Start with all products\n                products = Product.objects.all()\n                # Filter products by name\n                products = products.filter(name__icontains=searchWord)\n                # Filter products by category name",
+        "detail": "backend.capBackend.products.views",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.migrations.0001_initial",
+        "description": "backend.capBackend.reservations.migrations.0001_initial",
+        "peekOfCode": "class Migration(migrations.Migration):\n    initial = True\n    dependencies = [\n        ('products', '0001_initial'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='Cart',\n            fields=[",
+        "detail": "backend.capBackend.reservations.migrations.0001_initial",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.migrations.0002_notification",
+        "description": "backend.capBackend.reservations.migrations.0002_notification",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('reservations', '0001_initial'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='Notification',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),",
+        "detail": "backend.capBackend.reservations.migrations.0002_notification",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.migrations.0003_rename_user_notification_recipient_and_more",
+        "description": "backend.capBackend.reservations.migrations.0003_rename_user_notification_recipient_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('reservations', '0002_notification'),\n    ]\n    operations = [\n        migrations.RenameField(\n            model_name='notification',\n            old_name='user',\n            new_name='recipient',\n        ),",
+        "detail": "backend.capBackend.reservations.migrations.0003_rename_user_notification_recipient_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.migrations.0004_rename_read_notification_is_read_and_more",
+        "description": "backend.capBackend.reservations.migrations.0004_rename_read_notification_is_read_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('reservations', '0003_rename_user_notification_recipient_and_more'),\n    ]\n    operations = [\n        migrations.RenameField(\n            model_name='notification',\n            old_name='read',\n            new_name='is_read',\n        ),",
+        "detail": "backend.capBackend.reservations.migrations.0004_rename_read_notification_is_read_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.migrations.0005_alter_notification_user",
+        "description": "backend.capBackend.reservations.migrations.0005_alter_notification_user",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('reservations', '0004_rename_read_notification_is_read_and_more'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='notification',\n            name='user',\n            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, to_field='username'),",
+        "detail": "backend.capBackend.reservations.migrations.0005_alter_notification_user",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.migrations.0006_rename_is_read_notification_read_and_more",
+        "description": "backend.capBackend.reservations.migrations.0006_rename_is_read_notification_read_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('reservations', '0005_alter_notification_user'),\n    ]\n    operations = [\n        migrations.RenameField(\n            model_name='notification',\n            old_name='is_read',\n            new_name='read',\n        ),",
+        "detail": "backend.capBackend.reservations.migrations.0006_rename_is_read_notification_read_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.migrations.0007_rename_read_notification_is_read_and_more",
+        "description": "backend.capBackend.reservations.migrations.0007_rename_read_notification_is_read_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('reservations', '0006_rename_is_read_notification_read_and_more'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.RenameField(\n            model_name='notification',\n            old_name='read',\n            new_name='is_read',",
+        "detail": "backend.capBackend.reservations.migrations.0007_rename_read_notification_is_read_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.migrations.0008_rename_is_read_notification_read_and_more",
+        "description": "backend.capBackend.reservations.migrations.0008_rename_is_read_notification_read_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('reservations', '0007_rename_read_notification_is_read_and_more'),\n    ]\n    operations = [\n        migrations.RenameField(\n            model_name='notification',\n            old_name='is_read',\n            new_name='read',\n        ),",
+        "detail": "backend.capBackend.reservations.migrations.0008_rename_is_read_notification_read_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.migrations.0009_alter_notification_user",
+        "description": "backend.capBackend.reservations.migrations.0009_alter_notification_user",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('reservations', '0008_rename_is_read_notification_read_and_more'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='notification',\n            name='user',\n            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, to_field='username'),",
+        "detail": "backend.capBackend.reservations.migrations.0009_alter_notification_user",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.migrations.0010_alter_reservation_status",
+        "description": "backend.capBackend.reservations.migrations.0010_alter_reservation_status",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('reservations', '0009_alter_notification_user'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='reservation',\n            name='status',\n            field=models.CharField(default='PENDING', max_length=80),\n        ),",
+        "detail": "backend.capBackend.reservations.migrations.0010_alter_reservation_status",
+        "documentation": {}
+    },
+    {
+        "label": "ReservationsConfig",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.apps",
+        "description": "backend.capBackend.reservations.apps",
+        "peekOfCode": "class ReservationsConfig(AppConfig):\n    default_auto_field = 'django.db.models.BigAutoField'\n    name = 'reservations'",
+        "detail": "backend.capBackend.reservations.apps",
+        "documentation": {}
+    },
+    {
+        "label": "NotificationConsumer",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.consumers",
+        "description": "backend.capBackend.reservations.consumers",
+        "peekOfCode": "class NotificationConsumer(AsyncWebsocketConsumer):\n    async def connect(self):\n        # Determine the user or admin from the query parameters\n        self.user_id = self.scope['url_route']['kwargs'].get('username')\n        if self.user_id:\n            # Join the specific user room\n            self.room_group_name = f\"user_{self.user_id}\"\n        else:\n            # Default to a general room if user_id is not specified\n            self.room_group_name = 'notifications'",
+        "detail": "backend.capBackend.reservations.consumers",
+        "documentation": {}
+    },
+    {
+        "label": "Reservation",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.models",
+        "description": "backend.capBackend.reservations.models",
+        "peekOfCode": "class Reservation(models.Model):\n    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field='username')\n    reservation_id = models.CharField(primary_key=True, max_length=100, unique=True, editable=False)\n    reservation_date = models.DateTimeField()\n    reservation_date_end = models.DateTimeField(blank=True)\n    reservation_purpose = models.CharField(max_length=100, blank=True)\n    status = models.CharField(max_length=80, default='PENDING')\n    def save(self, *args, **kwargs):\n        # Generate reservation_id if not provided\n        if not self.reservation_id:",
+        "detail": "backend.capBackend.reservations.models",
+        "documentation": {}
+    },
+    {
+        "label": "ReservationItem",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.models",
+        "description": "backend.capBackend.reservations.models",
+        "peekOfCode": "class ReservationItem(models.Model):\n    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='items')\n    product = models.ForeignKey(Product, on_delete=models.CASCADE, to_field='productId')\n    quantity = models.PositiveIntegerField()\n    def __str__(self):\n        return f'{self.quantity} of {self.product.productId} in Reservation {self.reservation.reservation_id}'\nclass Cart(models.Model):\n    id = models.AutoField(primary_key=True)  # Auto-incremented primary key\n    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field='username')  # Use `to_field` to specify `username`\n    product = models.ForeignKey(Product, on_delete=models.CASCADE, to_field='productId')  # Use `to_field` to specify `productId`",
+        "detail": "backend.capBackend.reservations.models",
+        "documentation": {}
+    },
+    {
+        "label": "Cart",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.models",
+        "description": "backend.capBackend.reservations.models",
+        "peekOfCode": "class Cart(models.Model):\n    id = models.AutoField(primary_key=True)  # Auto-incremented primary key\n    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field='username')  # Use `to_field` to specify `username`\n    product = models.ForeignKey(Product, on_delete=models.CASCADE, to_field='productId')  # Use `to_field` to specify `productId`\n    quantity = models.PositiveIntegerField()\n    def __str__(self):\n        return f'{self.user.username}\\'s cart'\nclass Notification(models.Model):\n    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field='username')\n    message = models.TextField()",
+        "detail": "backend.capBackend.reservations.models",
+        "documentation": {}
+    },
+    {
+        "label": "Notification",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.models",
+        "description": "backend.capBackend.reservations.models",
+        "peekOfCode": "class Notification(models.Model):\n    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field='username')\n    message = models.TextField()\n    read = models.BooleanField(default=False)\n    timestamp = models.DateTimeField(auto_now_add=True)\n    def __str__(self):\n        return f'Notification for {self.user.username} - {self.timestamp}'",
+        "detail": "backend.capBackend.reservations.models",
+        "documentation": {}
+    },
+    {
+        "label": "websocket_urlpatterns",
+        "kind": 5,
+        "importPath": "backend.capBackend.reservations.routing",
+        "description": "backend.capBackend.reservations.routing",
+        "peekOfCode": "websocket_urlpatterns = [\n    re_path(r'ws/notifications/$', consumers.NotificationConsumer.as_asgi()),\n]\n# from django.urls import re_path\n# from .consumers import NotificationConsumer\n# websocket_urlpatterns = [\n#     re_path(r'ws/notifications/(?P<username>\\w+)/$', NotificationConsumer.as_asgi()),\n# ]",
+        "detail": "backend.capBackend.reservations.routing",
+        "documentation": {}
+    },
+    {
+        "label": "ReservationSerializer",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.serializers",
+        "description": "backend.capBackend.reservations.serializers",
+        "peekOfCode": "class ReservationSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Reservation\n        # fields = [ 'user', 'reservation_id', 'reservation_date', 'status',\n        # 'reservation_date_end','reservation_purpose ']\n        fields = '__all__'\n        read_only_fields = ['reservation_id', 'reservation_date']\nclass ReservationItemSerializer(serializers.ModelSerializer):\n    product = ProductImageonlySerializer()\n    class Meta:",
+        "detail": "backend.capBackend.reservations.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "ReservationItemSerializer",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.serializers",
+        "description": "backend.capBackend.reservations.serializers",
+        "peekOfCode": "class ReservationItemSerializer(serializers.ModelSerializer):\n    product = ProductImageonlySerializer()\n    class Meta:\n        model = ReservationItem\n        fields = ['reservation', 'product', 'quantity','product_id']\nclass NotificationSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Notification\n        fields = '__all__'\n# class AddToCartSerializer(serializers.Serializer):",
+        "detail": "backend.capBackend.reservations.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "NotificationSerializer",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.serializers",
+        "description": "backend.capBackend.reservations.serializers",
+        "peekOfCode": "class NotificationSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Notification\n        fields = '__all__'\n# class AddToCartSerializer(serializers.Serializer):\n#     username = serializers.CharField()\n#     productIds = serializers.ListField(child=serializers.CharField())\n#     quantities = serializers.ListField(child=serializers.IntegerField())",
+        "detail": "backend.capBackend.reservations.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "urlpatterns",
+        "kind": 5,
+        "importPath": "backend.capBackend.reservations.urls",
+        "description": "backend.capBackend.reservations.urls",
+        "peekOfCode": "urlpatterns = [\n    path('reservationsCreateUpdate/', ReservationCreateUpdateAPIView.as_view(), name='reservationsCreate'),\n    path('adminUpdateReservationStatus/', AdminUpdateReservationStatusAPIView.as_view(), name='adminUpdateReservationStatus'),\n    path('reservationsDetail/', ReservationDetailAPIView.as_view(), name='reservationsDetail'),\n    path('adminReservationDetail/', AdminReservationDetailAPIView.as_view(), name='adminReservationDetail'),\n    # path('reservationsUpdate/', ReservationUpdateView.as_view(), name='reservationsUpdate'),\n    path('reservationsDelete/', ReservationDeleteView.as_view(), name='reservationsDelete'),\n    path('reservationsSearch/', ReservationSearchView.as_view(), name='reservationsSearch'),\n    path('reservationsCartAdd/', ReservationCartCreateAPIView.as_view(), name='reservationsCartAdd'),\n    path('long-polling/', LongPollingAPIView.as_view(), name='long-polling'),",
+        "detail": "backend.capBackend.reservations.urls",
+        "documentation": {}
+    },
+    {
+        "label": "send_notification",
+        "kind": 2,
+        "importPath": "backend.capBackend.reservations.utils",
+        "description": "backend.capBackend.reservations.utils",
+        "peekOfCode": "def send_notification(recipient, message):\n    Notification.objects.create(recipient=recipient, message=message)",
+        "detail": "backend.capBackend.reservations.utils",
+        "documentation": {}
+    },
+    {
+        "label": "ReservationCartCreateAPIView",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.views",
+        "description": "backend.capBackend.reservations.views",
+        "peekOfCode": "class ReservationCartCreateAPIView(APIView):\n     def post(self, request):\n        try:\n            # Get the data from the request\n            username = request.data.get('username')\n            product_ids = request.data.get('productIds')\n            quantities = request.data.get('quantities')\n            # Validate that the lengths of product_ids and quantities match\n            if len(product_ids) != len(quantities):\n                return Response({",
+        "detail": "backend.capBackend.reservations.views",
+        "documentation": {}
+    },
+    {
+        "label": "LongPollingAPIView",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.views",
+        "description": "backend.capBackend.reservations.views",
+        "peekOfCode": "class LongPollingAPIView(APIView):\n    def get(self, request):\n        token = request.COOKIES.get('jwt_access_token')\n        if not token:\n            print('Authentication required: No token provided')\n            return JsonResponse({'error': 'Authentication required'}, status=401)\n        try:\n            decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])\n            username = decoded_token.get('username')\n        except jwt.ExpiredSignatureError:",
+        "detail": "backend.capBackend.reservations.views",
+        "documentation": {}
+    },
+    {
+        "label": "showNotification",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.views",
+        "description": "backend.capBackend.reservations.views",
+        "peekOfCode": "class showNotification(APIView):\n    def get(self, request):\n        token = request.COOKIES.get('jwt_access_token')\n        if not token:\n            return JsonResponse({'error': 'Authentication required'}, status=401)\n        try:\n            decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])\n            username = decoded_token.get('username')\n        except jwt.ExpiredSignatureError:\n            return JsonResponse({'error': 'Token expired'}, status=401)",
+        "detail": "backend.capBackend.reservations.views",
+        "documentation": {}
+    },
+    {
+        "label": "readNotification",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.views",
+        "description": "backend.capBackend.reservations.views",
+        "peekOfCode": "class readNotification(APIView):\n    def post(self, request):\n        token = request.COOKIES.get('jwt_access_token')\n        if not token:\n            return JsonResponse({'error': 'Authentication required'}, status=401)\n        try:\n            decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])\n            username = decoded_token.get('username')\n        except jwt.ExpiredSignatureError:\n            return JsonResponse({'error': 'Token expired'}, status=401)",
+        "detail": "backend.capBackend.reservations.views",
+        "documentation": {}
+    },
+    {
+        "label": "ReservationCreateUpdateAPIView",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.views",
+        "description": "backend.capBackend.reservations.views",
+        "peekOfCode": "class ReservationCreateUpdateAPIView(APIView):\n    def post(self, request):\n        try:\n            token = request.COOKIES.get('jwt_access_token')\n            if not token:\n                print(\"Authentication required: No token provided\")\n                return Response({\n                    'message': 'Authentication required'\n                }, status=status.HTTP_401_UNAUTHORIZED)\n            try:",
+        "detail": "backend.capBackend.reservations.views",
+        "documentation": {}
+    },
+    {
+        "label": "AdminUpdateReservationStatusAPIView",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.views",
+        "description": "backend.capBackend.reservations.views",
+        "peekOfCode": "class AdminUpdateReservationStatusAPIView(APIView):\n    def post(self, request):\n        print(\"Raw request data:\", request.data)\n        try:\n            token = request.COOKIES.get('jwt_access_token')\n            if not token:\n                return Response({\n                    'message': 'Authentication required'\n                }, status=status.HTTP_401_UNAUTHORIZED)\n            try:",
+        "detail": "backend.capBackend.reservations.views",
+        "documentation": {}
+    },
+    {
+        "label": "AdminReservationDetailAPIView",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.views",
+        "description": "backend.capBackend.reservations.views",
+        "peekOfCode": "class AdminReservationDetailAPIView(APIView):\n    def get(self, request):\n        token = request.COOKIES.get('jwt_access_token')\n        if not token:\n            print(\"Authentication required: No token provided\")\n            return Response({\n                'message': 'Authentication required'\n            }, status=status.HTTP_401_UNAUTHORIZED)\n        try:\n            decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])",
+        "detail": "backend.capBackend.reservations.views",
+        "documentation": {}
+    },
+    {
+        "label": "ReservationDetailAPIView",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.views",
+        "description": "backend.capBackend.reservations.views",
+        "peekOfCode": "class ReservationDetailAPIView(APIView):\n    def get(self, request):\n        token = request.COOKIES.get('jwt_access_token')\n        if not token:\n            print(\"Authentication required: No token provided\")\n            return Response({\n                'message': 'Authentication required'\n            }, status=status.HTTP_401_UNAUTHORIZED)\n        try:\n            decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])",
+        "detail": "backend.capBackend.reservations.views",
+        "documentation": {}
+    },
+    {
+        "label": "ReservationDeleteView",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.views",
+        "description": "backend.capBackend.reservations.views",
+        "peekOfCode": "class ReservationDeleteView(APIView):   \n    def delete(self, request):\n        try:\n            reservation_id = request.data.get('reservationId')\n            reservation = Reservation.objects.get( reservation_id=reservation_id)\n            reservation.delete()\n            # Notification code...\n            user = reservation.user\n            notification_message = f'Your reservation {reservation_id} has been cancelled.'\n            user_notification = Notification.objects.create(",
+        "detail": "backend.capBackend.reservations.views",
+        "documentation": {}
+    },
+    {
+        "label": "ReservationSearchView",
+        "kind": 6,
+        "importPath": "backend.capBackend.reservations.views",
+        "description": "backend.capBackend.reservations.views",
+        "peekOfCode": "class ReservationSearchView(APIView):\n    def get(self, request):\n        try:\n            searchWord = request.data.get('searchWord')\n            if not searchWord:\n                return Response({\n                    'message': 'No search word provided'\n                }, status=status.HTTP_400_BAD_REQUEST)\n            # Search by username prefix in reservation_id\n            filtered_reservations = Reservation.objects.filter(reservation_id__startswith=searchWord, user__username=searchWord)",
+        "detail": "backend.capBackend.reservations.views",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "backend.capBackend.reservations.views",
+        "description": "backend.capBackend.reservations.views",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nfrom django.http import JsonResponse\nfrom django.utils.dateparse import parse_datetime\nimport datetime\nimport re\n# pangview ng total reservations\n# class ReservationTotalAPIView(APIView):\n#         reservations = get_object_or_404(Reservation,reservation_9)\n# pangadd to cart\nclass ReservationCartCreateAPIView(APIView):",
+        "detail": "backend.capBackend.reservations.views",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "backend.capBackend.manage",
+        "description": "backend.capBackend.manage",
+        "peekOfCode": "def main():\n    \"\"\"Run administrative tasks.\"\"\"\n    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'capBackend.settings')\n    try:\n        from django.core.management import execute_from_command_line\n    except ImportError as exc:\n        raise ImportError(\n            \"Couldn't import Django. Are you sure it's installed and \"\n            \"available on your PYTHONPATH environment variable? Did you \"\n            \"forget to activate a virtual environment?\"",
+        "detail": "backend.capBackend.manage",
+        "documentation": {}
+    },
+    {
+        "label": "_Known",
+        "kind": 6,
+        "importPath": "frontend.node_modules.flatted.python.flatted",
+        "description": "frontend.node_modules.flatted.python.flatted",
+        "peekOfCode": "class _Known:\n    def __init__(self):\n        self.key = []\n        self.value = []\nclass _String:\n    def __init__(self, value):\n        self.value = value\ndef _array_keys(value):\n    keys = []\n    i = 0",
+        "detail": "frontend.node_modules.flatted.python.flatted",
+        "documentation": {}
+    },
+    {
+        "label": "_String",
+        "kind": 6,
+        "importPath": "frontend.node_modules.flatted.python.flatted",
+        "description": "frontend.node_modules.flatted.python.flatted",
+        "peekOfCode": "class _String:\n    def __init__(self, value):\n        self.value = value\ndef _array_keys(value):\n    keys = []\n    i = 0\n    for _ in value:\n        keys.append(i)\n        i += 1\n    return keys",
+        "detail": "frontend.node_modules.flatted.python.flatted",
+        "documentation": {}
+    },
+    {
+        "label": "parse",
+        "kind": 2,
+        "importPath": "frontend.node_modules.flatted.python.flatted",
+        "description": "frontend.node_modules.flatted.python.flatted",
+        "peekOfCode": "def parse(value, *args, **kwargs):\n    json = _json.loads(value, *args, **kwargs)\n    wrapped = []\n    for value in json:\n        wrapped.append(_wrap(value))\n    input = []\n    for value in wrapped:\n        if isinstance(value, _String):\n            input.append(value.value)\n        else:",
+        "detail": "frontend.node_modules.flatted.python.flatted",
+        "documentation": {}
+    },
+    {
+        "label": "stringify",
+        "kind": 2,
+        "importPath": "frontend.node_modules.flatted.python.flatted",
+        "description": "frontend.node_modules.flatted.python.flatted",
+        "peekOfCode": "def stringify(value, *args, **kwargs):\n    known = _Known()\n    input = []\n    output = []\n    i = int(_index(known, input, value))\n    while i < len(input):\n        output.append(_transform(known, input, input[i]))\n        i += 1\n    return _json.dumps(output, *args, **kwargs)",
+        "detail": "frontend.node_modules.flatted.python.flatted",
+        "documentation": {}
+    },
+    {
+        "label": "stringify",
+        "kind": 2,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "def stringify(value):\n    return _stringify(value, separators=(',', ':'))\nassert stringify([None, None]) == '[[null,null]]'\na = []\no = {}\nassert stringify(a) == '[[]]'\nassert stringify(o) == '[{}]'\na.append(a)\no['o'] = o\nassert stringify(a) == '[[\"0\"]]'",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "a",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "a = []\no = {}\nassert stringify(a) == '[[]]'\nassert stringify(o) == '[{}]'\na.append(a)\no['o'] = o\nassert stringify(a) == '[[\"0\"]]'\nassert stringify(o) == '[{\"o\":\"0\"}]'\nb = parse(stringify(a))\nassert isinstance(b, list) and b[0] == b",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "o",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "o = {}\nassert stringify(a) == '[[]]'\nassert stringify(o) == '[{}]'\na.append(a)\no['o'] = o\nassert stringify(a) == '[[\"0\"]]'\nassert stringify(o) == '[{\"o\":\"0\"}]'\nb = parse(stringify(a))\nassert isinstance(b, list) and b[0] == b\na.append(1)",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "o['o']",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "o['o'] = o\nassert stringify(a) == '[[\"0\"]]'\nassert stringify(o) == '[{\"o\":\"0\"}]'\nb = parse(stringify(a))\nassert isinstance(b, list) and b[0] == b\na.append(1)\na.append('two')\na.append(True)\no['one'] = 1\no['two'] = 'two'",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "b",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "b = parse(stringify(a))\nassert isinstance(b, list) and b[0] == b\na.append(1)\na.append('two')\na.append(True)\no['one'] = 1\no['two'] = 'two'\no['three'] = True\nassert stringify(a) == '[[\"0\",1,\"1\",true],\"two\"]'\nassert stringify(o) == '[{\"o\":\"0\",\"one\":1,\"two\":\"1\",\"three\":true},\"two\"]'",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "o['one']",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "o['one'] = 1\no['two'] = 'two'\no['three'] = True\nassert stringify(a) == '[[\"0\",1,\"1\",true],\"two\"]'\nassert stringify(o) == '[{\"o\":\"0\",\"one\":1,\"two\":\"1\",\"three\":true},\"two\"]'\na.append(o)\no['a'] = a\nassert stringify(a) == '[[\"0\",1,\"1\",true,\"2\"],\"two\",{\"o\":\"2\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"0\"}]'\nassert stringify(o) == '[{\"o\":\"0\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"2\"},\"two\",[\"2\",1,\"1\",true,\"0\"]]'\na.append({'test': 'OK'})",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "o['two']",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "o['two'] = 'two'\no['three'] = True\nassert stringify(a) == '[[\"0\",1,\"1\",true],\"two\"]'\nassert stringify(o) == '[{\"o\":\"0\",\"one\":1,\"two\":\"1\",\"three\":true},\"two\"]'\na.append(o)\no['a'] = a\nassert stringify(a) == '[[\"0\",1,\"1\",true,\"2\"],\"two\",{\"o\":\"2\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"0\"}]'\nassert stringify(o) == '[{\"o\":\"0\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"2\"},\"two\",[\"2\",1,\"1\",true,\"0\"]]'\na.append({'test': 'OK'})\na.append([1, 2, 3])",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "o['three']",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "o['three'] = True\nassert stringify(a) == '[[\"0\",1,\"1\",true],\"two\"]'\nassert stringify(o) == '[{\"o\":\"0\",\"one\":1,\"two\":\"1\",\"three\":true},\"two\"]'\na.append(o)\no['a'] = a\nassert stringify(a) == '[[\"0\",1,\"1\",true,\"2\"],\"two\",{\"o\":\"2\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"0\"}]'\nassert stringify(o) == '[{\"o\":\"0\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"2\"},\"two\",[\"2\",1,\"1\",true,\"0\"]]'\na.append({'test': 'OK'})\na.append([1, 2, 3])\no['test'] = {'test': 'OK'}",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "o['a']",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "o['a'] = a\nassert stringify(a) == '[[\"0\",1,\"1\",true,\"2\"],\"two\",{\"o\":\"2\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"0\"}]'\nassert stringify(o) == '[{\"o\":\"0\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"2\"},\"two\",[\"2\",1,\"1\",true,\"0\"]]'\na.append({'test': 'OK'})\na.append([1, 2, 3])\no['test'] = {'test': 'OK'}\no['array'] = [1, 2, 3]\nassert stringify(a) == '[[\"0\",1,\"1\",true,\"2\",\"3\",\"4\"],\"two\",{\"o\":\"2\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"0\",\"test\":\"3\",\"array\":\"4\"},{\"test\":\"5\"},[1,2,3],\"OK\"]'\nassert stringify(o) == '[{\"o\":\"0\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"2\",\"test\":\"3\",\"array\":\"4\"},\"two\",[\"2\",1,\"1\",true,\"0\",\"3\",\"4\"],{\"test\":\"5\"},[1,2,3],\"OK\"]'\na2 = parse(stringify(a));",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "o['test']",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "o['test'] = {'test': 'OK'}\no['array'] = [1, 2, 3]\nassert stringify(a) == '[[\"0\",1,\"1\",true,\"2\",\"3\",\"4\"],\"two\",{\"o\":\"2\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"0\",\"test\":\"3\",\"array\":\"4\"},{\"test\":\"5\"},[1,2,3],\"OK\"]'\nassert stringify(o) == '[{\"o\":\"0\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"2\",\"test\":\"3\",\"array\":\"4\"},\"two\",[\"2\",1,\"1\",true,\"0\",\"3\",\"4\"],{\"test\":\"5\"},[1,2,3],\"OK\"]'\na2 = parse(stringify(a));\no2 = parse(stringify(o));\nassert a2[0] == a2\nassert o2['o'] == o2\nassert a2[1] == 1 and a2[2] == 'two' and a2[3] == True and isinstance(a2[4], dict)\nassert a2[4] == a2[4]['o'] and a2 == a2[4]['o']['a']",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "o['array']",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "o['array'] = [1, 2, 3]\nassert stringify(a) == '[[\"0\",1,\"1\",true,\"2\",\"3\",\"4\"],\"two\",{\"o\":\"2\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"0\",\"test\":\"3\",\"array\":\"4\"},{\"test\":\"5\"},[1,2,3],\"OK\"]'\nassert stringify(o) == '[{\"o\":\"0\",\"one\":1,\"two\":\"1\",\"three\":true,\"a\":\"2\",\"test\":\"3\",\"array\":\"4\"},\"two\",[\"2\",1,\"1\",true,\"0\",\"3\",\"4\"],{\"test\":\"5\"},[1,2,3],\"OK\"]'\na2 = parse(stringify(a));\no2 = parse(stringify(o));\nassert a2[0] == a2\nassert o2['o'] == o2\nassert a2[1] == 1 and a2[2] == 'two' and a2[3] == True and isinstance(a2[4], dict)\nassert a2[4] == a2[4]['o'] and a2 == a2[4]['o']['a']\nstr = parse('[{\"prop\":\"1\",\"a\":\"2\",\"b\":\"3\"},{\"value\":123},[\"4\",\"5\"],{\"e\":\"6\",\"t\":\"7\",\"p\":4},{},{\"b\":\"8\"},\"f\",{\"a\":\"9\"},[\"10\"],\"sup\",{\"a\":1,\"d\":2,\"c\":\"7\",\"z\":\"11\",\"h\":1},{\"g\":2,\"a\":\"7\",\"b\":\"12\",\"f\":6},{\"r\":4,\"u\":\"7\",\"c\":5}]')",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "a2",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "a2 = parse(stringify(a));\no2 = parse(stringify(o));\nassert a2[0] == a2\nassert o2['o'] == o2\nassert a2[1] == 1 and a2[2] == 'two' and a2[3] == True and isinstance(a2[4], dict)\nassert a2[4] == a2[4]['o'] and a2 == a2[4]['o']['a']\nstr = parse('[{\"prop\":\"1\",\"a\":\"2\",\"b\":\"3\"},{\"value\":123},[\"4\",\"5\"],{\"e\":\"6\",\"t\":\"7\",\"p\":4},{},{\"b\":\"8\"},\"f\",{\"a\":\"9\"},[\"10\"],\"sup\",{\"a\":1,\"d\":2,\"c\":\"7\",\"z\":\"11\",\"h\":1},{\"g\":2,\"a\":\"7\",\"b\":\"12\",\"f\":6},{\"r\":4,\"u\":\"7\",\"c\":5}]')\nassert str['b']['t']['a'] == 'sup' and str['a'][1]['b'][0]['c'] == str['b']['t']\noo = parse('[{\"a\":\"1\",\"b\":\"0\",\"c\":\"2\"},{\"aa\":\"3\"},{\"ca\":\"4\",\"cb\":\"5\",\"cc\":\"6\",\"cd\":\"7\",\"ce\":\"8\",\"cf\":\"9\"},{\"aaa\":\"10\"},{\"caa\":\"4\"},{\"cba\":\"5\"},{\"cca\":\"2\"},{\"cda\":\"4\"},\"value2\",\"value3\",\"value1\"]');\nassert oo['a']['aa']['aaa'] == 'value1' and oo == oo['b'] and oo['c']['ca']['caa'] == oo['c']['ca']",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "o2",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "o2 = parse(stringify(o));\nassert a2[0] == a2\nassert o2['o'] == o2\nassert a2[1] == 1 and a2[2] == 'two' and a2[3] == True and isinstance(a2[4], dict)\nassert a2[4] == a2[4]['o'] and a2 == a2[4]['o']['a']\nstr = parse('[{\"prop\":\"1\",\"a\":\"2\",\"b\":\"3\"},{\"value\":123},[\"4\",\"5\"],{\"e\":\"6\",\"t\":\"7\",\"p\":4},{},{\"b\":\"8\"},\"f\",{\"a\":\"9\"},[\"10\"],\"sup\",{\"a\":1,\"d\":2,\"c\":\"7\",\"z\":\"11\",\"h\":1},{\"g\":2,\"a\":\"7\",\"b\":\"12\",\"f\":6},{\"r\":4,\"u\":\"7\",\"c\":5}]')\nassert str['b']['t']['a'] == 'sup' and str['a'][1]['b'][0]['c'] == str['b']['t']\noo = parse('[{\"a\":\"1\",\"b\":\"0\",\"c\":\"2\"},{\"aa\":\"3\"},{\"ca\":\"4\",\"cb\":\"5\",\"cc\":\"6\",\"cd\":\"7\",\"ce\":\"8\",\"cf\":\"9\"},{\"aaa\":\"10\"},{\"caa\":\"4\"},{\"cba\":\"5\"},{\"cca\":\"2\"},{\"cda\":\"4\"},\"value2\",\"value3\",\"value1\"]');\nassert oo['a']['aa']['aaa'] == 'value1' and oo == oo['b'] and oo['c']['ca']['caa'] == oo['c']['ca']\nprint('OK')",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "str",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "str = parse('[{\"prop\":\"1\",\"a\":\"2\",\"b\":\"3\"},{\"value\":123},[\"4\",\"5\"],{\"e\":\"6\",\"t\":\"7\",\"p\":4},{},{\"b\":\"8\"},\"f\",{\"a\":\"9\"},[\"10\"],\"sup\",{\"a\":1,\"d\":2,\"c\":\"7\",\"z\":\"11\",\"h\":1},{\"g\":2,\"a\":\"7\",\"b\":\"12\",\"f\":6},{\"r\":4,\"u\":\"7\",\"c\":5}]')\nassert str['b']['t']['a'] == 'sup' and str['a'][1]['b'][0]['c'] == str['b']['t']\noo = parse('[{\"a\":\"1\",\"b\":\"0\",\"c\":\"2\"},{\"aa\":\"3\"},{\"ca\":\"4\",\"cb\":\"5\",\"cc\":\"6\",\"cd\":\"7\",\"ce\":\"8\",\"cf\":\"9\"},{\"aaa\":\"10\"},{\"caa\":\"4\"},{\"cba\":\"5\"},{\"cca\":\"2\"},{\"cda\":\"4\"},\"value2\",\"value3\",\"value1\"]');\nassert oo['a']['aa']['aaa'] == 'value1' and oo == oo['b'] and oo['c']['ca']['caa'] == oo['c']['ca']\nprint('OK')",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    },
+    {
+        "label": "oo",
+        "kind": 5,
+        "importPath": "frontend.node_modules.flatted.python.test",
+        "description": "frontend.node_modules.flatted.python.test",
+        "peekOfCode": "oo = parse('[{\"a\":\"1\",\"b\":\"0\",\"c\":\"2\"},{\"aa\":\"3\"},{\"ca\":\"4\",\"cb\":\"5\",\"cc\":\"6\",\"cd\":\"7\",\"ce\":\"8\",\"cf\":\"9\"},{\"aaa\":\"10\"},{\"caa\":\"4\"},{\"cba\":\"5\"},{\"cca\":\"2\"},{\"cda\":\"4\"},\"value2\",\"value3\",\"value1\"]');\nassert oo['a']['aa']['aaa'] == 'value1' and oo == oo['b'] and oo['c']['ca']['caa'] == oo['c']['ca']\nprint('OK')",
+        "detail": "frontend.node_modules.flatted.python.test",
+        "documentation": {}
+    }
+]

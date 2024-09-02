@@ -31,6 +31,12 @@ import datetime
 import re
 
 
+# pangview ng total reservations
+# class ReservationTotalAPIView(APIView):
+#         reservations = get_object_or_404(Reservation,reservation_9)
+
+
+
 
 # pangadd to cart
 class ReservationCartCreateAPIView(APIView):
@@ -82,11 +88,9 @@ class ReservationCartCreateAPIView(APIView):
             return Response({
                 'message': f'An error occurred: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+      
 
 # pang reserve
-
-
 
 
 class LongPollingAPIView(APIView):
@@ -273,6 +277,12 @@ class ReservationCreateUpdateAPIView(APIView):
 
                             reservation_item.quantity = quantity
                             reservation_item.save()
+
+                            # Adjust product quantities based on the change
+                            quantity_difference =  reservation_item.quantity
+                            product.quantity += quantity_difference
+                            product.reserved += quantity_difference
+                            product.save()
 
                         except ReservationItem.DoesNotExist:
                             print(f"Reservation item not found for product: {product_id}")
@@ -519,11 +529,20 @@ class AdminUpdateReservationStatusAPIView(APIView):
                             reservation_item.quantity = quantity
                             reservation_item.save()
 
+                            # Update product quantities based on status
+                            if reservation_status == "DAMAGED/LOST/PARTIALLY_COMPLETED":
+                                product.broken_damaged += quantity
+                                product.reserved += quantity
+                            elif reservation_status == "COMPLETED":
+                                product.reserved += quantity
+
+                            product.save()
+
                             # Update the product quantity based on the difference
                             product_quantity_difference = quantity - reservation_item.quantity
                             product.quantity -= product_quantity_difference
                             product.save()
-                            notification_message = f'Your reservation {reservation_id} has been updated. by {usernameAdmin}'
+                            notification_message = f'Your reservation {reservation_id} has been updated by {usernameAdmin}'
 
                         except ReservationItem.DoesNotExist:
                             return Response({

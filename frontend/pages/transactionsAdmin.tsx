@@ -329,7 +329,7 @@ useEffect(() => {
   return (
 <div className={classes.wrapper} >
 <Overlay color="#000" opacity={1} zIndex={1} />
-<Header/>
+
 
 
 <Flex gap="md"

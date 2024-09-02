@@ -78,8 +78,6 @@ import NotificationButton from '@/components/NotificationButton';
     ];
   
 
-
-
   
   export function Header() {
 
@@ -163,7 +161,8 @@ import NotificationButton from '@/components/NotificationButton';
   
   
     return (
-      <Box className={classes.box}>
+<Box className={classes.box} style={{     backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/RAFAEL.jpg')`, backgroundSize: 'cover', backgroundPosition: 'center',backgroundBlendMode:'color-burn' }}>
+        
         <header className={classes.header} style={{transition: '0.7s ease',backgroundColor: isScrolledPastThreshold ? 'transparent' : '#592f55'}}>
           <Group justify="space-between" h="100%">
           <Text>

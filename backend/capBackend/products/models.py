@@ -23,6 +23,8 @@ class Product(models.Model):
     quantity = models.IntegerField()
     image = models.ImageField(upload_to='products/images/', blank=True, default='products/images/default.png')
     created_at = models.DateTimeField(default=timezone.now)
+    reserved = models.IntegerField(default=0)
+    broken_damaged = models.IntegerField(default=0)
 
     
    

@@ -97,7 +97,7 @@ function sortData(data: Reservation[], { sortBy, reversed, search }: { sortBy: k
   });
 }
 
-export default function TransactionHistory() {
+export default function TransactionHistoryUser() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);

@@ -2,7 +2,7 @@
 
 import React, { useContext, useEffect, useState } from 'react';
 import useProtectedRoute from '../utils/protectedRoute'; // Ensure this path is correct
-import { Button, Text, Image,TextInput, Select, SimpleGrid, Card, Container, Group, Stack, LoadingOverlay, Tabs, rem, Autocomplete, Flex, NumberInput, Popover, Overlay } from '@mantine/core';
+import { Button, Text, Image,TextInput, Select, SimpleGrid, Card, Container, Group, Stack, LoadingOverlay, Tabs, rem, Autocomplete, Flex, NumberInput, Popover, Overlay, Paper } from '@mantine/core';
 import { Dropzone, FileWithPath,IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import axios from '../utils/axiosInstance';
 import classes from '../components/modules.css/FloatingLabelInput.module.css';
@@ -402,12 +402,12 @@ useEffect(() => {
 
 
   return (
-    <Container pl={0} fluid bg={'#2F5933'}>
-     <Header />
+    <Paper pl={0}  bg={'#ffff'} >
+     {/* <Header /> */}
     
 
 
-    <Container fluid  pt={80}>
+    <Container fluid >
      
     <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
 
@@ -617,7 +617,7 @@ useEffect(() => {
      )}
    </Container>
    
-     </Container>
+     </Paper>
     
     );
 };
