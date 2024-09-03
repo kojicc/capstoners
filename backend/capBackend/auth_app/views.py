@@ -9,7 +9,57 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from django.conf import settings
 from django.http import JsonResponse
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.db.models import Q
+from django.contrib.auth.hashers import make_password
 
+class adminUpdateUsersView(APIView):
+    def get(self, request):
+        users = User.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def put(self, request):
+        username = request.data.get('username')
+        email = request.data.get('email')
+        password = request.data.get('password')  # Get the password from the request
+        
+        if username is None or email is None:
+            return Response({'error': 'Username and email are required'}, status=400)
+        
+        try:
+            user = User.objects.get(username=username)
+            if password:
+                request.data['password'] = make_password(password)
+            
+            serializer = UserSerializer(instance=user, data=request.data, partial=True)  
+            serializer.is_valid(raise_exception=True)
+            
+            serializer.save()
+            return Response(serializer.data)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+            
+
+    def delete(self, request):
+        try:
+            username = request.data.get('username')
+            email = request.data.get('email')
+            if username is None and email is None:
+                return Response({'error': 'Username or email is required'}, status=400)
+
+            
+            user = User.objects.get(Q(username=username) | Q(email=email))
+            user.delete()
+
+            return Response('User deleted')
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
 
 
 

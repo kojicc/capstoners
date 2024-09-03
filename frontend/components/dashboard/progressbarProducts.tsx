@@ -26,7 +26,13 @@ export function ProgressProducts() {
   const [visible, { toggle }] = useDisclosure(false);
 
   const fetcher = (url: string) => axios.get(url).then(res => res.data);
-  const { data, error } = useSWR<{ categories: CategoryStatus[], totals: Totals }>('totalStocks/', fetcher, { refreshInterval: 1000 });
+  const { data, error } = useSWR<{ categories: CategoryStatus[]; totals: Totals }>(
+    'totalStocks/',
+    fetcher,
+    { refreshInterval: 1000 }
+  );
+  // walang interval pero nagrereturn data during window focus and out of focus
+  // const { data, error } = useSWR<{ categories: CategoryStatus[], totals: Totals }>('totalStocks/', fetcher);
   const { categories: categoryStatuses, totals } = data || {};
 
   // useEffect(() => {

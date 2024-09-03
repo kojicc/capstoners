@@ -1,83 +1,84 @@
-import React, { useState } from "react";
-import {
-  AppShell,
-  Box,
-  Burger,
-  Divider,
-  Group,
-  NavLink,
-  ScrollArea,
-  Title,
-} from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
-import {
-  IconGauge,
-  IconHistory,
-  IconEdit,
-  IconTablePlus,
-  IconUsers,
-} from "@tabler/icons-react";
-import TransactionHistory from "@/pages/transactionsAdmin"; // Ensure this path is correct
-import { Dashboard } from "./dashboardMain";
-import ProductAddPage from "@/pages/productsCRUDAdmin";
-import { Header } from "../LandingPage/header/HeaderLP";
-
+import React, { useState } from 'react';
+import { AppShell, Box, Burger, Divider, Group, NavLink, ScrollArea, Title } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { IconGauge, IconHistory, IconEdit, IconTablePlus, IconUsers } from '@tabler/icons-react';
+import TransactionHistory from '@/pages/transactionsAdmin'; // Ensure this path is correct
+import { Dashboard } from './dashboardMain';
+import ProductAddPage from '@/pages/productsCRUDAdmin';
+import { Header } from '../LandingPage/header/HeaderLP';
+import UpdateUser from '@/userSettings';
+import UserAccountsManage from '../adminPage/userAccountsManage';
 
 const ManageUserAccount = () => <div>Manage User Account Component</div>;
 
 export function NavbarSection() {
   const [opened, { toggle }] = useDisclosure();
-  const [activeMain, setActiveMain] = useState("Dashboard");
-  const [activeSub, setActiveSub] = useState("");
+  const [activeMain, setActiveMain] = useState('Dashboard');
+  const [activeSub, setActiveSub] = useState('');
 
   const nestedLinks = [
     {
-      label: "Dashboard",
+      label: 'Dashboard',
       icon: IconGauge,
       component: <Dashboard />, // Component for Dashboard
     },
     {
-      label: "Transactions",
+      label: 'Transactions',
       icon: IconHistory,
       component: <TransactionHistory />, // Component for Transactions
     },
     {
-      label: "Inventory Management",
-      icon: IconHistory, 
-      component: <ProductAddPage />
-      
+      label: 'Inventory Management',
+      icon: IconHistory,
+      component: <ProductAddPage />,
     },
     {
-      label: "User Settings",
+      label: 'Manage User Accounts',
       icon: IconHistory,
-      links: [
-        { label: "Manage User Account", component: <ManageUserAccount /> },
-      ],
+      // component: <UpdateUser />,
+      component: <UserAccountsManage />,
     },
   ];
 
   const handleMainClick = (label: React.SetStateAction<string>) => {
     setActiveMain(label);
-    setActiveSub(""); 
+    setActiveSub('');
   };
 
-  const handleSubClick = (subItem: { label: any; component?: React.JSX.Element; }) => {
+  const handleSubClick = (subItem: { label: any; component?: React.JSX.Element }) => {
     setActiveSub(subItem.label);
   };
 
-  const getComponent = () => {
-    const activeMainItem = nestedLinks.find((item) => item.label === activeMain);
-    if (activeMainItem && activeMainItem.links) {
-      const activeSubItem = activeMainItem.links.find((subItem) => subItem.label === activeSub);
-      return activeSubItem ? activeSubItem.component : activeMainItem.component;
-    }
-    return activeMainItem ? activeMainItem.component : null;
-  };
+  // const getComponent = () => {
+  //   const activeMainItem = nestedLinks.find((item) => item.label === activeMain);
+  //   if (activeMainItem && activeMainItem.links) {
+  //     const activeSubItem = activeMainItem.links.find((subItem) => subItem.label === activeSub);
+  //     return activeSubItem ? activeSubItem.component : activeMainItem.component;
+  //   }
+  //   return activeMainItem ? activeMainItem.component : null;
+  // };
+
+    const getComponent = () => {
+      const activeMainItem = nestedLinks.find((item) => item.label === activeMain);
+      if (activeMainItem ) {
+        return activeMainItem ? activeMainItem.component : null;
+      }
+      
+    };
 
   const items = nestedLinks.map((item) => (
     <React.Fragment key={item.label}>
       <NavLink
-      w={'100%'}
+        w={'100%'}
+        href="#required-for-focus"
+        active={activeMain === item.label}
+        label={item.label}
+        leftSection={<item.icon size="1rem" stroke={1.5} />}
+        onClick={() => handleMainClick(item.label)} // Update active main item
+      >
+      </NavLink>
+      {/* <NavLink
+        w={'100%'}
         href="#required-for-focus"
         active={activeMain === item.label}
         label={item.label}
@@ -93,7 +94,7 @@ export function NavbarSection() {
               childrenOffset={28}
             />
           ))}
-      </NavLink>
+      </NavLink> */}
       <Divider my="md" />
     </React.Fragment>
   ));
@@ -101,25 +102,27 @@ export function NavbarSection() {
   return (
     <AppShell
       header={{ height: 60 }}
-      navbar={{ width: 300, breakpoint: "sm", collapsed: { mobile: !opened } }}
+      navbar={{ width: 300, breakpoint: 'sm', collapsed: { mobile: !opened } }}
       padding="md"
       withBorder={true}
     >
-      <AppShell.Header bg={"#2F5933"}>
+      <AppShell.Header bg={'#2F5933'}>
         <Group h="100%" mx={'auto'}>
-          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" pos={"absolute"} />
-          <Header  />
+          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" pos={'absolute'} />
+          <Header />
         </Group>
       </AppShell.Header>
       <AppShell.Navbar p="md" m={'auto'}>
         <AppShell.Section grow my="md" component={ScrollArea}>
-          <Title pb={"lg"} order={2}>Admin Dashboard</Title>
-          <Box pt={"lg"} w={'100%'}>{items}</Box>
+          <Title pb={'lg'} order={2}>
+            Admin Dashboard
+          </Title>
+          <Box pt={'lg'} w={'100%'}>
+            {items}
+          </Box>
         </AppShell.Section>
       </AppShell.Navbar>
-      <AppShell.Main style={{backgroundColor:'#2F5933'}}>
-        {getComponent()} 
-      </AppShell.Main>
+      <AppShell.Main style={{ backgroundColor: '#2F5933' }}>{getComponent()}</AppShell.Main>
     </AppShell>
   );
 }

@@ -1,6 +1,6 @@
 # urls.py (app auth level)
 from django.urls import path
-from .views import RegisterView, UserView, LogoutView,MyTokenObtainPairView,get_access_token,RefreshTokenView
+from .views import RegisterView, UserView, LogoutView,MyTokenObtainPairView,get_access_token,RefreshTokenView,adminUpdateUsersView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
@@ -10,4 +10,5 @@ urlpatterns = [
     path('user/', UserView.as_view()),
     path('logout/', LogoutView.as_view()),
     path('get-access-token/', get_access_token),
+    path('adminupdateUsers/', adminUpdateUsersView.as_view())
 ]
