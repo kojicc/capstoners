@@ -163,6 +163,7 @@ export function UserRegAdmin() {
           <AutocompleteLoading value={form.values.email} onChange={handleEmailChange} />
 
           <TextInput
+            autoComplete="new-password"
             required
             label="Username"
             placeholder="Enter your username"
@@ -173,6 +174,7 @@ export function UserRegAdmin() {
           />
 
           <PasswordInput
+            autoComplete="new-password"
             required
             label="Password"
             placeholder="Your password"
