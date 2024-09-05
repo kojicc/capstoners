@@ -294,7 +294,7 @@ export function AuthenticationForm(props: PaperProps) {
       </form>
     </Paper>
     <Group justify="center">
-        <Button onClick={toggle}>Toggle overlay</Button>
+        {/* <Button onClick={toggle}>Toggle overlay</Button> */}
       </Group>
     </>
 

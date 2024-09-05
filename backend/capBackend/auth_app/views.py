@@ -11,7 +11,12 @@ from django.http import JsonResponse
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Q
 from django.contrib.auth.hashers import make_password
-
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.response import Response
+from rest_framework import status
+import jwt
 class adminUpdateUsersView(APIView):
     def get(self, request):
         users = User.objects.all()
@@ -63,6 +68,31 @@ class adminUpdateUsersView(APIView):
 
 
 
+class forgetPasswordView(APIView):
+    # def post(self, request):
+    #     email = request.data.get('email')
+    #     if email is None:
+    #         return Response({'error': 'Email is required'}, status=400)
+        
+    #     try:
+    #         user = User.objects.get(email=email)
+    #         return Response({'message': 'Email sent'})
+    #     except User.DoesNotExist:
+    #         return Response({'error': 'User not found'}, status=404)    
+    def put(self, request):
+        email = request.data.get('email')
+        username = request.data.get('username')
+        password = request.data.get('password')
+        if email is None or password is None and username is None:
+            return Response({'error': 'Email or username and password are required'}, status=400)
+        
+        try:
+            user = User.objects.get(Q(username=username) | Q(email=email))
+            user.password = make_password(password)
+            user.save()
+            return Response({'message': 'Password reset successful'})
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)    
 
 # API view para sa pag-register ng user
 class RegisterView(APIView):    
@@ -125,12 +155,7 @@ class LogoutView(APIView):
     
 
 # panglagay sa cookies ng token para thru cookies ang usapan ng backend at frontend kung sino ang currently nagamit pang LOGIN
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.exceptions import InvalidToken
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.response import Response
-from rest_framework import status
-import jwt
+
 
 class MyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):

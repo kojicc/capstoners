@@ -1,6 +1,5 @@
-
-import {ContactUs} from '@/components/LandingPage/contact/ContactUs';
-import { NavbarSection } from '../components/sidebar/sidebarAdmin';
+import { ContactUs } from '@/components/LandingPage/contact/ContactUs';
+import { NavbarSection } from '../components/adminPage/dashboard/sidebarAdmin';
 
 import { Header } from '../components/LandingPage/header/HeaderLP';
 import { Hero } from '../components/LandingPage/hero/Hero';
@@ -11,21 +10,13 @@ import { useState } from 'react';
 import { Button } from '@mantine/core';
 // import { TransactionsAdmin } from '@/components/adminPage/TransactionsAdmin';
 
-
-
-
-
 export default function HomePage() {
-  
-
   return (
     <>
-        
-        {/* <Button component='a'href='/productsCRUDAdmin'>Crud Test</Button> */}
-        
-    {/* <Header /> */}
-  <NavbarSection/>
-    
+      {/* <Button component='a'href='/productsCRUDAdmin'>Crud Test</Button> */}
+
+      {/* <Header /> */}
+      <NavbarSection />
     </>
   );
 }

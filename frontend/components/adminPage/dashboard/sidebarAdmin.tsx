@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { AppShell, Box, Burger, Divider, Group, NavLink, ScrollArea, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconGauge, IconHistory, IconEdit, IconTablePlus, IconUsers } from '@tabler/icons-react';
-import TransactionHistory from '@/pages/transactionsAdmin'; // Ensure this path is correct
+import TransactionHistory from '@/components/adminPage/Transactions/transactionsAdmin'; // Ensure this path is correct
 import { Dashboard } from './dashboardMain';
-import ProductAddPage from '@/pages/productsCRUDAdmin';
-import { Header } from '../LandingPage/header/HeaderLP';
+import ProductAddPage from '@/components/adminPage/inventoryManagement/inventoryManagementTabs';
+import { Header } from '../../LandingPage/header/HeaderLP';
 import UpdateUser from '@/userSettings';
-import UserAccountsManage from '../adminPage/userAccountsManage';
+import UserAccountsManage from '../manageUserAccounts/userAccountsManageTabs';
 
-const ManageUserAccount = () => <div>Manage User Account Component</div>;
 
 export function NavbarSection() {
   const [opened, { toggle }] = useDisclosure();
@@ -58,25 +57,23 @@ export function NavbarSection() {
   //   return activeMainItem ? activeMainItem.component : null;
   // };
 
-    const getComponent = () => {
-      const activeMainItem = nestedLinks.find((item) => item.label === activeMain);
-      if (activeMainItem ) {
-        return activeMainItem ? activeMainItem.component : null;
-      }
-      
-    };
+  const getComponent = () => {
+    const activeMainItem = nestedLinks.find((item) => item.label === activeMain);
+    if (activeMainItem) {
+      return activeMainItem ? activeMainItem.component : null;
+    }
+  };
 
   const items = nestedLinks.map((item) => (
     <React.Fragment key={item.label}>
       <NavLink
         w={'100%'}
-        href="#required-for-focus"
+        // href="#required-for-focus"
         active={activeMain === item.label}
         label={item.label}
         leftSection={<item.icon size="1rem" stroke={1.5} />}
         onClick={() => handleMainClick(item.label)} // Update active main item
-      >
-      </NavLink>
+      ></NavLink>
       {/* <NavLink
         w={'100%'}
         href="#required-for-focus"
@@ -106,7 +103,7 @@ export function NavbarSection() {
       padding="md"
       withBorder={true}
     >
-      <AppShell.Header bg={'#2F5933'}>
+      <AppShell.Header >
         <Group h="100%" mx={'auto'}>
           <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" pos={'absolute'} />
           <Header />

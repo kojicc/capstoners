@@ -1,7 +1,19 @@
 import { useState, useEffect } from 'react';
 import axiosInstance from '@/utils/axiosInstance';
 import {
-  Table, Button, TextInput, Container, Title, Text, UnstyledButton, Group, Center, rem, ActionIcon, Modal, Stack,
+  Table,
+  Button,
+  TextInput,
+  Container,
+  Title,
+  Text,
+  UnstyledButton,
+  Group,
+  Center,
+  rem,
+  ActionIcon,
+  Modal,
+  Stack,
   Pagination,
   Flex,
   Autocomplete,
@@ -9,19 +21,31 @@ import {
   LoadingOverlay,
   NativeSelect,
   Paper,
+  Box,
+  PasswordInput,
+  Popover,
+  Progress,
 } from '@mantine/core';
-import { IconSelector, IconChevronDown, IconChevronUp, IconSearch, IconEdit, IconTrash, IconCheck } from '@tabler/icons-react';
+import {
+  IconSelector,
+  IconChevronDown,
+  IconChevronUp,
+  IconSearch,
+  IconEdit,
+  IconTrash,
+  IconCheck,
+  IconX,
+  IconKeyFilled,
+} from '@tabler/icons-react';
 import classes from '@/components/modules.css/TableSort.module.css';
 import { notifications } from '@mantine/notifications';
 import styles from '@/components/modules.css/TableSort.module.css';
 import { useRouter } from 'next/router';
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
-import useSWR, {  useSWRConfig } from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
+import { modals } from '@mantine/modals';
 // import { ReusableTable } from '@/components/transactionsUser';
 // import classes from '../components/modules.css/Demo.module.css';
-
-
-
 
 interface Users {
   category: string;
@@ -41,16 +65,15 @@ interface Category {
 }
 
 interface Users {
-    id: string; 
-    first_name: string;
-    last_name: string;
-    email: string;
-    username: string;
-    role: string;
-    date_joined?: string; 
-    fullname?: string; 
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  username: string;
+  role: string;
+  date_joined?: string;
+  fullname?: string;
 }
-
 
 export interface ThProps {
   children: React.ReactNode;
@@ -84,14 +107,21 @@ function filterData(data: Users[] | undefined, search: string): Users[] {
   }
 
   const query = search.toLowerCase().trim();
-  return data.filter((item) =>
-    (item.productId?.toLowerCase() || '').includes(query)
-    || (item.name?.toLowerCase() || '').includes(query)
-   
+  return data.filter(
+    (item) =>
+      (item.email?.toLowerCase() || '').includes(query) ||
+      (item.first_name?.toLowerCase() || '').includes(query) ||
+      (item.last_name?.toLowerCase() || '').includes(query) ||
+      (item.username?.toLowerCase() || '').includes(query) ||
+      (item.role?.toLowerCase() || '').includes(query) ||
+      (item.date_joined?.toLowerCase() || '').includes(query)
   );
 }
 
-function sortData(data: Users[], { sortBy, reversed, search }: { sortBy: keyof Users | null, reversed: boolean, search: string }) {
+function sortData(
+  data: Users[],
+  { sortBy, reversed, search }: { sortBy: keyof Users | null; reversed: boolean; search: string }
+) {
   const filteredData = filterData(data, search);
   console.log('filteredData:', filteredData);
   return filteredData.sort((a, b) => {
@@ -107,6 +137,43 @@ function sortData(data: Users[], { sortBy, reversed, search }: { sortBy: keyof U
   });
 }
 
+function PasswordRequirement({ meets, label }: { meets: boolean; label: string }) {
+  return (
+    <Text
+      c={meets ? 'teal' : 'red'}
+      style={{ display: 'flex', alignItems: 'center' }}
+      mt={7}
+      size="sm"
+    >
+      {meets ? (
+        <IconCheck style={{ width: rem(14), height: rem(14) }} />
+      ) : (
+        <IconX style={{ width: rem(14), height: rem(14) }} />
+      )}{' '}
+      <Box ml={10}>{label}</Box>
+    </Text>
+  );
+}
+
+const requirements = [
+  { re: /[0-9]/, label: 'Includes number' },
+  { re: /[a-z]/, label: 'Includes lowercase letter' },
+  { re: /[A-Z]/, label: 'Includes uppercase letter' },
+  { re: /[$&+,:;=?@#|'<>.^*()%!-]/, label: 'Includes special symbol' },
+];
+
+function getStrength(password: string) {
+  let multiplier = password.length > 5 ? 0 : 1;
+
+  requirements.forEach((requirement) => {
+    if (!requirement.re.test(password)) {
+      multiplier += 1;
+    }
+  });
+
+  return Math.max(100 - (100 / (requirements.length + 1)) * multiplier, 10);
+}
+
 const UpdateUser = () => {
   const [users, setUsers] = useState<Users[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -117,6 +184,7 @@ const UpdateUser = () => {
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+  const [updatePasswordModalOpened, setUpdatePasswordModalOpened] = useState(false);
   // const [selectedUsers, setSelectedUsers] = useState<Users | null>(null);
   const [selectedUsers, setSelectedUsers] = useState<Users | null>(null);
   const [activePage, setPage] = useState(1);
@@ -126,9 +194,22 @@ const UpdateUser = () => {
   const router = useRouter();
   // Fetch data using SWR
   const fetchers = (url: string) => axiosInstance.get(url).then((res) => res.data);
-  const { data: usersData, error: usersError } = useSWR<Users[]>('adminupdateUsers/', fetchers);
+  const { data: usersData, error: usersError } = useSWR<Users[]>('adminupdateUsers/', fetchers, {
+    refreshInterval: 1000,
+  });
   if (usersError) return <Text color="red">Failed to load users</Text>;
   const { mutate } = useSWRConfig();
+
+  const [popoverOpened, setPopoverOpened] = useState(false);
+  const [value, setValue] = useState('');
+  const [newpassword, setNewPassword] = useState('');
+
+  const checks = requirements.map((requirement, index) => (
+    <PasswordRequirement key={index} label={requirement.label} meets={requirement.re.test(value)} />
+  ));
+
+  const strength = getStrength(value);
+  const color = strength === 100 ? 'teal' : strength > 50 ? 'yellow' : 'red';
 
   useEffect(() => {
     if (usersData) {
@@ -139,7 +220,6 @@ const UpdateUser = () => {
   useEffect(() => {
     setSortedData(sortData(users, { sortBy, reversed: reverseSortDirection, search: searchQuery }));
   }, [users, sortBy, reverseSortDirection, searchQuery]);
-
 
   useEffect(() => {
     if (router.query.searchQuery) {
@@ -179,7 +259,6 @@ const UpdateUser = () => {
   if (!usersData)
     return <LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />;
 
-  
   // const allUserData = usersData;
   // setUsers(allUserData);
   // setUsers(allUserData);
@@ -203,7 +282,6 @@ const UpdateUser = () => {
       });
 
       if (response.status === 200) {
-        
         setError('');
         const id = notifications.show({
           loading: true,
@@ -253,7 +331,6 @@ const UpdateUser = () => {
     formData.append('username', selectedUsers?.username || '');
     formData.append('role', selectedUsers?.role || '');
 
-
     setLoading(true);
 
     try {
@@ -277,10 +354,53 @@ const UpdateUser = () => {
     setSelectedUsers(null);
   };
 
+  const handleUpdatePassword = async () => {
+    const formData = new FormData();
+    formData.append('password', value);
+    formData.append('username', selectedUsers?.username || '');
+    formData.append('email', selectedUsers?.email || '');
+
+    setLoading(true);
+
+    try {
+      const response = await axiosInstance.put('forgetPassword/', formData);
+
+      handleCloseModal();
+      notifications.show({
+        title: 'Success',
+        message: 'Password updated successfully.',
+        color: 'green',
+      });
+    } catch (error) {
+      console.error('Error updating password:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const paginatedData = sortedData.slice(
     (activePage - 1) * itemsPerPage,
     activePage * itemsPerPage
   );
+
+  const openDeleteModal = () =>
+    modals.openConfirmModal({
+      title: `This will change this user's password`,
+      centered: true,
+      children: (
+        <Text size="sm">
+          Are you sure you want to change the password of this user? This action is destructive.
+        </Text>
+      ),
+      labels: { confirm: 'Change password', cancel: "No don't change it" },
+      confirmProps: { color: 'red' },
+      onCancel: () => console.log('Cancel'),
+      onConfirm: () => {
+        handleUpdatePassword();
+        setUpdatePasswordModalOpened(false);
+        setNewPassword('');
+      },
+    });
 
   return (
     <Paper shadow="xl" radius="md" p="xl" m={'xl'}>
@@ -290,6 +410,7 @@ const UpdateUser = () => {
             User History - Admin
           </Title>
           <Autocomplete
+            autoComplete="new-password"
             placeholder="Search users using users ids"
             value={searchQuery}
             onChange={setSearchQuery}
@@ -400,6 +521,15 @@ const UpdateUser = () => {
                               <IconEdit />
                             </ActionIcon>
                             <ActionIcon
+                              color="yellow"
+                              onClick={() => {
+                                setSelectedUsers(users);
+                                setUpdatePasswordModalOpened(true);
+                              }}
+                            >
+                              <IconKeyFilled />
+                            </ActionIcon>
+                            <ActionIcon
                               color="red"
                               onClick={() => {
                                 setSelectedUsers(users);
@@ -426,6 +556,66 @@ const UpdateUser = () => {
               </Flex>
             </>
           )}
+
+          <Modal
+            opened={updatePasswordModalOpened}
+            onClose={() => {
+              setUpdatePasswordModalOpened(false);
+              setNewPassword('');
+            }}
+            title="Update Password"
+          >
+            <LoadingOverlay
+              visible={loading}
+              zIndex={1000}
+              overlayProps={{ radius: 'sm', blur: 2 }}
+            />
+
+            <Stack>
+              <TextInput
+                disabled
+                label="User's ID"
+                value={selectedUsers?.username || ''}
+                onChange={(event) =>
+                  setSelectedUsers((prev) => ({ ...prev, id: event.currentTarget.value }) as Users)
+                }
+              />
+              <Popover
+                opened={popoverOpened}
+                position="bottom"
+                width="target"
+                transitionProps={{ transition: 'pop' }}
+              >
+                <Popover.Target>
+                  <div
+                    onFocusCapture={() => setPopoverOpened(true)}
+                    onBlurCapture={() => setPopoverOpened(false)}
+                  >
+                    <PasswordInput
+                      data-autofocus
+                      required
+                      withAsterisk
+                      label="New password"
+                      placeholder="New password"
+                      value={value}
+                      onChange={(event) => setNewPassword(event.currentTarget.value)}
+                      autoComplete="new-password"
+                    />
+                  </div>
+                </Popover.Target>
+                <Popover.Dropdown>
+                  <Progress color={color} value={strength} size={5} mb="xs" />
+                  <PasswordRequirement
+                    label="Includes at least 6 characters"
+                    meets={value.length > 5}
+                  />
+                  {checks}
+                </Popover.Dropdown>
+              </Popover>
+
+              <Button onClick={openDeleteModal}>Save Changes</Button>
+            </Stack>
+          </Modal>
 
           {/* Edit Modal */}
           <Modal opened={editModalOpened} onClose={handleCloseModal} title="Edit Users">
@@ -501,8 +691,6 @@ const UpdateUser = () => {
                 }
               />
 
-              <></>
-
               <Button onClick={handleEdit}>Save Changes</Button>
             </Stack>
           </Modal>
@@ -530,6 +718,6 @@ const UpdateUser = () => {
       </Flex>
     </Paper>
   );
-}
+};
 
-export default UpdateUser
+export default UpdateUser;

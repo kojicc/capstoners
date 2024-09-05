@@ -11,11 +11,11 @@ import {
   LoadingOverlay,
 } from '@mantine/core';
 import { IconSelector, IconChevronDown, IconChevronUp, IconSearch, IconEdit, IconTrash } from '@tabler/icons-react';
-import classes from '../components/modules.css/TableSort.module.css';
+import classes from '@/components/modules.css/TableSort.module.css';
 import { notifications } from '@mantine/notifications';
 import moment from 'moment-timezone';
 import { DatesProvider, DateTimePicker } from '@mantine/dates';
-import styles from '../components/modules.css/TableSort.module.css';
+import styles from '@/components/modules.css/TableSort.module.css';
 import { Header } from '@/components/LandingPage/header/HeaderLP';
 import { useRouter } from 'next/router';
 // import { ReusableTable } from '@/components/transactionsUser';

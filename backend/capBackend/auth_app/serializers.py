@@ -7,7 +7,7 @@ from django.contrib.auth.hashers import make_password
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'  # Mga field ng User model
+        fields = ['id','first_name','last_name','email','username','role','password','date_joined']  # Mga field ng User model
 
         extra_kwargs = {
             'password': {'write_only': True}  # Ang password field ay para lang sa write, hindi ipapakita sa mga response

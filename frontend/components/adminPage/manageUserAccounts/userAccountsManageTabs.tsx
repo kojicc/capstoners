@@ -41,7 +41,6 @@ import {
   IconIdBadge2,
 } from '@tabler/icons-react';
 import ActionsGridViewAdmin from '@/components/ActionsGridViewAdmin';
-import UpdateAdmin from '@/components/crudAdmin/updateAdmin';
 import { useCategoryID } from '@/utils/categoryIDContext';
 import axiosInstance from '@/utils/axiosInstance';
 import { notifications } from '@mantine/notifications';
@@ -49,7 +48,8 @@ import { Header } from '@/components/LandingPage/header/HeaderLP';
 import { useForm } from '@mantine/form';
 import { readLocalStorageValue, useLocalStorage } from '@mantine/hooks';
 import UpdateUser from '@/userSettings';
-import { AuthenticationForm } from '../login/authForm';
+import { AuthenticationForm } from '../../login/authForm';
+import { UserRegAdmin } from './userRegistrationAdmin';
 
 interface Product {
   id: number;
@@ -433,7 +433,8 @@ const UserAccountsManage = () => {
 
             <Tabs.Panel value="Create">
               <>
-                <AuthenticationForm />
+                {/* <AuthenticationForm /> */}
+                <UserRegAdmin />
               </>
               {/* <Stack gap="xl">
                 <Card shadow="sm" padding="lg">
