@@ -9,6 +9,7 @@ import {
   NumberInput,
   LoadingOverlay,
   SimpleGrid,
+  CloseButton,
 } from '@mantine/core';
 import { IconSelector, IconChevronDown, IconChevronUp, IconSearch, IconEdit, IconTrash } from '@tabler/icons-react';
 import classes from '@/components/modules.css/TableSort.module.css';
@@ -278,6 +279,16 @@ const UpdateCrudProductsAdmin = () => {
             value={searchQuery}
             onChange={setSearchQuery}
             leftSection={<IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />}
+            rightSection={
+              searchQuery !== '' && (
+                <CloseButton
+                  size="sm"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear value"
+                />
+              )
+            }
             my={20}
             data={[
               {

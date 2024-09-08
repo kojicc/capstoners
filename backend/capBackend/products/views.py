@@ -163,10 +163,12 @@ class RetrieveProductIDView(APIView):
             return Response({'message': 'An error occurred', 'error': str(e)}, status=400)     
 
 class RetrieveProductImage(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
             categoryID = request.query_params.get('categoryID')  # Get categoryID from query params
+
+
 
             print(f"Category ID: {categoryID}")
 

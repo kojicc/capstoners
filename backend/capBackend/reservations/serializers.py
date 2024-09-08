@@ -18,7 +18,12 @@ class ReservationItemSerializer(serializers.ModelSerializer):
         model = ReservationItem
         fields = ['reservation', 'product', 'quantity','product_id']
 
+class CartSerializer(serializers.ModelSerializer):
+    product = ProductImageonlySerializer()
 
+    class Meta:
+        model = Cart
+        fields = ['user', 'quantity', 'product']
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:

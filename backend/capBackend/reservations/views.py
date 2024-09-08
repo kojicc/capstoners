@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Reservation
-from .serializers import ReservationItemSerializer, ReservationSerializer, NotificationSerializer
+from .serializers import ReservationItemSerializer, ReservationSerializer, NotificationSerializer, CartSerializer
 # from .serializers import AddToCartSerializer
 from auth_app.models import User
 from products.models import Product
@@ -36,17 +36,58 @@ import re
 #         reservations = get_object_or_404(Reservation,reservation_9)
 
 
+class ReservationCartAPIView(APIView):
+    # permission_classes = [IsAuthenticated]
 
+# pangshow ng mga items sa cart
+    def get(self, request):
+        try:
+            # Get the username from the request
+            username = request.query_params.get('username')
+
+            # Get the user object
+            user = get_object_or_404(User, username=username)
+
+            # Get all items in the cart for the user
+            cart_items = Cart.objects.filter(user_id=user)
+
+            # Serialize the cart items
+            cart_items_data = CartSerializer(cart_items, many=True).data
+
+            return Response({
+                'cart_items': cart_items_data,
+                'message': 'Cart items retrieved successfully'
+            }, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({
+                'message': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            return Response({
+                'message': f'An error occurred: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 # pangadd to cart
-class ReservationCartCreateAPIView(APIView):
-    permission_classes = [IsAuthenticated]
     def post(self, request):
         try:
             # Get the data from the request
             username = request.data.get('username')
-            product_ids = request.data.get('productIds')
-            quantities = request.data.get('quantities')
+            product_ids = request.data.get('productId')
+            quantities = request.data.get('quantity')
+
+            # Check if product_ids and quantities are not None
+            if product_ids is None or quantities is None:
+                return Response({
+                    'message': 'Product IDs or quantities are missing'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Convert to lists if they are not already lists
+            if not isinstance(product_ids, list):
+                product_ids = [product_ids]
+            if not isinstance(quantities, list):
+                quantities = [quantities]
 
             # Validate that the lengths of product_ids and quantities match
             if len(product_ids) != len(quantities):
@@ -62,17 +103,12 @@ class ReservationCartCreateAPIView(APIView):
                 product_id = product_ids[i]
                 quantity = quantities[i]
 
-
-
                 # Check if the quantity requested is available
-
-                if quantity > Product.objects.get(productId=product_id).quantity:
-                    return Response({
-                        'message': 'Not enough stocks available'
-                    }, status=400)
-
-                # Get the product object
                 product = get_object_or_404(Product, productId=product_id)
+                if quantity > product.quantity:
+                    return Response({
+                        'message': f'Not enough stock available for product {product_id}'
+                    }, status=400)
 
                 # Add the product to the cart or update if it already exists
                 cart_item, created = Cart.objects.update_or_create(
@@ -89,9 +125,121 @@ class ReservationCartCreateAPIView(APIView):
             return Response({
                 'message': f'An error occurred: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
-      
 
-# pang reserve
+# pangdelete sa cart
+    def delete(self, request):
+        try:
+            # Get the data from the request
+            username = request.data.get('username')
+            product_ids = request.data.get('productIds')
+
+            # Get the user object
+            user = get_object_or_404(User, username=username)
+
+            # Check if product_ids is not None
+            if product_ids is None:
+                return Response({
+                    'message': 'Product IDs are missing'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Convert to list if it is not already a list
+            if not isinstance(product_ids, list):
+                product_ids = [product_ids]
+
+            # Get the cart items to delete
+            cart_items = Cart.objects.filter(user=user, product__productId__in=product_ids)
+
+            # Delete the cart items
+            cart_items.delete()
+
+            return Response({
+                'message': 'Products removed from cart successfully'
+            }, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({
+                'message': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except Cart.DoesNotExist:
+            return Response({
+                'message': 'Cart items not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            return Response({
+                'message': f'An error occurred: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+# pangupdate sa cart
+    def put(self, request):
+        try:
+            # Get the data from the request
+            username = request.data.get('username')
+            product_ids = request.data.get('productIds')
+            quantities = request.data.get('quantities')
+
+            # Check if product_ids and quantities are not None
+            if product_ids is None or quantities is None:
+                return Response({
+                    'message': 'Product IDs or quantities are missing'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Convert to lists if they are not already lists
+            if not isinstance(product_ids, list):
+                product_ids = [product_ids]
+            if not isinstance(quantities, list):
+                quantities = [quantities]
+
+            # Validate that the lengths of product_ids and quantities match
+            if len(product_ids) != len(quantities):
+                return Response({
+                    'message': 'Mismatch between product IDs and quantities'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Get the user object
+            user = get_object_or_404(User, username=username)
+
+            # Iterate through product IDs and quantities to update each product in the cart
+            for i in range(len(product_ids)):
+                product_id = product_ids[i]
+                quantity = quantities[i]
+
+                # Check if the quantity requested is available
+                product = get_object_or_404(Product, productId=product_id)
+                if quantity > product.quantity:
+                    return Response({
+                        'message': f'Not enough stock available for product {product_id}'
+                    }, status=400)
+
+                # Update the product in the cart
+                cart_item = get_object_or_404(Cart, user=user, product=product)
+                cart_item.quantity = quantity
+                cart_item.save()
+
+            return Response({
+                'message': 'Cart updated successfully'
+            }, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({
+                'message': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except Product.DoesNotExist:
+            return Response({
+                'message': 'Product not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except Cart.DoesNotExist:
+            return Response({
+                'message': 'Cart item not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            return Response({
+                'message': f'An error occurred: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LongPollingAPIView(APIView):
@@ -217,7 +365,7 @@ class readNotification(APIView):
 
 
 
-
+# pang checkout na?
 class ReservationCreateUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
@@ -404,7 +552,7 @@ class ReservationCreateUpdateAPIView(APIView):
                             )
                             reservation_item.save()
 
-                            product.quantity -= quantity
+                            # product.quantity -= quantity
                             product.save()
 
                             cart_item.delete()
@@ -417,7 +565,7 @@ class ReservationCreateUpdateAPIView(APIView):
                                 'message': f'Product {product_id} not found in cart'
                             }, status=status.HTTP_404_NOT_FOUND)
 
-                    notification_message = f'Your reservation {reservation_id} has been created successfully.'
+                    notification_message = f'Your reservation {reservation_id} has been created successfully and is waiting for approval.'
                     # Add notification to the model for the user
                     user_notification = Notification.objects.create(
                         user=user,
@@ -440,7 +588,8 @@ class ReservationCreateUpdateAPIView(APIView):
             print(f"Reservation created successfully with ID: {reservation_id}")
             return Response({
                 'message': 'Reservation created successfully',
-                'reservation_id': reservation_id
+                'reservation_id': reservation_id,
+                'product_ids': product_ids,
             }, status=status.HTTP_201_CREATED)
 
         except User.DoesNotExist:
@@ -533,12 +682,17 @@ class AdminUpdateReservationStatusAPIView(APIView):
                             reservation_item = ReservationItem.objects.get(reservation=reservation, product=product)
                             reservation_item.quantity = quantity
                             reservation_item.save()
+                            print(f"product_id: {product_id}")
+
+                            print(f"quantity per product: {quantity}")
 
                             # Update product quantities based on status
                             if reservation_status == "DAMAGED/LOST/PARTIALLY_COMPLETED":
+                                product.quantity -= quantity
                                 product.broken_damaged += quantity
-                                product.reserved += quantity
-                            elif reservation_status == "COMPLETED":
+                                
+                            elif reservation_status == "APPROVED":
+                                product.quantity -= quantity
                                 product.reserved += quantity
 
                             product.save()
@@ -1141,3 +1295,94 @@ class ReservationSearchView(APIView):
 #         #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 #         # except Reservation.DoesNotExist:
 #         #     return Response({"error": "Reservation not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+# class ReservationCartCreateAPIView(APIView):
+#     # permission_classes = [IsAuthenticated]
+#     def post(self, request):
+#         try:
+#             # Get the data from the request
+#             username = request.data.get('username')
+#             product_ids = request.data.get('productId')
+#             quantities = request.data.get('quantity')
+            
+#             # Check if product_ids and quantities are not None
+#             if product_ids is None or quantities is None:
+#                 return Response({
+#                     'message': 'Product IDs or quantities are missing'
+#                 }, status=status.HTTP_400_BAD_REQUEST)
+            
+#             # Convert to lists if they are not already lists
+#             if not isinstance(product_ids, list):
+#                 product_ids = [product_ids]
+#             if not isinstance(quantities, list):
+#                 quantities = [quantities]
+            
+#             # Validate that the lengths of product_ids and quantities match
+#             if len(product_ids) != len(quantities):
+#                 return Response({
+#                     'message': 'Mismatch between product IDs and quantities'
+#                 }, status=status.HTTP_400_BAD_REQUEST)
+
+#             # Get the user object
+#             user = get_object_or_404(User, username=username)
+
+#             # Iterate through product IDs and quantities to add each product to the cart
+#             for i in range(len(product_ids)):
+#                 product_id = product_ids[i]
+#                 quantity = quantities[i]
+
+#                 # Check if the quantity requested is available
+#                 product = get_object_or_404(Product, productId=product_id)
+#                 if quantity > product.quantity:
+#                     return Response({
+#                         'message': f'Not enough stock available for product {product_id}'
+#                     }, status=400)
+
+#                 # Add the product to the cart or update if it already exists
+#                 cart_item, created = Cart.objects.update_or_create(
+#                     user=user,
+#                     product=product,
+#                     defaults={'quantity': quantity}
+#                 )
+
+#             return Response({
+#                 'message': 'Products added to cart successfully'
+#             }, status=status.HTTP_200_OK)
+
+#         except Exception as e:
+#             return Response({
+#                 'message': f'An error occurred: {str(e)}'
+#             }, status=status.HTTP_400_BAD_REQUEST)
+ 
+
+# class ReservationCartListAPIView(APIView):
+#     # permission_classes = [IsAuthenticated]
+#     def get(self, request):
+#         try:
+#             # Get the username from the request
+#             username = request.query_params.get('username')
+
+#             # Get the user object
+#             user = get_object_or_404(User, username=username)
+
+#             # Get all items in the cart for the user
+#             cart_items = Cart.objects.filter(user_id=user)
+
+#             # Serialize the cart items
+#             cart_items_data = CartSerializer(cart_items, many=True).data
+
+#             return Response({
+#                 'cart_items': cart_items_data,
+#                 'message': 'Cart items retrieved successfully'
+#             }, status=status.HTTP_200_OK)
+
+#         except User.DoesNotExist:
+#             return Response({
+#                 'message': 'User not found'
+#             }, status=status.HTTP_404_NOT_FOUND)
+
+#         except Exception as e:
+#             return Response({
+#                 'message': f'An error occurred: {str(e)}'
+#             }, status=status.HTTP_400_BAD_REQUEST)
