@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppShell, Box, Burger, Divider, Group, NavLink, ScrollArea, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconGauge, IconHistory, IconEdit, IconTablePlus, IconUsers } from '@tabler/icons-react';
@@ -6,8 +6,8 @@ import TransactionHistory from '@/components/adminPage/Transactions/transactions
 import { Dashboard } from './dashboardMain';
 import ProductAddPage from '@/components/adminPage/inventoryManagement/inventoryManagementTabs';
 import { Header } from '../../LandingPage/header/HeaderLP';
-import UpdateUser from '@/userSettings';
 import UserAccountsManage from '../manageUserAccounts/userAccountsManageTabs';
+import { useRouter } from 'next/router';
 
 
 export function NavbarSection() {
@@ -15,6 +15,15 @@ export function NavbarSection() {
   const [activeMain, setActiveMain] = useState('Dashboard');
   const [activeSub, setActiveSub] = useState('');
 
+    const router = useRouter();
+
+
+ useEffect(() => {
+   // If searchQuery is present, set Transactions as the active component
+   if (router.query.searchQuery) {
+     setActiveMain('Transactions');
+   }
+ }, [router.query.searchQuery]);
   const nestedLinks = [
     {
       label: 'Dashboard',
@@ -34,7 +43,6 @@ export function NavbarSection() {
     {
       label: 'Manage User Accounts',
       icon: IconHistory,
-      // component: <UpdateUser />,
       component: <UserAccountsManage />,
     },
   ];

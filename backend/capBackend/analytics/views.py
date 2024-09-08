@@ -9,6 +9,8 @@ from .serializers import PageViewSerializer, NewUserSerializer, CompletedOrderSe
 from auth_app.models import User
 from reservations.models import Reservation
 from django.db.models import Sum
+from rest_framework.permissions import IsAuthenticated
+
 
 # class PageViewViewSet(viewsets.ModelViewSet):
 #     queryset = PageView.objects.all()
@@ -47,22 +49,27 @@ from django.db.models import Sum
 #         return Response(broken_damaged_products)
 
 class getMostReservedProducts(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         reserved_products = Product.objects.values('productId', 'name').annotate(total_reserved=Sum('reserved')).order_by('-reserved')[:5]
 
         return Response(reserved_products)
 
 class getTotalPendingOrders(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         total_pending_orders = Reservation.objects.filter(status='PENDING').count()
         return Response({"total_pending_orders": total_pending_orders})
 
 class getTotalUsers(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         total_users = User.objects.count()
         return Response({"total_users": total_users})
 
 class TotalStocksPerCategoryAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         categories = Product.objects.values('category__name').distinct()
         data = []
@@ -103,7 +110,8 @@ class TotalStocksPerCategoryAPIView(APIView):
 
 
 class getCompletedOrdersEachMonth(APIView):
-     def get(self, request):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
         completed_orders = Reservation.objects.filter(status='COMPLETED')
         completed_orders_by_month = {}
 
@@ -137,6 +145,7 @@ class getCompletedOrdersEachMonth(APIView):
      
 
 class getTotalNewUsersEachMonth(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         new_users = User.objects.all()
         new_users_by_month = {}
@@ -149,6 +158,7 @@ class getTotalNewUsersEachMonth(APIView):
         return Response(new_users_by_month)
 
 class getTotalPageViews(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         # urls = request.data.get('urls')
         # total_page_views = PageView.objects.filter(url=urls).count()

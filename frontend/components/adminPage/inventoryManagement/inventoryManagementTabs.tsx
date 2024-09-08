@@ -94,12 +94,12 @@ const ProductAddPage = () => {
   let categoryData = [];
   const [categories, setCategories] = useState<Category[]>([]);
 
-  // const { role } = useContext(AuthContext);
-  const role = Cookies.get('Role');
-  const { loading } = useContext(AuthContext);
+//   // const { role } = useContext(AuthContext);
+//   // const role = Cookies.get('Role');
+// const { role, loading } = useContext(AuthContext);
 
-  // Custom hook to protect the route based on roles
-  const { isRoleAllowed } = useProtectedRoute({ allowedRoles: ['student', 'admin'] });
+//   // Custom hook to protect the route based on roles
+//   const { isRoleAllowed } = useProtectedRoute({ allowedRoles: ['student', 'admin'] });
 
   const fetchImages = async () => {
     try {
@@ -135,26 +135,26 @@ const ProductAddPage = () => {
 
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isRoleAllowed) {
-      modals.openConfirmModal({
-        title: 'Please confirm your action',
-        children: (
-          <Text size="sm">
-            Your role is{' '}
-            <b>
-              <i>{role}</i>
-            </b>{' '}
-            and is currently unauthorized, please login as student/admin first.
-          </Text>
-        ),
-        labels: { confirm: 'Login', cancel: 'Go back to home page' },
-        onCancel: () => router.push('/'),
-        onConfirm: () => router.push('/login'),
-        withCloseButton: false,
-      });
-    }
-  }, []); // This will run the effect whenever `isRoleAllowed` changes
+  // useEffect(() => {
+  //   if (!isRoleAllowed) {
+  //     modals.openConfirmModal({
+  //       title: 'Please confirm your action',
+  //       children: (
+  //         <Text size="sm">
+  //           Your role is{' '}
+  //           <b>
+  //             <i>{role}</i>
+  //           </b>{' '}
+  //           and is currently unauthorized, please login as student/admin first.
+  //         </Text>
+  //       ),
+  //       labels: { confirm: 'Login', cancel: 'Go back to home page' },
+  //       onCancel: () => router.push('/'),
+  //       onConfirm: () => router.push('/login'),
+  //       withCloseButton: false,
+  //     });
+  //   }
+  // }, []); // This will run the effect whenever `isRoleAllowed` changes
 
   const categoryMap: { [key: string]: string } = {
     Alcohol: 'ALC',
@@ -320,7 +320,7 @@ const ProductAddPage = () => {
           overlayProps={{ radius: 'sm', blur: 2 }}
         />
 
-        {isRoleAllowed ? (
+       
           <Tabs color="teal" variant="pills" defaultValue="Create" classNames={classes}>
             <Tabs.List grow>
               <Tabs.Tab value="Create" leftSection={<IconPhoto style={iconStyle} />}>
@@ -549,9 +549,7 @@ const ProductAddPage = () => {
               </Container>
             </Tabs.Panel>
           </Tabs>
-        ) : (
-          <p>Access Denied</p>
-        )}
+        
       </Container>
     </Paper>
   );

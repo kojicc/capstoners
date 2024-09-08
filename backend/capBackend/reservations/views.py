@@ -40,7 +40,8 @@ import re
 
 # pangadd to cart
 class ReservationCartCreateAPIView(APIView):
-     def post(self, request):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
         try:
             # Get the data from the request
             username = request.data.get('username')
@@ -145,6 +146,7 @@ class LongPollingAPIView(APIView):
 
 
 class showNotification(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         token = request.COOKIES.get('jwt_access_token')
         if not token:
@@ -188,6 +190,7 @@ class showNotification(APIView):
         return Response(notification_data, status=status.HTTP_200_OK)
 
 class readNotification(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         token = request.COOKIES.get('jwt_access_token')
         if not token:
@@ -216,6 +219,7 @@ class readNotification(APIView):
 
 
 class ReservationCreateUpdateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         try:
             token = request.COOKIES.get('jwt_access_token')
@@ -461,6 +465,7 @@ class ReservationCreateUpdateAPIView(APIView):
 
 
 class AdminUpdateReservationStatusAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         print("Raw request data:", request.data)
         try:
@@ -612,15 +617,17 @@ class AdminUpdateReservationStatusAPIView(APIView):
 
 
 class AdminReservationDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         token = request.COOKIES.get('jwt_access_token')
         if not token:
-            print("Authentication required: No token provided")
             return Response({
-                'message': 'Authentication required'
+                'message': 'Authentication required: No token provided'
             }, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
+            # Decode and verify the token
             decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
             role = decoded_token.get('role')
 
@@ -654,15 +661,28 @@ class AdminReservationDetailAPIView(APIView):
                 'message': 'Reservations retrieved successfully'
             }, status=status.HTTP_200_OK)
 
+        except jwt.ExpiredSignatureError:
+            # Token is expired, return 401 to trigger refresh in the frontend
+            return Response({
+                'message': 'Token has expired'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        except (jwt.InvalidTokenError, TokenError, InvalidToken) as e:
+            # Token is invalid, return 401
+            return Response({
+                'message': 'Invalid token',
+                'error': str(e)
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
         except Exception as e:
             return Response({
                 'message': 'An error occurred',
                 'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
-
         
 # pang view ng reservation
 class ReservationDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         token = request.COOKIES.get('jwt_access_token')
         if not token:
@@ -774,6 +794,7 @@ class ReservationDeleteView(APIView):
 
 
 class ReservationSearchView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
             searchWord = request.data.get('searchWord')

@@ -1,65 +1,85 @@
 import Cookies from 'js-cookie';
 import axios from '../utils/axiosInstance';
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from 'jwt-decode';
+import { getCookie } from './cookies';
+import {useState} from 'react';
 
-
-export const fetchDecodedAccessToken = async () => {
+export const fetchDecodedAccessTokenRole = async () => {
   try {
     const response = await axios.get('get-access-token/');
     // console.log('Response data:', response.data);
     // console.log('Status code:', response.status);
 
-    if (response.status === 200) { 
+    if (response.status === 200) {
       const { jwt_access_token } = response.data;
-      // console.log('Access Token is:', jwt_access_token); 
+      // console.log('Access Token is:', jwt_access_token);
       const decodedToken = jwtDecode(jwt_access_token);
       // console.log('Token role:', decodedToken.role);
       // console.log('Token user:', decodedToken.username);
       const role = decodedToken.role;
       const username = decodedToken.username;
-      
-      Cookies.set('Role',decodedToken.role); // Set the access token
+
+      // Cookies.set('Role',decodedToken.role); // Set the access token
       // Store the decoded token in local storage or cookies if needed
       // localStorage.setItem('accessToken', jwt_access_token); // Example if using local storage
-      
-  
+
       return { role, username };
 
       // return jwt_access_token;
-    } 
-    else {
+    } else {
       throw new Error('Error fetching access token: ' + response.statusText);
-     
     }
   } catch (error) {
     console.error('Error fetching access token:', error);
-    return error; 
+    return error;
   }
 };
 
 
+
+//lalagyan use state
+export const fetchDecodedAccessToken = async () => {
+  try {
+    // const accessToken = getCookie('jwt_access_token');
+    const response = await axios.get('get-access-token/');
+    const { jwt_access_token } = response.data;
+    
+    console.log('Access token:', jwt_access_token);
+    if (!jwt_access_token) throw new Error('No access token found');
+    const decodedToken = jwtDecode(jwt_access_token);
+    
+    return decodedToken;
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return null;
+  }
+};
+
+
+
+
+
 export const fetchAccessToken = async () => {
   const response = await axios.get('/get-access-token/');
-    // console.log('Response data:', response.data);
-    // console.log('Status code:', response.status);
-    if (response.status === 200) {
-      const { jwt_access_token } = response.data;
-      return jwt_access_token;
-     }
-}
+  // console.log('Response data:', response.data);
+  // console.log('Status code:', response.status);
+  if (response.status === 200) {
+    const { jwt_access_token } = response.data;
+    return jwt_access_token;
+  }
+};
 
 export const isLoggedIn = async () => {
- try {
-   const accessToken = await fetchAccessToken();  
-  //  console.log('Access token (orig):', accessToken);
-  //  console.log('Access token (1):', !accessToken);
-  //  console.log('Access token (2):', !!accessToken);
- 
-   return !!accessToken;  
- } catch (error) {
-  console.error('Error checking login status:', error);
+  try {
+    const accessToken = await fetchAccessToken();
+    //  console.log('Access token (orig):', accessToken);
+    //  console.log('Access token (1):', !accessToken);
+    //  console.log('Access token (2):', !!accessToken);
 
-  return false;  
+    return !!accessToken;
+  } catch (error) {
+    console.error('Error checking login status:', error);
 
- }
+    return false;
+  }
 };

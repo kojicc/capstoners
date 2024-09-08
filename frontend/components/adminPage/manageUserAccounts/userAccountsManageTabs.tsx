@@ -47,7 +47,7 @@ import { notifications } from '@mantine/notifications';
 import { Header } from '@/components/LandingPage/header/HeaderLP';
 import { useForm } from '@mantine/form';
 import { readLocalStorageValue, useLocalStorage } from '@mantine/hooks';
-import UpdateUser from '@/userSettings';
+import UpdateUser from './userSettings';
 import { AuthenticationForm } from '../../login/authForm';
 import { UserRegAdmin } from './userRegistrationAdmin';
 
@@ -100,13 +100,13 @@ const UserAccountsManage = () => {
   const [categories, setCategories] = useState<Category[]>([]);
 
   // const { role } = useContext(AuthContext);
-  const role = Cookies.get('Role');
-  const { loading } = useContext(AuthContext);
-  console.log('loadingsaAuth', loading);
+  // // const role = Cookies.get('Role');
+  // const { loading } = useContext(AuthContext);
+  // console.log('loadingsaAuth', loading);
 
-  // Custom hook to protect the route based on roles
-  const { isRoleAllowed } = useProtectedRoute({ allowedRoles: ['student', 'admin'] });
-  console.log('isRoleAllowed', isRoleAllowed);
+  // // Custom hook to protect the route based on roles
+  // const { isRoleAllowed } = useProtectedRoute({ allowedRoles: ['student', 'admin'] });
+  // console.log('isRoleAllowed', isRoleAllowed);
 
   // if(!isRoleAllowed){
   //   <LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />  }
@@ -178,39 +178,39 @@ const UserAccountsManage = () => {
 
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isRoleAllowed) {
-      console.log('Role not allowed:', isRoleAllowed);
-      modals.openConfirmModal({
-        title: 'Please confirm your action',
-        children: (
-          <Text size="sm">
-            Your role is{' '}
-            <b>
-              <i>{role}</i>
-            </b>{' '}
-            and is currently unauthorized, please login as student/admin first.
-          </Text>
-        ),
-        labels: { confirm: 'Login', cancel: 'Go back to home page' },
-        onCancel: () => router.push('/'),
-        onConfirm: () => router.push('/login'),
-        withCloseButton: false,
-      });
-    } else {
-      console.log('Role allowed:', isRoleAllowed);
-    }
+  // useEffect(() => {
+  //   if (!isRoleAllowed) {
+  //     console.log('Role not allowed:', isRoleAllowed);
+  //     modals.openConfirmModal({
+  //       title: 'Please confirm your action',
+  //       children: (
+  //         <Text size="sm">
+  //           Your role is{' '}
+  //           <b>
+  //             <i>{role}</i>
+  //           </b>{' '}
+  //           and is currently unauthorized, please login as student/admin first.
+  //         </Text>
+  //       ),
+  //       labels: { confirm: 'Login', cancel: 'Go back to home page' },
+  //       onCancel: () => router.push('/'),
+  //       onConfirm: () => router.push('/login'),
+  //       withCloseButton: false,
+  //     });
+  //   } else {
+  //     console.log('Role allowed:', isRoleAllowed);
+  //   }
 
-    // if(isRoleAllowed===null){
+  //   // if(isRoleAllowed===null){
 
-    // }
-    // else if(isRoleAllowed===false){
-    // }
+  //   // }
+  //   // else if(isRoleAllowed===false){
+  //   // }
 
-    // else if(isRoleAllowed===true){
-    //   console.log('Role allowed:', isRoleAllowed);
-    // }
-  }, []); // This will run the effect whenever `isRoleAllowed` changes
+  //   // else if(isRoleAllowed===true){
+  //   //   console.log('Role allowed:', isRoleAllowed);
+  //   // }
+  // }, []); // This will run the effect whenever `isRoleAllowed` changes
 
   // useEffect(() => {
   //   if (prodCategory==='Alcohol') {
@@ -416,27 +416,26 @@ const UserAccountsManage = () => {
           overlayProps={{ radius: 'sm', blur: 2 }}
         />
 
-        {isRoleAllowed ? (
-          <Tabs color="teal" variant="pills" defaultValue="Create">
-            <Tabs.List grow>
-              <Tabs.Tab value="Create" leftSection={<IconPhoto style={iconStyle} />}>
-                Create
-              </Tabs.Tab>
-              <Tabs.Tab
-                color="yellow"
-                value="Update/Delete"
-                leftSection={<IconMessageCircle style={iconStyle} />}
-              >
-                Update/View
-              </Tabs.Tab>
-            </Tabs.List>
+        <Tabs color="teal" variant="pills" defaultValue="Create">
+          <Tabs.List grow>
+            <Tabs.Tab value="Create" leftSection={<IconPhoto style={iconStyle} />}>
+              Create
+            </Tabs.Tab>
+            <Tabs.Tab
+              color="yellow"
+              value="Update/Delete"
+              leftSection={<IconMessageCircle style={iconStyle} />}
+            >
+              Update/View
+            </Tabs.Tab>
+          </Tabs.List>
 
-            <Tabs.Panel value="Create">
-              <>
-                {/* <AuthenticationForm /> */}
-                <UserRegAdmin />
-              </>
-              {/* <Stack gap="xl">
+          <Tabs.Panel value="Create">
+            <>
+              {/* <AuthenticationForm /> */}
+              <UserRegAdmin />
+            </>
+            {/* <Stack gap="xl">
                 <Card shadow="sm" padding="lg">
                   <Text size="lg" fw={500}>
                     Product Details
@@ -635,17 +634,14 @@ const UserAccountsManage = () => {
                   )}
                 </Card>
               </Stack>  */}
-            </Tabs.Panel>
+          </Tabs.Panel>
 
-            <Tabs.Panel color="yellow" value="Update/Delete">
-              <Container fluid bg={'#417A46'}>
-                <UpdateUser />
-              </Container>
-            </Tabs.Panel>
-          </Tabs>
-        ) : (
-          <p>Access Denied</p>
-        )}
+          <Tabs.Panel color="yellow" value="Update/Delete">
+            <Container fluid bg={'#417A46'}>
+              <UpdateUser />
+            </Container>
+          </Tabs.Panel>
+        </Tabs>
       </Container>
     </Paper>
   );

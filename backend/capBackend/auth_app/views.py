@@ -17,7 +17,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.response import Response
 from rest_framework import status
 import jwt
+from rest_framework.permissions import IsAuthenticated
+
 class adminUpdateUsersView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         users = User.objects.all()
         serializer = UserSerializer(users, many=True)
@@ -216,11 +219,31 @@ class RefreshTokenView(APIView):
             return Response({'error': 'Refresh token not found'}, status=400)
 
         try:
+            # Decode the refresh token to access the user info
             token = RefreshToken(refresh_token)
             access_token = token.access_token
 
-            response = Response({'access': str(access_token)}, status=200)
-            response.set_cookie(key='jwt_access_token', value=str(access_token), httponly=True)
+            # Decode the access token to modify the payload
+            payload = jwt.decode(str(access_token), settings.SECRET_KEY, algorithms=['HS256'])
+
+            # Get the user associated with the refresh token
+            user = User.objects.get(id=payload['user_id'])
+
+            # Add user role and username to the payload
+            payload['role'] = user.role
+            payload['username'] = user.username
+
+            # Encode the new access token with the updated payload
+            new_access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+
+            # If new_access_token is in bytes, decode it to a string
+            if isinstance(new_access_token, bytes):
+                new_access_token = new_access_token.decode('utf-8')
+
+            # Return the new access token in the response and set it as a cookie
+            response = Response({'access': new_access_token}, status=200)
+            response.set_cookie(key='jwt_access_token', value=new_access_token, httponly=True)
             return response
+
         except Exception as e:
             return Response({'error': str(e)}, status=400)

@@ -221,38 +221,6 @@ const UpdateUser = () => {
     setSortedData(sortData(users, { sortBy, reversed: reverseSortDirection, search: searchQuery }));
   }, [users, sortBy, reverseSortDirection, searchQuery]);
 
-  useEffect(() => {
-    if (router.query.searchQuery) {
-      setSearchQuery(router.query.searchQuery as string);
-    }
-  }, [router.query.searchQuery]);
-
-  //pampakita ng data sa table na sinosort muna thru sortData function
-
-  // const fetchUsers = async () => {
-  //   try {
-  //     const response = await axiosInstance.get('adminupdateUsers/');
-  //     if (response.status === 200) {
-
-  //       //   const filteredUsers = response.data.users.filter((product: { categoryId: string; }) => product.categoryId === categoryID);
-  //       //   setUsers(filteredUsers);
-
-  //       setUsers(response.data.users);
-
-  //     } else {
-  //       setError('No users found');
-  //     }
-  //   } catch (error) {
-  //     setError('Failed to fetch users');
-  //   }
-  // };
-
-  // useEffect(() => {
-
-  //   fetchUsers();
-  // }
-  // , []);
-
   if (usersError)
     return <LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />;
 
@@ -356,7 +324,7 @@ const UpdateUser = () => {
 
   const handleUpdatePassword = async () => {
     const formData = new FormData();
-    formData.append('password', value);
+    formData.append('password', newpassword || '');
     formData.append('username', selectedUsers?.username || '');
     formData.append('email', selectedUsers?.email || '');
 
@@ -597,7 +565,7 @@ const UpdateUser = () => {
                       withAsterisk
                       label="New password"
                       placeholder="New password"
-                      value={value}
+                      value={newpassword}
                       onChange={(event) => setNewPassword(event.currentTarget.value)}
                       autoComplete="new-password"
                     />

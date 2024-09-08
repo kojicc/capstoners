@@ -6,11 +6,18 @@ import { Hero } from '../components/LandingPage/hero/Hero';
 import { About } from '@/components/LandingPage/abouts/About';
 import { Products } from '@/components/LandingPage/products/Products';
 import { Footer } from '@/components/LandingPage/footer/footer';
-import { useState } from 'react';
-import { Button } from '@mantine/core';
+import { useContext, useEffect, useState } from 'react';
+import { Button, Text } from '@mantine/core';
+import { AuthContext } from '@/utils/authContext';
+import useProtectedRoute from '@/utils/protectedRoute';
+import { modals } from '@mantine/modals';
+import router from 'next/router';
 // import { TransactionsAdmin } from '@/components/adminPage/TransactionsAdmin';
+import {withRoleProtection} from '@/utils/withRoleProtection';
 
-export default function HomePage() {
+const HomePage = () => {
+
+  
   return (
     <>
       {/* <Button component='a'href='/productsCRUDAdmin'>Crud Test</Button> */}
@@ -20,3 +27,5 @@ export default function HomePage() {
     </>
   );
 }
+export default withRoleProtection(HomePage, ['admin']);
+

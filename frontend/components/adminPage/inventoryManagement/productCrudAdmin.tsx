@@ -122,11 +122,6 @@ const UpdateCrudProductsAdmin = () => {
     return <img key={index} src={imageUrl} onLoad={() => URL.revokeObjectURL(imageUrl)} />;
   });
 
-  useEffect(() => {
-    if (router.query.searchQuery) {
-      setSearchQuery(router.query.searchQuery as string);
-    }
-  }, [router.query.searchQuery]);
 
   //pampakita ng data sa table na sinosort muna thru sortData function
   useEffect(() => {

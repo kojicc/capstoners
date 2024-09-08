@@ -4,11 +4,13 @@ from .models import Category, Product
 from .serializers import ProductImageSerializer, CategorySerializer,ProductImageonlySerializer
 from rest_framework.response import Response
 import re
+from rest_framework.permissions import IsAuthenticated
 
 
 # Create your views here.
 
 class createCategory(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         try:
             categoryId = request.data.get('categoryId')
@@ -38,6 +40,7 @@ class createCategory(APIView):
             }, status=400)
 
 class editCategory(APIView):
+    permission_classes = [IsAuthenticated]
     def put(self, request):
         try:
             categoryId = request.data.get('categoryId')
@@ -78,6 +81,7 @@ class editCategory(APIView):
             }, status=400)
 
 class deleteCategory(APIView):
+    permission_classes = [IsAuthenticated]
     def delete(self, request):
         try:
             categoryId = request.data.get('categoryId')
@@ -105,6 +109,7 @@ class deleteCategory(APIView):
             }, status=400)
 
 class RetrieveCategory(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self,request):
         try:
             categories = Category.objects.all()
@@ -121,6 +126,8 @@ class RetrieveCategory(APIView):
 
 #pangkuha ng latest na number ng prodID
 class RetrieveProductIDView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         categoryID = request.data.get('categoryID')
 
@@ -156,6 +163,7 @@ class RetrieveProductIDView(APIView):
             return Response({'message': 'An error occurred', 'error': str(e)}, status=400)     
 
 class RetrieveProductImage(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
             categoryID = request.query_params.get('categoryID')  # Get categoryID from query params
@@ -180,6 +188,7 @@ class RetrieveProductImage(APIView):
             }, status=400)
   
 class RetrieveProductAdmin(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
             categoryID = request.data.get('categoryID')  # Use query params to get categoryID
@@ -212,6 +221,7 @@ class RetrieveProductAdmin(APIView):
 
 
 class UploadProduct(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         try:
             name = request.data.get('name')
@@ -260,6 +270,7 @@ class UploadProduct(APIView):
 
 
 class updateProductView(APIView):
+    permission_classes = [IsAuthenticated]
     def put(self, request):
         try:
             productId = request.data.get('productId')
@@ -321,6 +332,7 @@ class updateProductView(APIView):
 
 
 class deleteProductView(APIView):
+    permission_classes = [IsAuthenticated]
     def delete(self, request):
         try:
             productId = request.data.get('productId')
@@ -349,6 +361,7 @@ class deleteProductView(APIView):
 
 
 class SearchProductView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
             searchWord = request.query_params.get('searchWord')

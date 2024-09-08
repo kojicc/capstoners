@@ -15,48 +15,37 @@ import { Notifications } from '@mantine/notifications';
 import { CategoryIDProvider } from '@/utils/categoryIDContext';
 import '@mantine/dropzone/styles.css';
 
-
-
-
-
-
-
-
 export default function App({ Component, pageProps }: AppProps) {
-
-
-
-
-
   useEffect(() => {
     AOS.init({
       duration: 1200,
-  offset: 50,
-  delay:0,
-  once: false,
-  easing: 'ease-in-out',
+      offset: 50,
+      delay: 0,
+      once: false,
+      easing: 'ease-in-out',
     });
   }, []);
 
-
   return (
-    <AuthProvider>
+    
       <CategoryIDProvider>
-    <MantineProvider theme={theme}>
-    <Notifications />
-       <ModalsProvider>
-      <Head>
-        <title>fucking capstone</title>
-        <meta
-          name="viewport"
-          content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
-        />
-        <link rel="shortcut icon" href="/favicon.svg" />
-      </Head>
-      <Component {...pageProps} />
-      </ModalsProvider>
-    </MantineProvider>
-    </CategoryIDProvider>
-    </AuthProvider>
+      <MantineProvider theme={theme}>
+        <AuthProvider>
+          <Notifications />
+          <ModalsProvider>
+            <Head>
+              <title>fucking capstone</title>
+              <meta
+                name="viewport"
+                content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
+              />
+              <link rel="shortcut icon" href="/favicon.svg" />
+            </Head>
+            <Component {...pageProps} />
+        </ModalsProvider>
+        </AuthProvider>
+        </MantineProvider>
+      </CategoryIDProvider>
+    
   );
 }
