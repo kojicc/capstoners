@@ -9,12 +9,12 @@ import { useState } from 'react';
 
 const reservationLandingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryID, setCategoryID] = useState  ('');
+  const [categoryID, setCategoryID] = useState('');
 
   return (
     <>
       <CartIcon />
-      <HeroBullets />
+      {/* <HeroBullets /> */}
       {/* <CheckoutPage /> */}
       <Container>
         <Stack gap="xl" mt={50} />

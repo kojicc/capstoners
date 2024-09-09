@@ -63,7 +63,10 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
   if (!data) return <div>Loading...</div>;
 
   // Extract the second part of searchQuery (e.g., "ALC" from "Alcohol - ALC")
-  const searchValue = searchQuery.trim().split(' - ')[1]?.toLowerCase() || '';
+  const searchValue =
+    searchQuery.trim().split(' - ')[1]?.toLowerCase() ||
+    searchQuery.trim().split('-')[1]?.toLowerCase() ||
+    '';
   console.log('searchValue', searchValue);
 
   // Filter products based on the search value

@@ -1,3 +1,4 @@
+from tokenize import TokenError
 import uuid
 from django.utils import timezone
 import logging
@@ -770,6 +771,7 @@ class AdminUpdateReservationStatusAPIView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
+#pangshow ng lahat ng reservations for admin table
 class AdminReservationDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
 

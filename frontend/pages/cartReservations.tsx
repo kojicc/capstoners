@@ -50,12 +50,12 @@ const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 export function CartItems() {
   const { username } = useContext(AuthContext);
-  const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher);
+  const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher, {refreshInterval: 1000});
 
   const [selectedItems, setSelectedItems] = useState<{ [key: string]: number }>({});
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<CartItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<CartItem | null>();
   const [updateLoading, setUpdateLoading] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [reservationDate, setReservationDate] = useState<Date | null>(null);
@@ -119,10 +119,21 @@ export function CartItems() {
   };
 
   const handleSelectItem = (productId: string, quantity: number) => {
-    setSelectedItems((prevSelectedItems) => ({
-      ...prevSelectedItems,
-      [productId]: quantity,
-    }));
+    setSelectedItems((prevSelectedItems) => {
+      const updatedItems = { ...prevSelectedItems };
+
+      if (quantity === 0) {
+        // Remove the item if quantity is 0
+        delete updatedItems[productId];
+      } else {
+        // Update or add the item with the new quantity
+        updatedItems[productId] = quantity;
+      }
+
+      // Log the updated items immediately after the state is set
+      console.log('Updated selectedItems', updatedItems);
+      return updatedItems;
+    });
   };
 
   const handleCheckout = () => {
@@ -131,9 +142,12 @@ export function CartItems() {
 
   const confirmCheckout = async () => {
     try {
-      const productIds = Object.keys(selectedItems);
-      const quantities = productIds.map((id) => selectedItems[id]);
+      let productIds = Object.keys(selectedItems);
+      // let quantities = data.cart_items.map((item) => item.quantity);
+      let quantities = Object.values(selectedItems);
+      console.log('productIDs and quantities ', selectedItems);
 
+      // Make the API call
       const response = await axios.post('reservationsCreateUpdate/', {
         username,
         productIds,
@@ -147,20 +161,33 @@ export function CartItems() {
         reservation_purpose: reservationPurpose,
         status: reservationStatus,
       });
-      if (response.status === 200) {
-        notifications.show({ title: 'Success', message: 'Checkout successful', color: 'green' });
-        setSelectedItems({});
-        mutate(`reservationsCart/?username=${username}`);
-      } else {
-        notifications.show({ title: 'Error', message: 'Checkout failed', color: 'red' });
-      }
+
+      // Handle the success response after retry (if any)
+      notifications.show({
+        title: 'Success',
+        message: `Checkout successful and your reservation ID is ${response.data.reservation_id}`,
+        color: 'green',
+      });
+
+      // Clear the selected items, form data, and refresh the cart
+      setSelectedItems({});
+      setReservationDate(null);
+      setReservationEndDate(null);
+      setReservationPurpose('');
+      setReservationStatus('PENDING');
+      mutate(`reservationsCart/?username=${username}`);
     } catch (error) {
+      // Show an error notification if the request fails even after retrying
       console.error(error);
-      notifications.show({ title: 'Error', message: 'An error occurred', color: 'red' });
+      notifications.show({ title: 'Error', message: 'Checkout failed', color: 'red' });
     } finally {
       setCheckoutModalOpen(false);
     }
   };
+
+
+  //datetimepicker conditions
+  
 
   return (
     <Paper shadow="xl" radius="lg" withBorder p="xl">
@@ -181,9 +208,10 @@ export function CartItems() {
             <Group mt="md" mb="xs">
               <Checkbox
                 checked={selectedItems[item.product.productId] > 0}
-                onChange={(e) =>
-                  handleSelectItem(item.product.productId, e.currentTarget.checked ? 1 : 0)
-                }
+                onChange={(e) => {
+                  const newQuantity = e.currentTarget.checked ? item.quantity : 0;
+                  handleSelectItem(item.product.productId, newQuantity);
+                }}
               />
               <Text w={500}>{item.product.name}</Text>
               <Text color="dimmed">Qty: {item.quantity}</Text>
@@ -293,12 +321,14 @@ export function CartItems() {
           mb="md"
         />
         <DateTimePicker
+          required
           label="Reservation Start Date"
           value={reservationDate}
           onChange={setReservationDate}
           mb="md"
         />
         <DateTimePicker
+          required
           label="Reservation End Date"
           value={reservationEndDate}
           onChange={setReservationEndDate}

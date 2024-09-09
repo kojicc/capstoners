@@ -23,6 +23,7 @@ import {
   Overlay,
   Autocomplete,
   LoadingOverlay,
+  Grid,
 } from '@mantine/core';
 import {
   IconSelector,
@@ -41,6 +42,7 @@ import { Header } from '@/components/LandingPage/header/HeaderLP';
 import { useRouter } from 'next/router';
 // import { ReusableTable } from '@/components/transactionsUser';
 // import classes from '../components/modules.css/Demo.module.css';
+import useSWR from 'swr';
 
 interface Product {
   image: string;
@@ -89,49 +91,47 @@ function Th({ children, reversed, sorted, onSort }: ThProps) {
   );
 }
 
-function filterData(data: Reservation[] | undefined, search: string): Reservation[] {
-  if (!Array.isArray(data)) {
-    console.error('Data is not an array or is undefined');
-    return [];
-  }
+// function filterData(data: Reservation[] | undefined, search: string): Reservation[] {
+//   if (!Array.isArray(data)) {
+//     console.error('Data is not an array or is undefined');
+//     return [];
+//   }
 
-  const query = search.toLowerCase().trim();
-  return data.filter(
-    (item) =>
-      (item.reservation_id?.toLowerCase() || '').includes(query) ||
-      (item.reservation_date?.toLowerCase() || '').includes(query) ||
-      (item.status?.toLowerCase() || '').includes(query)
-  );
-}
+//   const query = search.toLowerCase().trim();
+//   return data.filter(
+//     (item) =>
+//       (item.reservation_id?.toLowerCase() || '').includes(query) ||
+//       (item.reservation_date?.toLowerCase() || '').includes(query) ||
+//       (item.status?.toLowerCase() || '').includes(query)
+//   );
+// }
 
-function sortData(
-  data: Reservation[],
-  {
-    sortBy,
-    reversed,
-    search,
-  }: { sortBy: keyof Reservation | null; reversed: boolean; search: string }
-) {
-  const filteredData = filterData(data, search);
-  return filteredData.sort((a, b) => {
-    if (!sortBy) return 0;
+// function sortData(
+//   data: Reservation[],
+//   {
+//     sortBy,
+//     reversed,
+//     search,
+//   }: { sortBy: keyof Reservation | null; reversed: boolean; search: string }
+// ) {
+//   const filteredData = filterData(data, search);
+//   return filteredData.sort((a, b) => {
+//     if (!sortBy) return 0;
 
-    const aValue = a[sortBy];
-    const bValue = b[sortBy];
+//     const aValue = a[sortBy];
+//     const bValue = b[sortBy];
 
-    const aString = typeof aValue === 'string' ? aValue.toLowerCase() : '';
-    const bString = typeof bValue === 'string' ? bValue.toLowerCase() : '';
+//     const aString = typeof aValue === 'string' ? aValue.toLowerCase() : '';
+//     const bString = typeof bValue === 'string' ? bValue.toLowerCase() : '';
 
-    return reversed ? bString.localeCompare(aString) : aString.localeCompare(bString);
-  });
-}
+//     return reversed ? bString.localeCompare(aString) : aString.localeCompare(bString);
+//   });
+// }
+// Fetcher function for SWR
+const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 
 export default function TransactionHistory() {
-  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [sortedData, setSortedData] = useState<Reservation[]>([]);
   const [sortBy, setSortBy] = useState<keyof Reservation | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
   const [editModalOpened, setEditModalOpened] = useState(false);
@@ -143,11 +143,28 @@ export default function TransactionHistory() {
   const itemsPerPage = 5;
   const router = useRouter();
 
+  // SWR for fetching reservations
+  const { data, error, mutate, isValidating } = useSWR('adminReservationDetail/', fetcher, {
+    refreshInterval: 5000, // Refresh data every 5 seconds
+  });
+  const loading = isValidating && !data;
+  const reservations = data?.reservations || [];
+
+  // Handle search
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.currentTarget.value);
+  };
+
+  useEffect(() => {
+    if (router.query.searchQuery) {
+      setSearchQuery(router.query.searchQuery as string);
+    }
+  }, [router.query.searchQuery]);
+
   // Function to handle change and update disabled state
   const handleCheckboxChange = (selectedValues: string[]) => {
     setValue(selectedValues);
 
-    // Logic to enable or disable NumberInput components
     selectedReservation?.items.forEach((item, index) => {
       if (selectedValues.includes(item.product.productId)) {
         setDisabled((prevDisabled) => {
@@ -166,50 +183,56 @@ export default function TransactionHistory() {
   };
 
   useEffect(() => {
-    if(router.query.searchQuery){
-
-      setSearchQuery(router.query.searchQuery as string);
-    }
-  }
-  , [router.query.searchQuery]);
-
-  useEffect(() => {
-    if (selectedReservation) {
-      // Initialize disabled state to true for all items
+    if (selectedReservation?.items) {
+      const initialQuantities = selectedReservation.items.map((item) => item.quantity);
+      setQuantity(initialQuantities);
       setDisabled(new Array(selectedReservation.items.length).fill(true));
     }
   }, [selectedReservation]);
 
-  useEffect(() => {
-    fetchReservations();
-  }, []);
-
-  useEffect(() => {
-    setSortedData(
-      sortData(reservations, { sortBy, reversed: reverseSortDirection, search: searchQuery })
-    );
-  }, [reservations, sortBy, reverseSortDirection, searchQuery]);
-
-  const fetchReservations = async () => {
-    setLoading(true);
-    try {
-      const response = await axiosInstance.get('adminReservationDetail/');
-      if (response.status === 200) {
-        setReservations(response.data.reservations);
-        setError('');
-      } else {
-        setError('No reservations found');
-      }
-    } catch (error) {
-      setError('Failed to fetch reservations');
-    } finally {
-      setLoading(false);
+  // Filter and sort data
+  const filterData = (data: Reservation[], search: string): Reservation[] => {
+    if (!Array.isArray(data)) {
+      console.error('Data is not an array or is undefined');
+      return [];
     }
+
+    const query = search.toLowerCase().trim();
+    return data.filter(
+      (item) =>
+        (item.reservation_id?.toLowerCase() || '').includes(query) ||
+        (item.reservation_date?.toLowerCase() || '').includes(query) ||
+        (item.status?.toLowerCase() || '').includes(query)
+    );
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.currentTarget.value);
+  const sortData = (
+    data: Reservation[],
+    {
+      sortBy,
+      reversed,
+      search,
+    }: { sortBy: keyof Reservation | null; reversed: boolean; search: string }
+  ) => {
+    const filteredData = filterData(data, search);
+    return filteredData.sort((a, b) => {
+      if (!sortBy) return 0;
+
+      const aValue = a[sortBy];
+      const bValue = b[sortBy];
+
+      const aString = typeof aValue === 'string' ? aValue.toLowerCase() : '';
+      const bString = typeof bValue === 'string' ? bValue.toLowerCase() : '';
+
+      return reversed ? bString.localeCompare(aString) : aString.localeCompare(bString);
+    });
   };
+
+  const sortedData = sortData(reservations, {
+    sortBy,
+    reversed: reverseSortDirection,
+    search: searchQuery,
+  });
 
   const handleSort = (field: keyof Reservation) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
@@ -219,35 +242,32 @@ export default function TransactionHistory() {
 
   const handleDelete = async () => {
     const reservationId = selectedReservation?.reservation_id || '';
-    setLoading(true);
     try {
       const response = await axiosInstance.delete('/reservationsDelete/', {
         data: { reservationId },
       });
 
       if (response.status === 200) {
-        fetchReservations();
-        setError('');
+        mutate(); // Re-fetch data after successful deletion
         notifications.show({
           title: 'Success',
           message: 'Reservation deleted successfully.',
           color: 'green',
         });
         setDeleteModalOpened(false);
-        loading;
-        fetchReservations();
       } else {
-        setError('Failed to delete reservation');
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to delete reservation.',
+          color: 'red',
+        });
       }
     } catch (error) {
-      setError('Delete failed');
       notifications.show({
         title: 'Error',
         message: 'Failed to delete reservation.',
         color: 'red',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -258,6 +278,18 @@ export default function TransactionHistory() {
     }
 
     const data = {
+      // username: selectedReservation.reservation_id.split('_')[0],
+      // reservationId: selectedReservation.reservation_id,
+      // status: selectedReservation.status,
+      // reservation_date: moment(selectedReservation.reservation_date)
+      //   .tz('Asia/Manila')
+      //   .format('YYYY-MM-DD HH:mm'),
+      // reservation_date_end: moment(selectedReservation.reservation_date_end)
+      //   .tz('Asia/Manila')
+      //   .format('YYYY-MM-DD HH:mm'),
+      // reservation_purpose: selectedReservation.reservation_purpose,
+      // productIds: value.map((item) => item),
+      // quantities: quantity.map((item) => item),
       username: selectedReservation.reservation_id.split('_')[0],
       reservationId: selectedReservation.reservation_id,
       status: selectedReservation.status,
@@ -268,19 +300,19 @@ export default function TransactionHistory() {
         .tz('Asia/Manila')
         .format('YYYY-MM-DD HH:mm'),
       reservation_purpose: selectedReservation.reservation_purpose,
-      productIds: value.map((item) => item),
-      quantities: quantity.map((item) => item),
+      productIds: selectedReservation.items.map((item) => item.product.productId),
+      quantities: quantity,
     };
 
     try {
-      const response = await axiosInstance.post('adminUpdateReservationStatus/', data, {
+      await axiosInstance.post('adminUpdateReservationStatus/', data, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
       handleCloseModal();
-      fetchReservations();
+      mutate(); // Re-fetch data after successful update
       notifications.show({
         title: 'Success',
         message: 'Reservation updated successfully.',
@@ -316,7 +348,6 @@ export default function TransactionHistory() {
             <div>
               <Text className={classes.label}>Product ID: {item.product.productId}</Text>
               <Text className={classes.description}>Quantity: {item.quantity}</Text>
-              {/* Display the product image with full URL */}
               <img
                 src={fullImageUrl}
                 alt={`Product ${item.product.productId}`}
@@ -351,14 +382,15 @@ export default function TransactionHistory() {
   );
 
   return (
-    <div className={classes.wrapper}>
-      <Overlay color="#000" opacity={1} zIndex={1} />
+    <Container fluid className={classes.wrapper}>
+      <Overlay color="#000" opacity={1} zIndex={-1} />
 
       <Flex
         gap="md"
         justify="center"
         align="center"
-        direction="row"
+        // direction="row"
+        direction={{ base: 'column', sm: 'row' }}
         wrap="wrap"
         className={classes.inner}
       >
@@ -368,7 +400,6 @@ export default function TransactionHistory() {
           </Title>
 
           <Autocomplete
-            
             placeholder="Search reservations using reservation ids"
             value={searchQuery}
             onChange={setSearchQuery}
@@ -377,7 +408,9 @@ export default function TransactionHistory() {
             data={[
               {
                 group: 'ReservationIDs',
-                items: reservations.map((reservation) => reservation.reservation_id),
+                items: reservations.map(
+                  (reservation: { reservation_id: any }) => reservation.reservation_id
+                ),
               },
               {
                 group: 'Reservation Status',
@@ -406,118 +439,126 @@ export default function TransactionHistory() {
           ) : error ? (
             <Text color="red">{error}</Text>
           ) : (
-            <>
-              <Table className={styles.table} horizontalSpacing="xl" verticalSpacing="xs">
-                <thead>
-                  <tr>
-                    <Th
-                      sorted={sortBy === 'reservation_id'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('reservation_id')}
-                    >
-                      Reservation ID
-                    </Th>
-                    <Th
-                      sorted={sortBy === 'reservation_date'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('reservation_date')}
-                    >
-                      Reservation Date Start
-                    </Th>
-                    <Th
-                      sorted={sortBy === 'reservation_date_end'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('reservation_date_end')}
-                    >
-                      Reservation Date End
-                    </Th>
-                    <Th
-                      sorted={sortBy === 'reservation_purpose'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('reservation_purpose')}
-                    >
-                      Reservation Purpose
-                    </Th>
-                    <Th
-                      sorted={sortBy === 'product_ids'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('product_ids')}
-                    >
-                      Product IDs
-                    </Th>
-                    <Th
-                      sorted={sortBy === 'quantities'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('quantities')}
-                    >
-                      Quantities
-                    </Th>
-                    <Th
-                      sorted={sortBy === 'status'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('status')}
-                    >
-                      Status
-                    </Th>
-                    <Th>Actions</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedData.map((reservation) => {
-                    const products = reservation.items
-                      .map((item: { product: any }) => item.product.productId)
-                      .join(', ');
-                    const quantities = reservation.items
-                      .map((item: { quantity: any }) => item.quantity)
-                      .join(', ');
+            <Container fluid>
+              <ScrollArea offsetScrollbars type="auto" className={styles.tableContainer}>
+                <Grid>
+                  <Grid.Col span="auto">
+                    <div>
+                      <Table className={styles.table} horizontalSpacing="xl" verticalSpacing="xs">
+                        <thead>
+                          <tr className={styles.tr}>
+                            <Th
+                              sorted={sortBy === 'reservation_id'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('reservation_id')}
+                            >
+                              Reservation ID
+                            </Th>
+                            <Th
+                              sorted={sortBy === 'reservation_date'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('reservation_date')}
+                            >
+                              Reservation Date Start
+                            </Th>
+                            <Th
+                              sorted={sortBy === 'reservation_date_end'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('reservation_date_end')}
+                            >
+                              Reservation Date End
+                            </Th>
+                            <Th
+                              sorted={sortBy === 'reservation_purpose'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('reservation_purpose')}
+                            >
+                              Reservation Purpose
+                            </Th>
+                            <Th
+                              sorted={sortBy === 'product_ids'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('product_ids')}
+                            >
+                              Product IDs
+                            </Th>
+                            <Th
+                              sorted={sortBy === 'quantities'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('quantities')}
+                            >
+                              Quantities
+                            </Th>
+                            <Th
+                              sorted={sortBy === 'status'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('status')}
+                            >
+                              Status
+                            </Th>
+                            <Th>Actions</Th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paginatedData.map((reservation) => {
+                            const products = reservation.items
+                              .map((item: { product: any }) => item.product.productId)
+                              .join(', ');
+                            const quantities = reservation.items
+                              .map((item: { quantity: any }) => item.quantity)
+                              .join(', ');
 
-                    return (
-                      <tr
-                        key={reservation.reservation_id}
-                        className={styles.tr}
-                        id={`reservation-${reservation.reservation_id}`}
-                      >
-                        <td className={styles.td}>{reservation.reservation_id}</td>
-                        <td className={styles.td}>
-                          {moment(new Date(reservation.reservation_date))
-                            .tz('Asia/Manila')
-                            .format('YYYY-MM-DD HH:mm')}
-                        </td>
-                        <td className={styles.td}>
-                          {moment(new Date(reservation.reservation_date_end))
-                            .tz('Asia/Manila')
-                            .format('YYYY-MM-DD HH:mm')}
-                        </td>
-                        <td className={styles.td}>{reservation.reservation_purpose}</td>
-                        <td className={styles.td}>{products}</td>
-                        <td className={styles.td}>{quantities}</td>
-                        <td className={styles.td}>{reservation.status}</td>
-                        <td className={styles.td}>
-                          <Group gap="xs">
-                            <ActionIcon
-                              onClick={() => {
-                                setSelectedReservation(reservation);
-                                setEditModalOpened(true);
-                              }}
-                            >
-                              <IconEdit />
-                            </ActionIcon>
-                            <ActionIcon
-                              color="red"
-                              onClick={() => {
-                                setSelectedReservation(reservation);
-                                setDeleteModalOpened(true);
-                              }}
-                            >
-                              <IconTrash />
-                            </ActionIcon>
-                          </Group>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </Table>
+                            return (
+                              <tr
+                                key={reservation.reservation_id}
+                                className={styles.tr}
+                                id={`reservation-${reservation.reservation_id}`}
+                              >
+                                <td className={styles.td}>{reservation.reservation_id}</td>
+                                <td className={styles.td}>
+                                  {moment(new Date(reservation.reservation_date))
+                                    .tz('Asia/Manila')
+                                    .format('YYYY-MM-DD HH:mm')}
+                                </td>
+                                <td className={styles.td}>
+                                  {moment(new Date(reservation.reservation_date_end))
+                                    .tz('Asia/Manila')
+                                    .format('YYYY-MM-DD HH:mm')}
+                                </td>
+                                <td className={styles.td}>{reservation.reservation_purpose}</td>
+                                <td className={styles.td}>{products}</td>
+                                <td className={styles.td}>{quantities}</td>
+                                <td className={styles.td}>{reservation.status}</td>
+                                <td className={styles.td}>
+                                  <Group gap="xs">
+                                    <ActionIcon
+                                      onClick={() => {
+                                        setSelectedReservation(reservation);
+                                        setEditModalOpened(true);
+                                      }}
+                                    >
+                                      <IconEdit />
+                                    </ActionIcon>
+                                    <ActionIcon
+                                      color="red"
+                                      onClick={() => {
+                                        setSelectedReservation(reservation);
+                                        setDeleteModalOpened(true);
+                                      }}
+                                    >
+                                      <IconTrash />
+                                    </ActionIcon>
+                                  </Group>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </Table>
+                    </div>
+                  </Grid.Col>
+                </Grid>
+              </ScrollArea>
               <Flex justify="center">
                 <Pagination
                   value={activePage}
@@ -527,7 +568,7 @@ export default function TransactionHistory() {
                   color="blue"
                 />
               </Flex>
-            </>
+            </Container>
           )}
 
           {/* Edit Modal */}
@@ -693,6 +734,6 @@ export default function TransactionHistory() {
           </Modal>
         </Container>
       </Flex>
-    </div>
+    </Container>
   );
 }
