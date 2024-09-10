@@ -13,6 +13,8 @@ import {
   TextInput,
   NumberInput,
   Checkbox,
+  TagsInput,
+  Autocomplete,
 } from '@mantine/core';
 import useSWR, { mutate } from 'swr';
 import axios from '@/utils/axiosInstance';
@@ -20,6 +22,7 @@ import { AuthContext } from '@/utils/authContext';
 import { notifications } from '@mantine/notifications';
 import dayjs from 'dayjs';
 import { DateTimePicker } from '@mantine/dates';
+import { useAuth } from '@/utils/auth';
 
 // Define the types for your API response
 interface Product {
@@ -49,8 +52,12 @@ interface ApiResponse {
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 export function CartItems() {
-  const { username } = useContext(AuthContext);
-  const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher, {refreshInterval: 1000});
+  // const { username } = useContext(AuthContext);
+  const { username } = useAuth();
+
+  const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher, {
+    refreshInterval: 1000,
+  });
 
   const [selectedItems, setSelectedItems] = useState<{ [key: string]: number }>({});
   const [modalOpen, setModalOpen] = useState(false);
@@ -63,6 +70,9 @@ export function CartItems() {
   const [reservationPurpose, setReservationPurpose] = useState('');
   const [reservationStatus, setReservationStatus] = useState('PENDING');
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [isGroupCheckout, setIsGroupCheckout] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [subject, setSubject] = useState('');
 
   if (error) return <Alert color="red">Error loading cart items</Alert>;
   if (!data) return <Loader />;
@@ -143,7 +153,6 @@ export function CartItems() {
   const confirmCheckout = async () => {
     try {
       let productIds = Object.keys(selectedItems);
-      // let quantities = data.cart_items.map((item) => item.quantity);
       let quantities = Object.values(selectedItems);
       console.log('productIDs and quantities ', selectedItems);
 
@@ -160,6 +169,9 @@ export function CartItems() {
           : null,
         reservation_purpose: reservationPurpose,
         status: reservationStatus,
+        is_group: isGroupCheckout,
+        group_members: isGroupCheckout ? selectedUsers : [],
+        subject: subject,
       });
 
       // Handle the success response after retry (if any)
@@ -175,6 +187,9 @@ export function CartItems() {
       setReservationEndDate(null);
       setReservationPurpose('');
       setReservationStatus('PENDING');
+      setIsGroupCheckout(false);
+      setSelectedUsers([]);
+      setSubject('');
       mutate(`reservationsCart/?username=${username}`);
     } catch (error) {
       // Show an error notification if the request fails even after retrying
@@ -184,10 +199,6 @@ export function CartItems() {
       setCheckoutModalOpen(false);
     }
   };
-
-
-  //datetimepicker conditions
-  
 
   return (
     <Paper shadow="xl" radius="lg" withBorder p="xl">
@@ -222,7 +233,7 @@ export function CartItems() {
             </Text>
 
             <Group mt="md" mb="xs">
-              <Text w={500}>${item.product.price}</Text>
+              <Text w={500}>₱{item.product.price}</Text>
               <Button
                 variant="light"
                 color="blue"
@@ -314,6 +325,31 @@ export function CartItems() {
         onClose={() => setCheckoutModalOpen(false)}
         title="Checkout"
       >
+        <Checkbox
+          label="Is this a group checkout?"
+          checked={isGroupCheckout}
+          onChange={(e) => setIsGroupCheckout(e.currentTarget.checked)}
+          mb="md"
+        />
+        {isGroupCheckout && (
+          <>
+            <TagsInput
+              label="Group Members"
+              placeholder="Add users"
+              value={selectedUsers}
+              onChange={setSelectedUsers}
+              mb="md"
+            />
+            <Autocomplete
+              label="Subject"
+              placeholder="Select a subject"
+              value={subject}
+              onChange={setSubject}
+              data={['Math', 'Science', 'History']} // Example subjects, replace with actual data
+              mb="md"
+            />
+          </>
+        )}
         <TextInput
           label="Reservation Purpose"
           value={reservationPurpose}

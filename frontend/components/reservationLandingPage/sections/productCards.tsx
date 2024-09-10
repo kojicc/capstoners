@@ -14,11 +14,12 @@ import {
 import useSWR from 'swr';
 import axios from '@/utils/axiosInstance';
 import { IconGasStation, IconGauge, IconManualGearbox, IconUsers } from '@tabler/icons-react';
-import classes from './FeaturesCard.module.css';
+import classes from '@/components/modules.css/FeaturesCard.module.css';
 import { useContext, useState } from 'react';
 import { AuthContext } from '@/utils/authContext';
 import { notifications } from '@mantine/notifications';
 import { AutocompleteClearable } from './autocompleClearableReservation';
+import { useAuth } from '@/utils/auth';
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
@@ -42,8 +43,9 @@ interface ProductCardsProps {
 export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
   const [addTocartQuantity, setAddTocartQuantity] = useState(0);
   const [addTocartProductId, setAddTocartProductId] = useState('');
+  const { username } = useAuth();
 
-  const { username } = useContext(AuthContext);
+  // const { username } = useContext(AuthContext);
   console.log('username', username);
 
   const productData = (product: Product) => [
@@ -102,8 +104,9 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
               <Image
                 src={`http://localhost:8000${product.image}`}
                 alt={product.name}
-                w={250}
-                h={250}
+                w={200}
+                h={200}
+                radius={10}
               />
             </Card.Section>
 
@@ -160,7 +163,10 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
                     <Button
                       fullWidth
                       mt="md"
-                      onClick={() => addTocart(product.productId, addTocartQuantity)}
+                      onClick={() => {
+                        addTocart(product.productId, addTocartQuantity);
+                        setAddTocartQuantity(0);
+                      }}
                     >
                       Add to Cart
                     </Button>

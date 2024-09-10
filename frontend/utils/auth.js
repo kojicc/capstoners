@@ -1,8 +1,9 @@
 import Cookies from 'js-cookie';
 import axios from '../utils/axiosInstance';
 import { jwtDecode } from 'jwt-decode';
-import { getCookie } from './cookies';
-import {useState} from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
+
 
 export const fetchDecodedAccessTokenRole = async () => {
   try {
@@ -17,13 +18,13 @@ export const fetchDecodedAccessTokenRole = async () => {
       // console.log('Token role:', decodedToken.role);
       // console.log('Token user:', decodedToken.username);
       const role = decodedToken.role;
-      const username = decodedToken.username;
+      const usernameFetched = decodedToken.username; // Renamed
 
       // Cookies.set('Role',decodedToken.role); // Set the access token
       // Store the decoded token in local storage or cookies if needed
       // localStorage.setItem('accessToken', jwt_access_token); // Example if using local storage
 
-      return { role, username };
+      return { role, username: usernameFetched };
 
       // return jwt_access_token;
     } else {
@@ -35,6 +36,18 @@ export const fetchDecodedAccessTokenRole = async () => {
   }
 };
 
+export const useAuth = () => {
+  const { data, error } = useSWR('auth', fetchDecodedAccessTokenRole, {
+    revalidateOnFocus: false, // Prevent re-fetching on window focus
+  });
+
+  return {
+    role: data?.role,
+    username: data?.username,
+    isLoading: !error && !data,
+    isError: error,
+  };
+};
 
 
 //lalagyan use state

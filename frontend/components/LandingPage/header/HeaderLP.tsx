@@ -102,10 +102,10 @@ export function Header() {
   const router = useRouter();
   const handleLogout = async () => {
     try {
-      const response = await axiosInstance.get('/logout/');
+      const response = await axiosInstance.get('logout/');
       console.log('Logout response:', response.data);
       setIsAuthenticated(false);
-      window.location.reload();
+      // window.location.reload();
       Cookies.remove('access_token');
       Cookies.remove('refresh_token');
       Cookies.remove('Role');
@@ -257,7 +257,7 @@ export function Header() {
               <>
                 <Button
                   component="a"
-                  href="/login"
+                  href="login/"
                   variant="outline"
                   color="white"
                   fw={700}

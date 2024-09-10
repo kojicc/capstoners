@@ -16,6 +16,7 @@ import useSWR, { mutate } from 'swr';
 import axios from '@/utils/axiosInstance'; // Adjust this import to your Axios setup
 import { AuthContext } from '@/utils/authContext';
 import { notifications } from '@mantine/notifications';
+import { useAuth } from '@/utils/auth';
 
 interface Product {
   productId: string;
@@ -43,7 +44,10 @@ interface ApiResponse {
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 export function CartItems() {
-  const { username } = useContext(AuthContext);
+
+    const { username } = useAuth();
+
+  // const { username } = useContext(AuthContext);
   const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher);
 
   const [modalOpen, setModalOpen] = useState(false);

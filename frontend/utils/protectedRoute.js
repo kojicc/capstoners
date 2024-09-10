@@ -3,10 +3,14 @@ import { useRouter } from 'next/router';
 import { AuthContext } from '../utils/authContext';
 import { LoadingOverlay } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { useAuth } from '@/utils/auth';
+
 
 const useProtectedRoute = ({ allowedRoles }) => {
     //pangkuha current role
-    const { role, loading } = useContext(AuthContext);
+      const { role,loading } = useAuth();
+
+    // const { role, loading } = useContext(AuthContext);
     const router = useRouter();
     const [isRoleAllowed, setisRoleAllowed] = useState(false);
     const [visible, { toggle }] = useDisclosure(false);

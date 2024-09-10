@@ -21,6 +21,7 @@ import { useState, useEffect, useContext } from 'react';
 import { fetchDecodedAccessToken, isLoggedIn } from '../../../utils/auth';
 import { fetchAccessToken } from '../../../utils/auth';
 import { AuthContext } from '@/utils/authContext';
+import { useAuth } from '@/utils/auth';
 
 import { useLocalStorage } from '@mantine/hooks';
 
@@ -30,7 +31,10 @@ interface Role {
 }
 
 export function Hero() {
-  const { role } = useContext(AuthContext);
+    const { username,role } = useAuth();
+
+  // const { role } = useContext(AuthContext);
+
 
   // useEffect(() => {
   //   const checkRole = async () => {
@@ -130,7 +134,7 @@ export function Hero() {
               <Button
                 className={classes.disabled}
                 component="a"
-                href="reservationLandingPage"
+                href="reservationLandingPage/"
                 data-disabled={isDisabled}
                 onClick={isDisabled ? (event) => event.preventDefault() : undefined}
                 size="xl"

@@ -23,8 +23,9 @@ import { useRouter } from 'next/router';
 import { useContext, useState } from 'react';
 import cx from 'clsx';
 import classes from './DropdownOptionsAnimation.module.css';
-import { fetchDecodedAccessToken, fetchDecodedAccessTokenRole } from '@/utils/auth';
+import { fetchDecodedAccessTokenRole, useAuth } from '@/utils/auth';
 import { AuthContext } from '@/utils/authContext';
+import { mutate } from 'swr';
 // import { GoogleButton } from './GoogleButton';
 // import { TwitterButton } from './TwitterButton';
 
@@ -64,7 +65,6 @@ export function AuthenticationForm(props: PaperProps) {
     </Combobox.Option>
   ));
 
-  const [loading, { toggle }] = useDisclosure(false);
 
   const [type, toggle1] = useToggle(['login', 'register']);
   const form = useForm({
@@ -84,6 +84,7 @@ export function AuthenticationForm(props: PaperProps) {
     // //   password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
     // },
   });
+  
 
   const [username, setUsernameAuth] = useState('');
   const [password, setPassword] = useState('');
@@ -94,39 +95,47 @@ export function AuthenticationForm(props: PaperProps) {
   const [error, setError] = useState('');
   const router = useRouter();
 
- 
+  // const [loading, { toggle }] = useDisclosure(false);
 
+const [loading, setLoading] = useState(false);
   const handleLogin = async () => {
+    setLoading(true); // Show loading overlay
     try {
       const response = await axios.post('login/', { username, password });
       if (response.status !== 200) {
         throw new Error('Invalid email or password');
+      }
+
+      // Fetch the decoded token role after login
+      const { role, username: fetchedUsername } = (await fetchDecodedAccessTokenRole()) as {
+        role: string;
+        username: string;
+      };
+
+      // Mutate the SWR cache with the new role and username
+      mutate('auth', { role, username: fetchedUsername }, false); // false to skip revalidation
+
+      // Redirect based on the role
+      if (role === 'admin') {
+        router.push('/adminDashboard');
+      } else if (role === 'student') {
+        router.push('/');
       } else {
-        const {role: roleContext} = await fetchDecodedAccessTokenRole() as { role: string };
-        if (roleContext === 'admin') {
-          router.push('/adminDashboard');
-        } else if (roleContext === 'student') {
-          router.push('/');
-        } else {
-          router.push('/');
-        }
-
-        // Update the context immediately after login
-        // setRole((tokenData as { role: string }).role);
-        // setUsername((tokenData as { username: string }).username);
-
-        // Redirect or perform any other post-login actions
+        router.push('/');
       }
     } catch (err) {
       console.error('Login error:', err);
       form.setFieldError('username', 'Invalid email or password!');
       form.setFieldError('password', 'Invalid email or password!');
+    } finally {
+      setLoading(false); // Show loading overlay
+      console.log('toggle', loading); // Hide loading overlay in both success and error cases
     }
   };
 
   const handleRegister = async () => {
     try {
-      toggle();
+      setLoading(true); // Show loading overlay
       const response = await axios.post('register/', {
         username,
         password,
@@ -146,7 +155,7 @@ export function AuthenticationForm(props: PaperProps) {
       form.setFieldError('firstName', 'Invalid email or password!');
       form.setFieldError('lastName', 'Invalid email or password!');
     } finally {
-      toggle();
+      setLoading(false); // Show loading overlay
     }
   };
 

@@ -3,10 +3,13 @@ import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '@/utils/authContext'; // Adjust the import path as necessary
 import { LoadingOverlay, Text } from '@mantine/core';
 import { modals } from '@mantine/modals';
+import { useAuth } from '@/utils/auth'; // Adjust the import path as necessary
 
 export const withRoleProtection = (WrappedComponent, allowedRoles) => {
   const RoleProtectedComponent = (props) => {
-    const { role, loading: contextLoading } = useContext(AuthContext);
+    const { role, username, isLoading, error } = useAuth();
+    // const { role, loading: contextLoading } = useContext(AuthContext);
+    console.log('AuthContext Role:', role);
     const [isRoleAllowed, setIsRoleAllowed] = useState(true);
     const router = useRouter();
     const [visible, setVisible] = useState(true);
@@ -41,12 +44,12 @@ export const withRoleProtection = (WrappedComponent, allowedRoles) => {
       };
 
       // Check role if it's available, otherwise, wait for loading to finish
-      if (!contextLoading) {
+      if (!isLoading) {
         checkUserRole();
       }
-    }, [role, contextLoading, router]);
+    }, [role, isLoading, router]);
 
-    if (contextLoading || !isRoleAllowed) {
+    if (isLoading || !isRoleAllowed) {
       return (
         <LoadingOverlay visible={visible} zIndex={1000} overlayOpacity={0.8} overlayBlur={2} />
       );

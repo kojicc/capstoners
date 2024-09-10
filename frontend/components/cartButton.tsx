@@ -4,6 +4,7 @@ import { ActionIcon, Menu, Text, Loader, Paper, Group, Divider } from '@mantine/
 import { IconShoppingCart } from '@tabler/icons-react';
 import axios from '@/utils/axiosInstance'; // Adjust this import to your Axios setup
 import { AuthContext } from '@/utils/authContext';
+import {useAuth} from '@/utils/auth';
 
 // Define the types for your API response
 interface Product {
@@ -33,7 +34,8 @@ interface ApiResponse {
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 export function CartIcon() {
-  const { username } = useContext(AuthContext);
+  // const { username } = useContext(AuthContext);
+  const {username} = useAuth();
   const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher);
 
   // Handle loading and error states

@@ -32,7 +32,7 @@ export function StatsRing() {
   if (MostReservedProduct && MostReservedProduct.length > 0 &&!MostReservedProductError) {
     dataRings[0].stats = `${MostReservedProduct[0].productId} - ${MostReservedProduct[0].name}`;
   } else {
-    console.log("MostReservedProduct data is not available yet.");
+    // console.log("MostReservedProduct data is not available yet.");
   }
 
 
@@ -40,7 +40,7 @@ export function StatsRing() {
   if (PendingOrders && PendingOrders.total_pending_orders && !PendingOrdersError) {
     dataRings[1].stats = PendingOrders.total_pending_orders;
   } else {
-    console.log("PendingOrders data is not available yet.");
+    // console.log("PendingOrders data is not available yet.");
   }
   // console.log("dataPendingOrders",PendingOrders.total_pending_orders);
   // dataRings[1].stats = PendingOrders.total_pending_orders;
@@ -49,7 +49,7 @@ export function StatsRing() {
   if (TotalUsers && TotalUsers.total_users && !TotalUsersError) {
     dataRings[2].stats = TotalUsers.total_users;
   } else {
-    console.log("TotalUsers data is not available yet.");
+    // console.log("TotalUsers data is not available yet.");
   }
   // console.log("dataTotalUsers",TotalUsers.total_users);
   // dataRings[2].stats = TotalUsers.total_users;
