@@ -1,10 +1,10 @@
 import uuid
 from django.db import models
-from django.conf import settings
 from products.models import Product
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 import datetime
+from django.conf import settings
 
 
 # Create your models here.

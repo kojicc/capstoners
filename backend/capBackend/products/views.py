@@ -5,9 +5,79 @@ from .serializers import ProductImageSerializer, CategorySerializer,ProductImage
 from rest_framework.response import Response
 import re
 from rest_framework.permissions import IsAuthenticated
-
+import pandas as pd
+from django.http import HttpResponse
+import io
 
 # Create your views here.
+
+
+#excel import at export here
+class ExportImportProductView(APIView):
+    permission_classes = [IsAuthenticated]  # Uncomment if you want to enforce authentication
+    
+    # exporter
+    def get(self, request):
+        products = Product.objects.all()
+        serializer = ProductImageSerializer(products, many=True)
+        data = serializer.data
+        
+        # Convert data to DataFrame
+        df = pd.DataFrame(data)
+        
+        # Create an in-memory output file for the HTTP response
+        output = io.BytesIO()
+        df.to_excel(output, index=False, engine='openpyxl')
+        output.seek(0)  # Move to the beginning of the BytesIO object
+        
+        # Create the HTTP response with the Excel file
+        response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="products.xlsx"'
+        
+        return response
+
+    # importer
+    def post(self, request):
+        try:
+            file = request.FILES['file']
+            df = pd.read_excel(file)
+            products = df.to_dict(orient='records')
+            
+            for product in products:
+                # Handle category creation if it does not exist
+                category_id = product['category']
+                category, created = Category.objects.get_or_create(
+                    categoryId=category_id,
+                    defaults={
+                        'name': f'Default Name {category_id}',  # Ensure unique names
+                        'description': 'Default Description',
+                        'icon': 'DefaultIcon'
+                    }
+                )
+                
+                # Use update_or_create to handle product creation or update
+                Product.objects.update_or_create(
+                    productId=product['productId'],  # Match on productId to avoid duplicates
+                    defaults={
+                        'name': product['name'],
+                        'description': product['description'],
+                        'type': product.get('type', 'Default Type'),
+                        'price': product['price'],
+                        'quantity': product['quantity'],
+                        'reserved': product.get('reserved', 0),
+                        'broken_damaged': product.get('broken_damaged', 0),
+                        'category': category
+                    }
+                )
+            
+            return Response({
+                'message': 'Products uploaded and updated successfully'
+            }, status=201)
+        except Exception as e:
+            return Response({
+                'message': f'An error occurred: {str(e)}'
+            }, status=400)
+
 
 class createCategory(APIView):
     permission_classes = [IsAuthenticated]
@@ -282,6 +352,7 @@ class updateProductView(APIView):
             category = request.data.get('category')
             quantity = request.data.get('quantity')
             image = request.FILES.get('image')
+            type = request.data.get('type')
 
             if not productId:
                 return Response({
@@ -305,6 +376,9 @@ class updateProductView(APIView):
 
             if quantity:
                 product.quantity = quantity
+
+            if type:
+                product.type = type
 
             if image:
                 product.image = image

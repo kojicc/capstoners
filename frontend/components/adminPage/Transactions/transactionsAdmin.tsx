@@ -24,6 +24,10 @@ import {
   Autocomplete,
   LoadingOverlay,
   Grid,
+  FileInput,
+  Loader,
+  Popover,
+  Tooltip,
 } from '@mantine/core';
 import {
   IconSelector,
@@ -32,6 +36,8 @@ import {
   IconSearch,
   IconEdit,
   IconTrash,
+  IconDownload,
+  IconUpload,
 } from '@tabler/icons-react';
 import classes from '@/components/modules.css/TableSort.module.css';
 import { notifications } from '@mantine/notifications';
@@ -47,6 +53,17 @@ import useSWR from 'swr';
 interface Product {
   image: string;
   productId: string;
+}
+
+interface Users {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  username: string;
+  role: string;
+  date_joined?: string;
+  fullname?: string;
 }
 
 interface ReservationItem {
@@ -140,6 +157,9 @@ export default function TransactionHistory() {
   const [activePage, setPage] = useState(1);
   const [quantity, setQuantity] = useState<number[]>([]);
   const [disabled, setDisabled] = useState<boolean[]>([]);
+  const [users, setUsers] = useState<Users[]>([]);
+
+
   const itemsPerPage = 5;
   const router = useRouter();
 
@@ -147,6 +167,16 @@ export default function TransactionHistory() {
   const { data, error, mutate, isValidating } = useSWR('adminReservationDetail/', fetcher, {
     refreshInterval: 5000, // Refresh data every 5 seconds
   });
+  const { data: usersData, error: usersError } = useSWR<Users[]>('adminupdateUsers/', fetcher, {
+    refreshInterval: 1000,
+  });
+
+  useEffect(() => {
+    if (usersData) {
+      setUsers(usersData);
+    }
+  }, [usersData]);
+
   const loading = isValidating && !data;
   const reservations = data?.reservations || [];
 
@@ -381,6 +411,60 @@ export default function TransactionHistory() {
     activePage * itemsPerPage
   );
 
+  const [openedImportExport, setOpenedImportExport] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [loadingImportExport, setLoadingImportExport] = useState(false);
+  const [username, setUsername] = useState('');
+  const [openedExport, setOpenedExport] = useState(false);
+
+  const handleExport = async () => {
+    try {
+      setLoadingImportExport(true);
+      const response = await axiosInstance.get('importExportReservations/', {
+        responseType: 'blob',
+        params: { username },
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'users.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      notifications.show({ message: 'Export successful!', color: 'green' });
+    } catch (error) {
+      notifications.show({ message: 'Export failed.', color: 'red' });
+    } finally {
+      setLoadingImportExport(false);
+      setUsername('');
+      setOpenedExport(false);
+    }
+  };
+
+  // Import users
+  const handleImport = async () => {
+    if (!file) return;
+
+    try {
+      setLoadingImportExport(true);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      await axiosInstance.post('importExportReservations/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      notifications.show({ message: 'Import successful!', color: 'green' });
+      setFile(null);
+    } catch (error) {
+      notifications.show({ message: 'Import failed.', color: 'red' });
+    } finally {
+      setLoadingImportExport(false);
+      setOpenedImportExport(false);
+    }
+  };
+
   return (
     <Container fluid className={classes.wrapper}>
       <Overlay color="#000" opacity={1} zIndex={-1} />
@@ -395,10 +479,113 @@ export default function TransactionHistory() {
         className={classes.inner}
       >
         <Container fluid>
+
+          <Group gap="md" p={10}>
           <Title c={'white'} order={2}>
             Transaction History - Admin
           </Title>
 
+          <Group gap="md">
+            {/* Export Users Button */}
+            <Popover
+              opened={openedExport}
+              onChange={setOpenedExport}
+              withArrow
+              shadow="md"
+              position="bottom"
+              trapFocus={false}
+              closeOnClickOutside={false}
+            >
+              <Popover.Target>
+                <Tooltip label="Export User Information">
+                  <ActionIcon
+                    onClick={() => setOpenedExport((o) => !o)}
+                    disabled={loading}
+                    color="blue"
+                    variant="outline"
+                  >
+                    {loading ? <Loader size="xs" /> : <IconDownload size={16} />}
+                  </ActionIcon>
+                </Tooltip>
+              </Popover.Target>
+              <Popover.Dropdown>
+                {/* <TextInput
+                    placeholder="Enter username to filter"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    mb="md"
+                  /> */}
+                <Autocomplete
+                  autoComplete="new-password"
+                  placeholder="Input username to filter"
+                  value={username}
+                  onChange={setUsername}
+                  leftSection={
+                    <IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                  }
+                  my={20}
+                  data={[
+                    {
+                      group: 'Usernames',
+                      items: users.map((user) => ({
+                        value: user.username,
+                        label: user.username,
+                      })),
+                    },
+                  ]}
+                  limit={5}
+                  comboboxProps={{
+                    transitionProps: { transition: 'pop', duration: 200 },
+                    dropdownPadding: 10,
+                    shadow: 'xl',
+                  }}
+                />
+                <Button onClick={handleExport} disabled={loading} fullWidth>
+                  {loading ? <Loader size="xs" /> : 'Export'}
+                </Button>
+              </Popover.Dropdown>
+            </Popover>
+            {/* Import Users Button with Popover */}
+            <Popover
+              opened={openedImportExport}
+              onChange={setOpenedImportExport}
+              withArrow
+              shadow="md"
+              position="bottom"
+              trapFocus={false} // Allow interaction with the file explorer
+              closeOnClickOutside={false} // Keep the popover open when clicking outside
+            >
+              <Popover.Target>
+                <Tooltip label="Import User Information">
+                  <ActionIcon
+                    onClick={() => setOpenedImportExport((o) => !o)}
+                    disabled={loading}
+                    color="green"
+                    variant="outline"
+                  >
+                    {loading ? <Loader size="xs" /> : <IconUpload size={16} />}
+                  </ActionIcon>
+                </Tooltip>
+              </Popover.Target>
+              <Popover.Dropdown>
+                <FileInput
+                  placeholder="Choose file"
+                  onChange={(selectedFile) => setFile(selectedFile)}
+                  accept=".xlsx"
+                  required
+                />
+                <Button
+                  mt="md"
+                  onClick={handleImport}
+                  disabled={loading || !file} // Disable the button if no file is selected
+                  fullWidth
+                >
+                  {loading ? <Loader size="xs" /> : 'Upload'}
+                </Button>
+              </Popover.Dropdown>
+            </Popover>
+          </Group>
+            </Group>
           <Autocomplete
             placeholder="Search reservations using reservation ids"
             value={searchQuery}

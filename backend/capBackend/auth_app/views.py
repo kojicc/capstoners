@@ -18,6 +18,77 @@ from rest_framework.response import Response
 from rest_framework import status
 import jwt
 from rest_framework.permissions import IsAuthenticated
+import io
+import pandas as pd
+from django.http import HttpResponse
+
+
+# Excel import export here
+class ExportImportUserView(APIView):
+    # permission_classes = [IsAuthenticated]  # Uncomment if you want to enforce authentication
+    
+    def get(self, request):
+        # Get the username parameter from the query string
+        username = request.GET.get('username', None)
+        
+        # Fetch users from the database with optional filtering
+        if username:
+            users = User.objects.filter(username=username)
+        else:
+            users = User.objects.all()
+        
+        # Serialize the user data
+        serializer = UserSerializer(users, many=True)
+        data = serializer.data
+        
+        # Convert data to DataFrame
+        df = pd.DataFrame(data)
+        
+        # Create an in-memory output file for the HTTP response
+        output = io.BytesIO()
+        df.to_excel(output, index=False, engine='openpyxl')
+        output.seek(0)  # Move to the beginning of the BytesIO object
+        
+        # Create the HTTP response with the Excel file
+        response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="users.xlsx"'
+        
+        return response
+
+    def post(self, request):
+        try:
+            file = request.FILES['file']
+            df = pd.read_excel(file)
+            users = df.to_dict(orient='records')
+            
+            for user in users:
+                # Hash the password if it is provided
+                password = user.get('password', '')
+                if password:
+                    hashed_password = make_password(password)
+                else:
+                    hashed_password = ''
+                
+                # Create or update the user
+                User.objects.update_or_create(
+                    username=user['username'],
+                    defaults={
+                        'first_name': user.get('first_name', ''),
+                        'last_name': user.get('last_name', ''),
+                        'email': user.get('email', ''),
+                        'password': hashed_password,
+                        'role': user.get('role', 'guest')
+                    }
+                )
+            
+            return Response({
+                'message': 'Users uploaded successfully'
+            }, status=201)
+        except Exception as e:
+            return Response({
+                'message': f'An error occurred: {str(e)}'
+            }, status=400)
+
 
 class adminUpdateUsersView(APIView):
     permission_classes = [IsAuthenticated]

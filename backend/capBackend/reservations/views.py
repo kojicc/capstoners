@@ -30,12 +30,72 @@ from django.http import JsonResponse
 from django.utils.dateparse import parse_datetime
 import datetime
 import re
-
+import pandas as pd
+from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
+import io
+from rest_framework.parsers import MultiPartParser
 
 # pangview ng total reservations
 # class ReservationTotalAPIView(APIView):
 #         reservations = get_object_or_404(Reservation,reservation_9)
 
+class ReservationImportExportView(APIView):
+    # parser_classes = [MultiPartParser]
+
+    def get(self, request):
+        # Extract the username from query parameters
+        username = request.query_params.get('username', None)
+
+        # Fetch reservations based on username, or fetch all reservations if username is not provided
+        if username:
+            reservations = Reservation.objects.filter(user__username=username)
+        else:
+            reservations = Reservation.objects.all()
+
+        # Serialize the reservations data
+        serializer = ReservationSerializer(reservations, many=True)
+        data = serializer.data
+
+        # Convert data to DataFrame
+        df = pd.DataFrame(data)
+
+        # Create an in-memory output file for the HTTP response
+        output = io.BytesIO()
+        df.to_excel(output, index=False, engine='openpyxl')
+        output.seek(0)
+
+        # Create the HTTP response with the Excel file
+        response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename="reservations_{username if username else "all"}.xlsx"'
+
+        return response
+
+    def post(self, request):
+        # Check if a file is uploaded
+        if 'file' not in request.FILES:
+            return JsonResponse({'error': 'No file uploaded'}, status=400)
+
+        # Load the uploaded file into a DataFrame
+        file = request.FILES['file']
+        df = pd.read_excel(file)
+
+        # Iterate through the DataFrame and create reservations
+        for _, row in df.iterrows():
+            user = User.objects.filter(username=row['user']).first()
+            if user:
+                reservation_data = {
+                    'user': user,
+                    'reservation_id': row['reservation_id'],
+                    'reservation_date': row['reservation_date'],
+                    'reservation_date_end': row['reservation_date_end'],
+                    'reservation_purpose': row['reservation_purpose'],
+                    'status': row['status']
+                }
+                Reservation.objects.update_or_create(
+                    reservation_id=row['reservation_id'], defaults=reservation_data)
+
+        return JsonResponse({'message': 'Reservations imported successfully'})
 
 class ReservationCartAPIView(APIView):
     # permission_classes = [IsAuthenticated]

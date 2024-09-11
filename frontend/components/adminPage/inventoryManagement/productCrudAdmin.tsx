@@ -10,8 +10,11 @@ import {
   LoadingOverlay,
   SimpleGrid,
   CloseButton,
+  Tooltip,
+  FileInput,
+  Popover,
 } from '@mantine/core';
-import { IconSelector, IconChevronDown, IconChevronUp, IconSearch, IconEdit, IconTrash } from '@tabler/icons-react';
+import { IconSelector, IconChevronDown, IconChevronUp, IconSearch, IconEdit, IconTrash, IconFileArrowLeft, IconFileArrowRight, IconUpload, IconDownload } from '@tabler/icons-react';
 import classes from '@/components/modules.css/TableSort.module.css';
 import { notifications } from '@mantine/notifications';
 import moment from 'moment-timezone';
@@ -21,6 +24,7 @@ import { useRouter } from 'next/router';
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 // import { ReusableTable } from '@/components/transactionsUser';
 // import classes from '../components/modules.css/Demo.module.css';
+import useSWR, { mutate } from 'swr';
 
 
 
@@ -33,6 +37,7 @@ interface Product {
   quantity: number;
   image: string;
   productId: string;
+  type: string;
 }
 
 interface Category {
@@ -76,7 +81,7 @@ function filterData(data: Product[] | undefined, search: string): Product[] {
   const query = search.toLowerCase().trim();
   return data.filter((item) =>
     (item.productId?.toLowerCase() || '').includes(query)
-    || (item.name?.toLowerCase() || '').includes(query)
+    || (item.name?.toLowerCase() || '').includes(query) || (item.description?.toLowerCase() || '').includes(query) || (item.price?.toString().toLowerCase() || '').includes(query) || (item.quantity?.toString().toLowerCase() || '').includes(query) || (item.image?.toLowerCase() || '').includes(query) || (item.type?.toLowerCase() || '').includes(query) || (item.category?.toLowerCase() || '').includes(query) 
    
   );
 }
@@ -98,24 +103,185 @@ function sortData(data: Product[], { sortBy, reversed, search }: { sortBy: keyof
 }
 
 const UpdateCrudProductsAdmin = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  // const [products, setProducts] = useState<Product[]>([]);
+  // const [categoryID, setCategoryID] = useState('');
+  // const [categories, setCategories] = useState<Category[]>([]);
+  // const [searchQuery, setSearchQuery] = useState('');
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState('');
+  // const [sortedData, setSortedData] = useState<Product[]>([]);
+  // const [sortBy, setSortBy] = useState<keyof Product | null>(null);
+  // const [reverseSortDirection, setReverseSortDirection] = useState(false);
+  // const [editModalOpened, setEditModalOpened] = useState(false);
+  // const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+  // // const [selectedProducts, setSelectedProducts] = useState<Product | null>(null);
+  // const [selectedProducts, setSelectedProducts] = useState<Product | null>(null);
+  // const [activePage, setPage] = useState(1);
+  // const [quantity, setQuantity] = useState<number>();
+  // const [disabled, setDisabled] = useState<boolean[]>([]);
+  // const itemsPerPage = 5;
+  // const router = useRouter();
+  // const [files, setFiles] = useState<FileWithPath[]>([]);
+
+  // const previews = files.map((file, index) => {
+  //   const imageUrl = URL.createObjectURL(file);
+  //   return <img key={index} src={imageUrl} onLoad={() => URL.revokeObjectURL(imageUrl)} />;
+  // });
+
+  // //pampakita ng data sa table na sinosort muna thru sortData function
+  // useEffect(() => {
+  //   setSortedData(
+  //     sortData(products, { sortBy, reversed: reverseSortDirection, search: searchQuery })
+  //   );
+  // }, [products, sortBy, reverseSortDirection, searchQuery]);
+
+  // const fetchProducts = async () => {
+  //   try {
+  //     const response = await axiosInstance.get('getadminProductDetail/');
+  //     if (response.status === 200) {
+  //       if (categoryID) {
+  //         const filteredProducts = response.data.products.filter(
+  //           (product: { categoryId: string }) => product.categoryId === categoryID
+  //         );
+  //         setProducts(filteredProducts);
+  //       } else {
+  //         setProducts(response.data.products);
+  //       }
+  //     } else {
+  //       setError('No products found');
+  //     }
+  //   } catch (error) {
+  //     setError('Failed to fetch products');
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchProducts();
+  // }, []);
+
+  // const handleSort = (field: keyof Product) => {
+  //   const reversed = field === sortBy ? !reverseSortDirection : false;
+  //   setReverseSortDirection(reversed);
+  //   setSortBy(field);
+  // };
+
+  // const handleDelete = async () => {
+  //   const productId = selectedProducts?.productId || '';
+  //   setLoading(true);
+
+  //   try {
+  //     const response = await axiosInstance.delete(`deleteProduct/`, { data: { productId } });
+
+  //     if (response.status === 200) {
+  //       fetchProducts();
+  //       setError('');
+  //       notifications.show({
+  //         title: 'Success',
+  //         message: 'Product deleted successfully.',
+  //         color: 'green',
+  //       });
+  //       setDeleteModalOpened(false);
+  //     } else {
+  //       setError('Failed to delete product');
+  //       notifications.show({
+  //         title: 'Error',
+  //         message: 'Failed to delete product.',
+  //         color: 'red',
+  //       });
+  //     }
+  //   } catch (error) {
+  //     setError('Delete failed');
+  //     notifications.show({
+  //       title: 'Error',
+  //       message: 'Failed to delete product.',
+  //       color: 'red',
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // const handleEdit = async () => {
+  //   const formData = new FormData();
+  //   formData.append('productId', selectedProducts?.productId || '');
+  //   formData.append('name', selectedProducts?.name || '');
+  //   formData.append('description', selectedProducts?.description || '');
+  //   formData.append('price', selectedProducts?.price.toString() || '');
+  //   formData.append('quantity', selectedProducts?.quantity.toString() || '');
+  //   formData.append('image', files[0] || '');
+  //   console.log('formData:', formData.get('image'));
+
+  //   setLoading(true);
+
+  //   try {
+  //     const response = await axiosInstance.put('updateProduct/', formData);
+
+  //     handleCloseModal();
+  //     fetchProducts();
+  //     notifications.show({
+  //       title: 'Success',
+  //       message: 'Product updated successfully.',
+  //       color: 'green',
+  //     });
+  //   } catch (error) {
+  //     console.error('Error updating products:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // const [value, setValue] = useState<string[]>([]);
+
+  // const handleCloseModal = () => {
+  //   setEditModalOpened(false);
+  //   setSelectedProducts(null);
+  //   setQuantity(0);
+  //   setDisabled([]);
+  //   setValue([]);
+  //   setFiles([]);
+  // };
+
+  // const paginatedData = sortedData.slice(
+  //   (activePage - 1) * itemsPerPage,
+  //   activePage * itemsPerPage
+  // );
+
+  // // const predefinedStatuses = [
+  // // 'PENDING', 'APPROVED', 'REJECTED', 'CANCELLED', 'COMPLETED',
+  // // 'AWAITING RETURN', 'DAMAGED/LOST/PARTIALLY_COMPLETED', 'AWAITING PAYMENT'
+  // // ];
+
+  // // const combinedStatuses = [
+  // //   ...new Set([
+  // //     ...reservations.map(products => products.productId),
+  // //     ...predefinedStatuses
+  // //   ])
+  // // ];
+  // useEffect(() => {
+  //   const test = products.map((product) => product.category);
+  //   console.log('test:', categories);
+  // }, [products]);
+
+  // const getCategories = async () => {
+  //   const response = await axiosInstance.get('getCategories/');
+  //   setCategories(response.data.categories);
+  // };
+
+  // useEffect(() => {
+  //   getCategories();
+  // }, []);
+  const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
+
   const [categoryID, setCategoryID] = useState('');
-  const [categories, setCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [sortedData, setSortedData] = useState<Product[]>([]);
   const [sortBy, setSortBy] = useState<keyof Product | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
-  // const [selectedProducts, setSelectedProducts] = useState<Product | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<Product | null>(null);
   const [activePage, setPage] = useState(1);
-  const [quantity, setQuantity] = useState<number>();
-  const [disabled, setDisabled] = useState<boolean[]>([]);
-  const itemsPerPage = 5;
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [files, setFiles] = useState<FileWithPath[]>([]);
 
   const previews = files.map((file, index) => {
@@ -123,37 +289,36 @@ const UpdateCrudProductsAdmin = () => {
     return <img key={index} src={imageUrl} onLoad={() => URL.revokeObjectURL(imageUrl)} />;
   });
 
+  const itemsPerPage = 5;
 
-  //pampakita ng data sa table na sinosort muna thru sortData function
-  useEffect(() => {
-    setSortedData(
-      sortData(products, { sortBy, reversed: reverseSortDirection, search: searchQuery })
-    );
-  }, [products, sortBy, reverseSortDirection, searchQuery]);
+  // Fetch products with SWR
+  const {
+    data: productData,
+    error: productError,
+    isValidating: loadingProducts,
+  } = useSWR('getadminProductDetail/', fetcher,{refreshInterval: 1000});
 
-  const fetchProducts = async () => {
-    try {
-      const response = await axiosInstance.get('getadminProductDetail/');
-      if (response.status === 200) {
-        if (categoryID) {
-          const filteredProducts = response.data.products.filter(
-            (product: { categoryId: string }) => product.categoryId === categoryID
-          );
-          setProducts(filteredProducts);
-        } else {
-          setProducts(response.data.products);
-        }
-      } else {
-        setError('No products found');
-      }
-    } catch (error) {
-      setError('Failed to fetch products');
-    }
-  };
+  // Fetch categories with SWR
+  const {
+    data: categoryData,
+    error: categoryError,
+    isValidating: loadingCategories,
+  } = useSWR('getCategories/', fetcher, { refreshInterval: 1000 });
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  // Handle loading or error for products and categories
+  const products = productData?.products || [];
+  const categories = categoryData?.categories || [];
+
+  // Filter products based on categoryID and searchQuery
+  const filteredProducts = categoryID
+    ? products.filter((product: { categoryId: string }) => product.categoryId === categoryID)
+    : products;
+
+  const sortedData = sortData(filteredProducts, {
+    sortBy,
+    reversed: reverseSortDirection,
+    search: searchQuery,
+  });
 
   const handleSort = (field: keyof Product) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
@@ -162,42 +327,34 @@ const UpdateCrudProductsAdmin = () => {
   };
 
   const handleDelete = async () => {
-    const productId = selectedProducts?.productId || '';
     setLoading(true);
-
+    const productId = selectedProducts?.productId || '';
     try {
       const response = await axiosInstance.delete(`deleteProduct/`, { data: { productId } });
-
       if (response.status === 200) {
-        fetchProducts();
-        setError('');
+        // Revalidate SWR data to get the updated product list
+        mutate('getadminProductDetail/');
+        setDeleteModalOpened(false);
         notifications.show({
           title: 'Success',
           message: 'Product deleted successfully.',
           color: 'green',
         });
-        setDeleteModalOpened(false);
-      } else {
-        setError('Failed to delete product');
-        notifications.show({
-          title: 'Error',
-          message: 'Failed to delete product.',
-          color: 'red',
-        });
       }
     } catch (error) {
-      setError('Delete failed');
       notifications.show({
         title: 'Error',
         message: 'Failed to delete product.',
         color: 'red',
       });
-    } finally {
+    }
+    finally {
       setLoading(false);
     }
   };
 
   const handleEdit = async () => {
+    
     const formData = new FormData();
     formData.append('productId', selectedProducts?.productId || '');
     formData.append('name', selectedProducts?.name || '');
@@ -205,15 +362,14 @@ const UpdateCrudProductsAdmin = () => {
     formData.append('price', selectedProducts?.price.toString() || '');
     formData.append('quantity', selectedProducts?.quantity.toString() || '');
     formData.append('image', files[0] || '');
-    console.log('formData:', formData.get('image'));
-
-    setLoading(true);
+    formData.append('type', selectedProducts?.type || '');
 
     try {
-      const response = await axiosInstance.put('updateProduct/', formData);
-
+      setLoading(true);
+      await axiosInstance.put('updateProduct/', formData);
+      // Revalidate the SWR data to fetch the updated products
+      mutate('getadminProductDetail/');
       handleCloseModal();
-      fetchProducts();
       notifications.show({
         title: 'Success',
         message: 'Product updated successfully.',
@@ -226,14 +382,9 @@ const UpdateCrudProductsAdmin = () => {
     }
   };
 
-  const [value, setValue] = useState<string[]>([]);
-
   const handleCloseModal = () => {
     setEditModalOpened(false);
     setSelectedProducts(null);
-    setQuantity(0);
-    setDisabled([]);
-    setValue([]);
     setFiles([]);
   };
 
@@ -241,39 +392,114 @@ const UpdateCrudProductsAdmin = () => {
     (activePage - 1) * itemsPerPage,
     activePage * itemsPerPage
   );
+  const exportProducts = async () => {
+    try {
+      const response = await axiosInstance.get('exportimportProduct/', {
+        responseType: 'blob', // Important for binary data
+      });
+      // Create a link element to download the file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'products.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Error exporting products:', error);
+    }
+  };
+  const [fileExportImport, setFileExportImport] = useState<File | null>(null);
+  const [openedExportImport, setOpenedExportImport] = useState(false);
 
-  // const predefinedStatuses = [
-  // 'PENDING', 'APPROVED', 'REJECTED', 'CANCELLED', 'COMPLETED',
-  // 'AWAITING RETURN', 'DAMAGED/LOST/PARTIALLY_COMPLETED', 'AWAITING PAYMENT'
-  // ];
+  const handleImport = async (event: { preventDefault: () => void }) => {
+    event.preventDefault();
+    const formData = new FormData();
+    if (fileExportImport) {
+      formData.append('file', fileExportImport);
+    } else {
+      notifications.show({
+        color: 'red',
+        title: 'Error',
+        message: 'No file selected',
+      });
+      return;
+    }
 
-  // const combinedStatuses = [
-  //   ...new Set([
-  //     ...reservations.map(products => products.productId),
-  //     ...predefinedStatuses
-  //   ])
-  // ];
-  useEffect(() => {
-    const test = products.map((product) => product.category);
-    console.log('test:', categories);
-  }, [products]);
-
-  const getCategories = async () => {
-    const response = await axiosInstance.get('getCategories/');
-    setCategories(response.data.categories);
+    try {
+      await axiosInstance.post('exportimportProduct/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      notifications.show({
+        color: 'green',
+        title: 'Success',
+        message: 'Products uploaded successfully',
+      });
+      setOpenedExportImport(false);
+    } catch (error) {
+      notifications.show({
+        color: 'red',
+        title: 'Error',
+        message: 'Failed to upload products',
+      });
+    }
   };
 
-  useEffect(() => {
-    getCategories();
-  }, []);
+  // const { username } = useContext(AuthContext);
 
   return (
     <>
       <Flex justify="center" align="center" direction="row" wrap="wrap" className={classes.inner}>
         <Container>
-          <Title my={20} c={'black'} order={2}>
-            Product History - Admin
-          </Title>
+          <Group>
+            <Title my={20} c={'white'} order={2}>
+              Product History - Admin
+            </Title>
+            <Tooltip label="Export Products">
+              <ActionIcon onClick={exportProducts} color="blue" variant="outline">
+                <IconDownload />
+              </ActionIcon>
+            </Tooltip>
+            <Popover
+              opened={openedExportImport}
+              onClose={() => setOpenedExportImport(false)}
+              position="bottom"
+              withArrow
+              shadow="md"
+              trapFocus={false} // Allow interaction with the file explorer
+              closeOnClickOutside={false} // Keep the popover open when clicking outside
+            >
+              <Popover.Target>
+                <Tooltip label="Import Products">
+                  <ActionIcon onClick={() => setOpenedExportImport((o) => !o)}
+                  color="green"
+                    variant="outline"
+                  >
+                    <IconUpload />
+                  </ActionIcon>
+                </Tooltip>
+              </Popover.Target>
+
+              <Popover.Dropdown>
+                <FileInput
+                  placeholder="Choose file"
+                  onChange={(selectedFile) => setFileExportImport(selectedFile)}
+                  accept=".xlsx"
+                  required
+                />
+                <Button
+                  mt="md"
+                  onClick={handleImport}
+                  disabled={!fileExportImport} // Disable the button if no file is selected
+                >
+                  Import
+                </Button>
+              </Popover.Dropdown>
+            </Popover>
+          </Group>
+
           <Autocomplete
             placeholder="Search products using products ids"
             value={searchQuery}
@@ -293,14 +519,14 @@ const UpdateCrudProductsAdmin = () => {
             data={[
               {
                 group: 'Product Categories',
-                items: categories.map((category) => ({
+                items: categories.map((category: { categoryId: any }) => ({
                   value: category.categoryId,
                   label: category.categoryId,
                 })),
               },
               {
                 group: 'Product IDs',
-                items: products.map((product) => ({
+                items: products.map((product: { productId: any }) => ({
                   value: product.productId,
                   label: product.productId,
                 })),
@@ -329,6 +555,14 @@ const UpdateCrudProductsAdmin = () => {
                       onSort={() => handleSort('productId')}
                     >
                       Product ID
+                    </Th>
+
+                    <Th
+                      sorted={sortBy === 'type'}
+                      reversed={reverseSortDirection}
+                      onSort={() => handleSort('type')}
+                    >
+                      Product Type
                     </Th>
 
                     <Th
@@ -382,6 +616,7 @@ const UpdateCrudProductsAdmin = () => {
                     return (
                       <tr key={products.productId} className={styles.tr} id={products.productId}>
                         <td className={styles.td}>{products.productId}</td>
+                        <td className={styles.td}>{products.type}</td>
                         <td className={styles.td}>{products.name}</td>
                         <td className={styles.td}>{products.description}</td>
                         <td className={styles.td}>{products.price}</td>
@@ -453,6 +688,16 @@ const UpdateCrudProductsAdmin = () => {
               />
 
               <TextInput
+                label="Product Type"
+                value={selectedProducts?.type || ''}
+                onChange={(event) =>
+                  setSelectedProducts(
+                    (prev) => ({ ...prev, type: event.currentTarget.value }) as Product
+                  )
+                }
+              />
+
+              <TextInput
                 label="Product Name"
                 value={selectedProducts?.name || ''}
                 onChange={(event) =>
@@ -493,7 +738,7 @@ const UpdateCrudProductsAdmin = () => {
               <Autocomplete
                 label="Product Category"
                 disabled
-                data={categories.map((category) => ({
+                data={categories.map((category: { categoryId: any }) => ({
                   value: category.categoryId,
                   label: category.categoryId,
                 }))}
@@ -533,6 +778,7 @@ const UpdateCrudProductsAdmin = () => {
             </Stack>
           </Modal>
 
+          {/* Update Modal */}
           <Modal
             opened={deleteModalOpened}
             onClose={() => setDeleteModalOpened(false)}

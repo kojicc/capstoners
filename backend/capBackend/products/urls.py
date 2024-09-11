@@ -1,7 +1,7 @@
 # products/urls.py
 
 from django.urls import path
-from .views import RetrieveProductImage, UploadProduct, updateProductView, deleteProductView, createCategory, RetrieveCategory, RetrieveProductIDView,RetrieveProductAdmin,deleteCategory,editCategory
+from .views import RetrieveProductImage, UploadProduct, updateProductView, deleteProductView, createCategory, RetrieveCategory, RetrieveProductIDView,RetrieveProductAdmin,deleteCategory,editCategory,ExportImportProductView
 
 urlpatterns = [
     path('addCategory/', createCategory.as_view(), name='addCategory'),
@@ -14,5 +14,5 @@ urlpatterns = [
     path('getadminProductDetail/', RetrieveProductAdmin.as_view()),
     path('deleteCategory/', deleteCategory.as_view()),
     path('editCategory/', editCategory.as_view()),
-
+    path('exportimportProduct/', ExportImportProductView.as_view())
 ]

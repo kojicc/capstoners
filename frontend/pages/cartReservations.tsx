@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, SetStateAction } from 'react';
 import {
   Card,
   Image,
@@ -15,6 +15,7 @@ import {
   Checkbox,
   TagsInput,
   Autocomplete,
+  FileInput,
 } from '@mantine/core';
 import useSWR, { mutate } from 'swr';
 import axios from '@/utils/axiosInstance';
@@ -52,7 +53,8 @@ interface ApiResponse {
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 export function CartItems() {
-  // const { username } = useContext(AuthContext);
+  
+  
   const { username } = useAuth();
 
   const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher, {
@@ -72,6 +74,7 @@ export function CartItems() {
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [isGroupCheckout, setIsGroupCheckout] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  
   const [subject, setSubject] = useState('');
 
   if (error) return <Alert color="red">Error loading cart items</Alert>;
@@ -200,8 +203,16 @@ export function CartItems() {
     }
   };
 
+
+
+
+  
+
+
   return (
     <Paper shadow="xl" radius="lg" withBorder p="xl">
+     
+
       <Text size="lg" mb="xl" w={500}>
         Cart Items
       </Text>

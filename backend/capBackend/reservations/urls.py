@@ -1,6 +1,6 @@
 # urls.py (app auth level)
 from django.urls import path
-from .views import ReservationCreateUpdateAPIView, ReservationDetailAPIView,  ReservationDeleteView, ReservationSearchView , LongPollingAPIView,showNotification,LongPollingAPIView,readNotification,AdminUpdateReservationStatusAPIView,AdminReservationDetailAPIView,ReservationCartAPIView
+from .views import ReservationCreateUpdateAPIView, ReservationDetailAPIView,  ReservationDeleteView, ReservationSearchView , LongPollingAPIView,showNotification,LongPollingAPIView,readNotification,AdminUpdateReservationStatusAPIView,AdminReservationDetailAPIView,ReservationCartAPIView,ReservationImportExportView
 urlpatterns = [
     path('reservationsCreateUpdate/', ReservationCreateUpdateAPIView.as_view(), name='reservationsCreate'),
     path('adminUpdateReservationStatus/', AdminUpdateReservationStatusAPIView.as_view(), name='adminUpdateReservationStatus'),
@@ -16,6 +16,7 @@ urlpatterns = [
     path('long-polling/', LongPollingAPIView.as_view(), name='long-polling'),
     path('mark_as_read/', readNotification.as_view(), name='mark_as_read'),
     path('reservationsCart/', ReservationCartAPIView.as_view(), name='reservationsCart'),
+    path('importExportReservations/', ReservationImportExportView.as_view(), name='importExportReservations'),
 
     #  path('user/notifications/', UserNotificationsAPIView.as_view(), name='user_notifications'),
     # path('admin/notifications/', AdminNotificationsAPIView.as_view(), name='admin_notifications'),
