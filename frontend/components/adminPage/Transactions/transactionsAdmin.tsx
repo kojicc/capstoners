@@ -28,6 +28,7 @@ import {
   Loader,
   Popover,
   Tooltip,
+  Divider,
 } from '@mantine/core';
 import {
   IconSelector,
@@ -42,7 +43,7 @@ import {
 import classes from '@/components/modules.css/TableSort.module.css';
 import { notifications } from '@mantine/notifications';
 import moment from 'moment-timezone';
-import { DatesProvider, DateTimePicker } from '@mantine/dates';
+import { DatePickerInput, DatesProvider, DateTimePicker, MonthPickerInput } from '@mantine/dates';
 import styles from '@/components/modules.css/TableSort.module.css';
 import { Header } from '@/components/LandingPage/header/HeaderLP';
 import { useRouter } from 'next/router';
@@ -81,6 +82,7 @@ interface Reservation {
   product_ids: string;
   quantities: string;
   reservation_purpose: string;
+  reserved_date: string;
 }
 
 export interface ThProps {
@@ -416,29 +418,69 @@ export default function TransactionHistory() {
   const [loadingImportExport, setLoadingImportExport] = useState(false);
   const [username, setUsername] = useState('');
   const [openedExport, setOpenedExport] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedMonthYear, setSelectedMonthYear] = useState<Date | null>(null);
+  const [selectedYear, setSelectedYear] = useState(null);
 
-  const handleExport = async () => {
-    try {
-      setLoadingImportExport(true);
-      const response = await axiosInstance.get('importExportReservations/', {
-        responseType: 'blob',
-        params: { username },
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'users.xlsx');
-      document.body.appendChild(link);
-      link.click();
-      notifications.show({ message: 'Export successful!', color: 'green' });
-    } catch (error) {
-      notifications.show({ message: 'Export failed.', color: 'red' });
-    } finally {
-      setLoadingImportExport(false);
-      setUsername('');
-      setOpenedExport(false);
-    }
+  const formatDateWithMilliseconds = (date: { getFullYear: () => any; getMonth: () => number; getDate: () => any; getHours: () => any; getMinutes: () => any; getSeconds: () => any; getMilliseconds: () => any; }) => {
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    // return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+    return `${year}-${month}-${day}`;
   };
+
+  const formatMonthandYear = (date: {
+    getFullYear: () => any;
+    getMonth: () => number;
+   
+  }) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+
+    return `${year}-${month}`;
+  };
+
+ const handleExport = async () => {
+   try {
+     setLoadingImportExport(true);
+     let formattedDate = null;
+     if (selectedDate) {
+       formattedDate = formatDateWithMilliseconds(selectedDate);
+     } else if (selectedMonthYear) {
+       formattedDate = formatMonthandYear(selectedMonthYear);
+     }
+
+     console.log('formattedDate:', formattedDate);
+     const response = await axiosInstance.get('importExportReservations/', {
+       responseType: 'blob',
+       params: {
+         username,
+         reserved_date: formattedDate, // Send formatted date
+       },
+     });
+
+     const url = window.URL.createObjectURL(new Blob([response.data]));
+     const link = document.createElement('a');
+     link.href = url;
+     link.setAttribute('download', 'reservations.xlsx');
+     document.body.appendChild(link);
+     link.click();
+
+     notifications.show({ message: 'Export successful!', color: 'green' });
+   } catch (error) {
+     notifications.show({ message: 'Export failed.', color: 'red' });
+   } finally {
+     setLoadingImportExport(false);
+     setUsername('');
+     setOpenedExport(false);
+     setSelectedDate(null);
+     setSelectedMonthYear(null);
+   }
+ };
+
 
   // Import users
   const handleImport = async () => {
@@ -466,7 +508,7 @@ export default function TransactionHistory() {
   };
 
   return (
-    <Container fluid className={classes.wrapper}>
+    <Container>
       <Overlay color="#000" opacity={1} zIndex={-1} />
 
       <Flex
@@ -479,113 +521,134 @@ export default function TransactionHistory() {
         className={classes.inner}
       >
         <Container fluid>
-
           <Group gap="md" p={10}>
-          <Title c={'white'} order={2}>
-            Transaction History - Admin
-          </Title>
+            <Title c={'white'} order={2}>
+              Transaction History - Admin
+            </Title>
 
-          <Group gap="md">
-            {/* Export Users Button */}
-            <Popover
-              opened={openedExport}
-              onChange={setOpenedExport}
-              withArrow
-              shadow="md"
-              position="bottom"
-              trapFocus={false}
-              closeOnClickOutside={false}
-            >
-              <Popover.Target>
-                <Tooltip label="Export User Information">
-                  <ActionIcon
-                    onClick={() => setOpenedExport((o) => !o)}
-                    disabled={loading}
-                    color="blue"
-                    variant="outline"
-                  >
-                    {loading ? <Loader size="xs" /> : <IconDownload size={16} />}
-                  </ActionIcon>
-                </Tooltip>
-              </Popover.Target>
-              <Popover.Dropdown>
-                {/* <TextInput
+            <Group gap="md">
+              {/* Export Users Button */}
+              <Popover
+                opened={openedExport}
+                onChange={setOpenedExport}
+                withArrow
+                shadow="md"
+                position="bottom"
+                trapFocus={false}
+                closeOnClickOutside={false}
+              >
+                <Popover.Target>
+                  <Tooltip label="Export User Information">
+                    <ActionIcon
+                      onClick={() => setOpenedExport((o) => !o)}
+                      disabled={loading}
+                      color="blue"
+                      variant="outline"
+                    >
+                      {loading ? <Loader size="xs" /> : <IconDownload size={16} />}
+                    </ActionIcon>
+                  </Tooltip>
+                </Popover.Target>
+                <Popover.Dropdown>
+                  {/* <TextInput
                     placeholder="Enter username to filter"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     mb="md"
                   /> */}
-                <Autocomplete
-                  autoComplete="new-password"
-                  placeholder="Input username to filter"
-                  value={username}
-                  onChange={setUsername}
-                  leftSection={
-                    <IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                  }
-                  my={20}
-                  data={[
-                    {
-                      group: 'Usernames',
-                      items: users.map((user) => ({
-                        value: user.username,
-                        label: user.username,
-                      })),
-                    },
-                  ]}
-                  limit={5}
-                  comboboxProps={{
-                    transitionProps: { transition: 'pop', duration: 200 },
-                    dropdownPadding: 10,
-                    shadow: 'xl',
-                  }}
-                />
-                <Button onClick={handleExport} disabled={loading} fullWidth>
-                  {loading ? <Loader size="xs" /> : 'Export'}
-                </Button>
-              </Popover.Dropdown>
-            </Popover>
-            {/* Import Users Button with Popover */}
-            <Popover
-              opened={openedImportExport}
-              onChange={setOpenedImportExport}
-              withArrow
-              shadow="md"
-              position="bottom"
-              trapFocus={false} // Allow interaction with the file explorer
-              closeOnClickOutside={false} // Keep the popover open when clicking outside
-            >
-              <Popover.Target>
-                <Tooltip label="Import User Information">
-                  <ActionIcon
-                    onClick={() => setOpenedImportExport((o) => !o)}
-                    disabled={loading}
-                    color="green"
-                    variant="outline"
+                  <Autocomplete
+                    autoComplete="new-password"
+                    placeholder="Input username to filter"
+                    value={username}
+                    onChange={setUsername}
+                    leftSection={
+                      <IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                    }
+                    my={20}
+                    data={[
+                      {
+                        group: 'Usernames',
+                        items: users.map((user) => ({
+                          value: user.username,
+                          label: user.username,
+                        })),
+                      },
+                    ]}
+                    limit={5}
+                    comboboxProps={{
+                      transitionProps: { transition: 'pop', duration: 200 },
+                      dropdownPadding: 10,
+                      shadow: 'xl',
+                    }}
+                  />
+
+                  {/* Date Picker for Filtering Data */}
+                  <DatePickerInput
+                    placeholder="Select Date"
+                    label="Pick Date"
+                    value={selectedDate}
+                    onChange={setSelectedDate}
+                    clearable
+                    disabled={!!selectedMonthYear} // Disable if MonthPickerInput has a value
+                  />
+
+                  <Divider orientation="horizontal" my="md" label="or" />
+                  <MonthPickerInput
+                    label="Pick Month and Year"
+                    placeholder="Pick date"
+                    value={selectedMonthYear}
+                    onChange={setSelectedMonthYear}
+                    disabled={!!selectedDate} // Disable if DatePickerInput has a value
+                    clearable
+                  />
+                  <Divider orientation="horizontal" my="md" />
+
+                  <Button onClick={handleExport} disabled={loading} fullWidth>
+                    {loading ? <Loader size="xs" /> : 'Export'}
+                  </Button>
+                </Popover.Dropdown>
+              </Popover>
+              {/* Import Users Button with Popover */}
+              <Popover
+                opened={openedImportExport}
+                onChange={setOpenedImportExport}
+                withArrow
+                shadow="md"
+                position="bottom"
+                trapFocus={false} // Allow interaction with the file explorer
+                closeOnClickOutside={false} // Keep the popover open when clicking outside
+              >
+                <Popover.Target>
+                  <Tooltip label="Import User Information">
+                    <ActionIcon
+                      onClick={() => setOpenedImportExport((o) => !o)}
+                      disabled={loading}
+                      color="green"
+                      variant="outline"
+                    >
+                      {loading ? <Loader size="xs" /> : <IconUpload size={16} />}
+                    </ActionIcon>
+                  </Tooltip>
+                </Popover.Target>
+                <Popover.Dropdown>
+                  <FileInput
+                    placeholder="Choose file"
+                    onChange={(selectedFile) => setFile(selectedFile)}
+                    accept=".xlsx"
+                    required
+                  />
+                  <Button
+                    mt="md"
+                    onClick={handleImport}
+                    disabled={loading || !file} // Disable the button if no file is selected
+                    fullWidth
                   >
-                    {loading ? <Loader size="xs" /> : <IconUpload size={16} />}
-                  </ActionIcon>
-                </Tooltip>
-              </Popover.Target>
-              <Popover.Dropdown>
-                <FileInput
-                  placeholder="Choose file"
-                  onChange={(selectedFile) => setFile(selectedFile)}
-                  accept=".xlsx"
-                  required
-                />
-                <Button
-                  mt="md"
-                  onClick={handleImport}
-                  disabled={loading || !file} // Disable the button if no file is selected
-                  fullWidth
-                >
-                  {loading ? <Loader size="xs" /> : 'Upload'}
-                </Button>
-              </Popover.Dropdown>
-            </Popover>
-          </Group>
+                    {loading ? <Loader size="xs" /> : 'Upload'}
+                  </Button>
+                </Popover.Dropdown>
+              </Popover>
             </Group>
+          </Group>
           <Autocomplete
             placeholder="Search reservations using reservation ids"
             value={searchQuery}
@@ -640,6 +703,14 @@ export default function TransactionHistory() {
                               onSort={() => handleSort('reservation_id')}
                             >
                               Reservation ID
+                            </Th>
+
+                            <Th
+                              sorted={sortBy === 'reserved_date'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('reserved_date')}
+                            >
+                              Reserved Date
                             </Th>
                             <Th
                               sorted={sortBy === 'reservation_date'}
@@ -702,6 +773,11 @@ export default function TransactionHistory() {
                                 id={`reservation-${reservation.reservation_id}`}
                               >
                                 <td className={styles.td}>{reservation.reservation_id}</td>
+                                <td className={styles.td}>
+                                  {moment(new Date(reservation.reserved_date))
+                                    .tz('Asia/Manila')
+                                    .format('YYYY-MM-DD HH:mm')}
+                                </td>
                                 <td className={styles.td}>
                                   {moment(new Date(reservation.reservation_date))
                                     .tz('Asia/Manila')

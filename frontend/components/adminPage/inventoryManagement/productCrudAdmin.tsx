@@ -13,6 +13,8 @@ import {
   Tooltip,
   FileInput,
   Popover,
+  Grid,
+  ScrollArea,
 } from '@mantine/core';
 import { IconSelector, IconChevronDown, IconChevronUp, IconSearch, IconEdit, IconTrash, IconFileArrowLeft, IconFileArrowRight, IconUpload, IconDownload } from '@tabler/icons-react';
 import classes from '@/components/modules.css/TableSort.module.css';
@@ -282,6 +284,7 @@ const UpdateCrudProductsAdmin = () => {
   const [activePage, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
   const [files, setFiles] = useState<FileWithPath[]>([]);
 
   const previews = files.map((file, index) => {
@@ -452,7 +455,7 @@ const UpdateCrudProductsAdmin = () => {
   return (
     <>
       <Flex justify="center" align="center" direction="row" wrap="wrap" className={classes.inner}>
-        <Container>
+        <Container fluid>
           <Group>
             <Title my={20} c={'white'} order={2}>
               Product History - Admin
@@ -473,8 +476,9 @@ const UpdateCrudProductsAdmin = () => {
             >
               <Popover.Target>
                 <Tooltip label="Import Products">
-                  <ActionIcon onClick={() => setOpenedExportImport((o) => !o)}
-                  color="green"
+                  <ActionIcon
+                    onClick={() => setOpenedExportImport((o) => !o)}
+                    color="green"
                     variant="outline"
                   >
                     <IconUpload />
@@ -545,116 +549,131 @@ const UpdateCrudProductsAdmin = () => {
           ) : error ? (
             <Text color="red">{error}</Text>
           ) : (
-            <>
-              <Table className={styles.table} horizontalSpacing="xl" verticalSpacing="xs">
-                <thead>
-                  <tr>
-                    <Th
-                      sorted={sortBy === 'productId'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('productId')}
-                    >
-                      Product ID
-                    </Th>
+            <Container fluid>
+              <ScrollArea offsetScrollbars type="auto" className={styles.tableContainer}>
+                <Grid>
+                  <Grid.Col span="auto">
+                    <Table className={styles.table} horizontalSpacing="xl" verticalSpacing="xs">
+                      <thead>
+                        <tr>
+                          <Th
+                            sorted={sortBy === 'productId'}
+                            reversed={reverseSortDirection}
+                            onSort={() => handleSort('productId')}
+                          >
+                            Product ID
+                          </Th>
 
-                    <Th
-                      sorted={sortBy === 'type'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('type')}
-                    >
-                      Product Type
-                    </Th>
+                          <Th
+                            sorted={sortBy === 'type'}
+                            reversed={reverseSortDirection}
+                            onSort={() => handleSort('type')}
+                          >
+                            Product Type
+                          </Th>
 
-                    <Th
-                      sorted={sortBy === 'name'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('name')}
-                    >
-                      Product Name
-                    </Th>
+                          <Th
+                            sorted={sortBy === 'name'}
+                            reversed={reverseSortDirection}
+                            onSort={() => handleSort('name')}
+                          >
+                            Product Name
+                          </Th>
 
-                    <Th
-                      sorted={sortBy === 'description'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('description')}
-                    >
-                      Product Description
-                    </Th>
+                          <Th
+                            sorted={sortBy === 'description'}
+                            reversed={reverseSortDirection}
+                            onSort={() => handleSort('description')}
+                          >
+                            Product Description
+                          </Th>
 
-                    <Th
-                      sorted={sortBy === 'price'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('price')}
-                    >
-                      Product Price
-                    </Th>
+                          <Th
+                            sorted={sortBy === 'price'}
+                            reversed={reverseSortDirection}
+                            onSort={() => handleSort('price')}
+                          >
+                            Product Price
+                          </Th>
 
-                    <Th
-                      sorted={sortBy === 'quantity'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('quantity')}
-                    >
-                      Product Quantity
-                    </Th>
+                          <Th
+                            sorted={sortBy === 'quantity'}
+                            reversed={reverseSortDirection}
+                            onSort={() => handleSort('quantity')}
+                          >
+                            Product Quantity
+                          </Th>
 
-                    <Th
-                      sorted={sortBy === 'image'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('image')}
-                    >
-                      Product Image
-                    </Th>
+                          <Th
+                            sorted={sortBy === 'image'}
+                            reversed={reverseSortDirection}
+                            onSort={() => handleSort('image')}
+                          >
+                            Product Image
+                          </Th>
 
-                    <Th>Actions</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedData.map((products) => {
-                    // const products = products.items.map((item: { product: any; }) => item.product.productId).join(', ');
-                    // const quantities = products.items.map((item: { quantity: any; }) => item.quantity).join(', ');
+                          <Th>Actions</Th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginatedData.map((products) => {
+                          // const products = products.items.map((item: { product: any; }) => item.product.productId).join(', ');
+                          // const quantities = products.items.map((item: { quantity: any; }) => item.quantity).join(', ');
 
-                    return (
-                      <tr key={products.productId} className={styles.tr} id={products.productId}>
-                        <td className={styles.td}>{products.productId}</td>
-                        <td className={styles.td}>{products.type}</td>
-                        <td className={styles.td}>{products.name}</td>
-                        <td className={styles.td}>{products.description}</td>
-                        <td className={styles.td}>{products.price}</td>
-                        <td className={styles.td}>{products.quantity}</td>
-                        <td className={styles.td}>
-                          {' '}
-                          <img
-                            style={{ margin: 'auto', borderRadius: 'md', height: 100, width: 100 }}
-                            src={`http://localhost:8000${products.image}`}
-                            alt={products.name}
-                          />
-                        </td>
-                        <td className={styles.td}>
-                          <Group gap="xs">
-                            <ActionIcon
-                              onClick={() => {
-                                setSelectedProducts(products);
-                                setEditModalOpened(true);
-                              }}
+                          return (
+                            <tr
+                              key={products.productId}
+                              className={styles.tr}
+                              id={products.productId}
                             >
-                              <IconEdit />
-                            </ActionIcon>
-                            <ActionIcon
-                              color="red"
-                              onClick={() => {
-                                setSelectedProducts(products);
-                                setDeleteModalOpened(true);
-                              }}
-                            >
-                              <IconTrash />
-                            </ActionIcon>
-                          </Group>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </Table>
+                              <td className={styles.td}>{products.productId}</td>
+                              <td className={styles.td}>{products.type}</td>
+                              <td className={styles.td}>{products.name}</td>
+                              <td className={styles.td}>{products.description}</td>
+                              <td className={styles.td}>{products.price}</td>
+                              <td className={styles.td}>{products.quantity}</td>
+                              <td className={styles.td}>
+                                {' '}
+                                <img
+                                  style={{
+                                    margin: 'auto',
+                                    borderRadius: 'md',
+                                    height: 100,
+                                    width: 100,
+                                  }}
+                                  src={`http://localhost:8000${products.image}`}
+                                  alt={products.name}
+                                />
+                              </td>
+                              <td className={styles.td}>
+                                <Group gap="xs">
+                                  <ActionIcon
+                                    onClick={() => {
+                                      setSelectedProducts(products);
+                                      setEditModalOpened(true);
+                                    }}
+                                  >
+                                    <IconEdit />
+                                  </ActionIcon>
+                                  <ActionIcon
+                                    color="red"
+                                    onClick={() => {
+                                      setSelectedProducts(products);
+                                      setDeleteModalOpened(true);
+                                    }}
+                                  >
+                                    <IconTrash />
+                                  </ActionIcon>
+                                </Group>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </Table>
+                  </Grid.Col>
+                </Grid>
+              </ScrollArea>
               <Flex justify="center">
                 <Pagination
                   value={activePage}
@@ -664,7 +683,7 @@ const UpdateCrudProductsAdmin = () => {
                   color="blue"
                 />
               </Flex>
-            </>
+            </Container>
           )}
 
           {/* Edit Modal */}

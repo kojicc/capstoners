@@ -28,6 +28,8 @@ import {
   FileInput,
   Loader,
   Tooltip,
+  ScrollArea,
+  Grid,
 } from '@mantine/core';
 import {
   IconSelector,
@@ -180,6 +182,11 @@ function getStrength(password: string) {
 }
 
 const UpdateUser = () => {
+  const [openedImportExport, setOpenedImportExport] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [loadingImportExport, setLoadingImportExport] = useState(false);
+  const [username, setUsername] = useState('');
+  const [openedExport, setOpenedExport] = useState(false);
   const [users, setUsers] = useState<Users[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -375,11 +382,7 @@ const UpdateUser = () => {
       },
     });
 
-  const [openedImportExport, setOpenedImportExport] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [loadingImportExport, setLoadingImportExport] = useState(false);
-  const [username, setUsername] = useState('');
-  const [openedExport, setOpenedExport] = useState(false);
+  
 
   const handleExport = async () => {
     try {
@@ -427,9 +430,17 @@ const UpdateUser = () => {
   };
 
   return (
-    <Paper shadow="xl" radius="md" p="xl" m={'xl'}>
-      <Flex justify="center" align="center" direction="row" wrap="wrap" className={classes.inner}>
-        <Container>
+    <Container fluid>
+      <Flex
+        gap="md"
+        justify="center"
+        align="center"
+        direction="row"
+        wrap="wrap"
+        className={classes.inner}
+        
+      >
+        <Container fluid>
           <Group justify="center" gap="md" flex="column">
             <Title my={20} c={'black'} order={2}>
               User History - Admin
@@ -569,109 +580,123 @@ const UpdateUser = () => {
           ) : error ? (
             <Text color="red">{error}</Text>
           ) : (
-            <>
-              <Table className={styles.table} horizontalSpacing="xl" verticalSpacing="xs">
-                <thead>
-                  <tr>
-                    <Th
-                      sorted={sortBy === 'id'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('id')}
-                    >
-                      User ID
-                    </Th>
-
-                    <Th
-                      sorted={sortBy === 'username'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('username')}
-                    >
-                      User Name
-                    </Th>
-
-                    <Th
-                      sorted={sortBy === 'email'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('email')}
-                    >
-                      Email
-                    </Th>
-
-                    <Th
-                      sorted={sortBy === 'fullname'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('fullname')}
-                    >
-                      Full Name
-                    </Th>
-
-                    <Th
-                      sorted={sortBy === 'role'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('role')}
-                    >
-                      Role
-                    </Th>
-
-                    <Th
-                      sorted={sortBy === 'date_joined'}
-                      reversed={reverseSortDirection}
-                      onSort={() => handleSort('date_joined')}
-                    >
-                      Date Joined
-                    </Th>
-
-                    <Th>Actions</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedData.map((users) => {
-                    // const users = users.items.map((item: { product: any; }) => item.product.productId).join(', ');
-                    // const quantities = users.items.map((item: { quantity: any; }) => item.quantity).join(', ');
-
-                    return (
-                      <tr key={users.id} className={styles.tr} id={users.id}>
-                        <td className={styles.td}>{users.id}</td>
-                        <td className={styles.td}>{users.username}</td>
-                        <td className={styles.td}>{users.email}</td>
-                        <td className={styles.td}>{`${users.first_name} ${users.last_name}`}</td>
-                        <td className={styles.td}>{users.role}</td>
-                        <td className={styles.td}>{users.date_joined}</td>
-                        <td className={styles.td}>
-                          <Group gap="xs">
-                            <ActionIcon
-                              onClick={() => {
-                                setSelectedUsers(users);
-                                setEditModalOpened(true);
-                              }}
+            <Container fluid>
+              <ScrollArea
+                offsetScrollbars
+                type="auto"
+                className={styles.tableContainer}
+              >
+                <Grid>
+                  <Grid.Col span="auto">
+                    <div>
+                      <Table className={styles.table} horizontalSpacing="xl" verticalSpacing="xs">
+                        <thead>
+                          <tr className={styles.tr}>
+                            <Th
+                              sorted={sortBy === 'id'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('id')}
                             >
-                              <IconEdit />
-                            </ActionIcon>
-                            <ActionIcon
-                              color="yellow"
-                              onClick={() => {
-                                setSelectedUsers(users);
-                                setUpdatePasswordModalOpened(true);
-                              }}
+                              User ID
+                            </Th>
+
+                            <Th
+                              sorted={sortBy === 'username'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('username')}
                             >
-                              <IconKeyFilled />
-                            </ActionIcon>
-                            <ActionIcon
-                              color="red"
-                              onClick={() => {
-                                setSelectedUsers(users);
-                                setDeleteModalOpened(true);
-                              }}
+                              User Name
+                            </Th>
+
+                            <Th
+                              sorted={sortBy === 'email'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('email')}
                             >
-                              <IconTrash />
-                            </ActionIcon>
-                          </Group>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </Table>
+                              Email
+                            </Th>
+
+                            <Th
+                              sorted={sortBy === 'fullname'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('fullname')}
+                            >
+                              Full Name
+                            </Th>
+
+                            <Th
+                              sorted={sortBy === 'role'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('role')}
+                            >
+                              Role
+                            </Th>
+
+                            <Th
+                              sorted={sortBy === 'date_joined'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('date_joined')}
+                            >
+                              Date Joined
+                            </Th>
+
+                            <Th>Actions</Th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paginatedData.map((users) => {
+                            // const users = users.items.map((item: { product: any; }) => item.product.productId).join(', ');
+                            // const quantities = users.items.map((item: { quantity: any; }) => item.quantity).join(', ');
+
+                            return (
+                              <tr key={users.id} className={styles.tr} id={users.id}>
+                                <td className={styles.td}>{users.id}</td>
+                                <td className={styles.td}>{users.username}</td>
+                                <td className={styles.td}>{users.email}</td>
+                                <td
+                                  className={styles.td}
+                                >{`${users.first_name} ${users.last_name}`}</td>
+                                <td className={styles.td}>{users.role}</td>
+                                <td className={styles.td}>{users.date_joined}</td>
+                                <td className={styles.td}>
+                                  <Group gap="xs">
+                                    <ActionIcon
+                                      onClick={() => {
+                                        setSelectedUsers(users);
+                                        setEditModalOpened(true);
+                                      }}
+                                    >
+                                      <IconEdit />
+                                    </ActionIcon>
+                                    <ActionIcon
+                                      color="yellow"
+                                      onClick={() => {
+                                        setSelectedUsers(users);
+                                        setUpdatePasswordModalOpened(true);
+                                      }}
+                                    >
+                                      <IconKeyFilled />
+                                    </ActionIcon>
+                                    <ActionIcon
+                                      color="red"
+                                      onClick={() => {
+                                        setSelectedUsers(users);
+                                        setDeleteModalOpened(true);
+                                      }}
+                                    >
+                                      <IconTrash />
+                                    </ActionIcon>
+                                  </Group>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </Table>
+                    </div>
+                  </Grid.Col>
+                </Grid>
+              </ScrollArea>
               <Flex justify="center">
                 <Pagination
                   value={activePage}
@@ -681,7 +706,7 @@ const UpdateUser = () => {
                   color="blue"
                 />
               </Flex>
-            </>
+            </Container>
           )}
 
           <Modal
@@ -843,7 +868,7 @@ const UpdateUser = () => {
           </Modal>
         </Container>
       </Flex>
-    </Paper>
+    </Container>
   );
 };
 

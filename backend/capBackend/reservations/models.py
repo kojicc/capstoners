@@ -11,6 +11,7 @@ from django.conf import settings
 class Reservation(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field='username')
     reservation_id = models.CharField(primary_key=True, max_length=100, unique=True, editable=False)
+    reserved_date = models.DateTimeField(default=timezone.now)
     reservation_date = models.DateTimeField()
     reservation_date_end = models.DateTimeField(blank=True)
     reservation_purpose = models.CharField(max_length=100, blank=True)
@@ -47,10 +48,6 @@ class ReservationItem(models.Model):
         return f'{self.quantity} of {self.product.productId} in Reservation {self.reservation.reservation_id}'
 
 
-
-
-    
-
 class Cart(models.Model):
     id = models.AutoField(primary_key=True)  # Auto-incremented primary key
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field='username')  # Use `to_field` to specify `username`
@@ -59,7 +56,6 @@ class Cart(models.Model):
 
     def __str__(self):
         return f'{self.user.username}\'s cart'
-
 
 
 class Notification(models.Model):

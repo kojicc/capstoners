@@ -35,6 +35,7 @@ from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 import io
 from rest_framework.parsers import MultiPartParser
+from datetime import datetime
 
 # pangview ng total reservations
 # class ReservationTotalAPIView(APIView):
@@ -44,18 +45,42 @@ class ReservationImportExportView(APIView):
     # parser_classes = [MultiPartParser]
 
     def get(self, request):
-        # Extract the username from query parameters
+    # Extract the username and reserved_date from query parameters
         username = request.query_params.get('username', None)
+        date_str = request.query_params.get('reserved_date', None)  # Date in YYYY-MM-DD or YYYY-MM format from frontend
+
+        print(f"Received username: {username}")
+        print(f"Received reserved_date: {date_str}")
 
         # Fetch reservations based on username, or fetch all reservations if username is not provided
+        reservations = Reservation.objects.all()
+
         if username:
-            reservations = Reservation.objects.filter(user__username=username)
-        else:
-            reservations = Reservation.objects.all()
+            reservations = reservations.filter(user__username=username)
+        
+        # Filter by reserved_date if provided
+        if date_str:
+            try:
+                if len(date_str) == 7:  # 'YYYY-MM' format
+                    year, month = map(int, date_str.split('-'))
+                    start_date = datetime(year, month, 1)
+                    # Use 'last day of month' trick to get the end date
+                    end_date = datetime(year, month + 1, 1) if month < 12 else datetime(year + 1, 1, 1)
+                    print(f"Filtering by month: Start Date: {start_date}, End Date: {end_date}")
+                    reservations = reservations.filter(reserved_date__range=[start_date, end_date])
+                else:
+                    reserved_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                    print(f"Filtering by exact date: {reserved_date}")
+                    reservations = reservations.filter(reserved_date__date=reserved_date)
+            except ValueError as e:
+                print(f"Date format error: {e}")
+                return Response({'error': 'Invalid date format, should be YYYY-MM-DD or YYYY-MM'}, status=400)
 
         # Serialize the reservations data
         serializer = ReservationSerializer(reservations, many=True)
         data = serializer.data
+
+        print(f"Serialized data: {data}")
 
         # Convert data to DataFrame
         df = pd.DataFrame(data)

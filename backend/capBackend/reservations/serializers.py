@@ -9,7 +9,8 @@ class ReservationSerializer(serializers.ModelSerializer):
         # fields = [ 'user', 'reservation_id', 'reservation_date', 'status',
         # 'reservation_date_end','reservation_purpose ']
         fields = '__all__'
-        read_only_fields = ['reservation_id', 'reservation_date']
+        # read_only_fields = ['reservation_id', 'reservation_date']
+        read_only_fields = ['reservation_id']
 
 class ReservationItemSerializer(serializers.ModelSerializer):
     product = ProductImageonlySerializer()

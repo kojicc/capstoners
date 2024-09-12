@@ -3,6 +3,7 @@
 /* Base table styles */
 .table-container {
   width: 100%;
+  
   overflow-x: auto; /* Enables horizontal scroll on small screens */
 }
 
