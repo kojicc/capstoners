@@ -45,6 +45,11 @@ export function NavbarSection() {
       icon: IconHistory,
       component: <UserAccountsManage />,
     },
+    {
+      label: 'Go to Landing Page',
+      icon: IconHistory,
+      href: '/',
+    }
   ];
 
   const handleMainClick = (label: React.SetStateAction<string>) => {
@@ -76,7 +81,7 @@ export function NavbarSection() {
     <React.Fragment key={item.label}>
       <NavLink
         w={'100%'}
-        // href="#required-for-focus"
+        href={item.href}
         active={activeMain === item.label}
         label={item.label}
         leftSection={<item.icon size="1rem" stroke={1.5} />}
@@ -114,7 +119,7 @@ export function NavbarSection() {
       <AppShell.Header >
         <Group h="100%" mx={'auto'}>
           <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" pos={'absolute'} />
-          <Header />
+          {/* <Header /> */}
         </Group>
       </AppShell.Header>
       <AppShell.Navbar p="md" m={'auto'}>

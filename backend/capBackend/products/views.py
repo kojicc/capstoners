@@ -1,15 +1,98 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .models import Category, Product
-from .serializers import ProductImageSerializer, CategorySerializer,ProductImageonlySerializer
+from .models import Category, Product, ProductType
+from .serializers import ProductImageSerializer, CategorySerializer,ProductImageonlySerializer, ProductTypeSerializer
 from rest_framework.response import Response
 import re
 from rest_framework.permissions import IsAuthenticated
 import pandas as pd
 from django.http import HttpResponse
 import io
-
+import rest_framework.status as status
 # Create your views here.
+
+
+class ProductTypeCRUD(APIView):
+    # permission_classes = [IsAuthenticated]
+
+        
+        # Create or Update
+    def post(self, request):
+        try:
+            category_id = request.data.get('category_id')
+            name = request.data.get('name')
+            description = request.data.get('description')
+
+            if not all([category_id, name]):
+                return Response({
+                    'message': 'Category ID and Name are required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            category, created = Category.objects.get_or_create(categoryId=category_id)
+
+            product_type, created = ProductType.objects.update_or_create(
+                name=name,  # Use 'name' as the unique identifier
+                defaults={
+                    'category': category,
+                    'description': description
+                }
+            )
+
+            action = 'created' if created else 'updated'
+            return Response({
+                'message': f'Product type {action} successfully',
+                'product_type': ProductTypeSerializer(product_type).data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'message': f'An error occurred: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    # Read
+    def get(self, request):
+        category_id = request.query_params.get('category_id')
+        try:
+            if category_id:
+                category = Category.objects.get(categoryId=category_id)
+                product_types = ProductType.objects.filter(category=category)
+                product_types = ProductTypeSerializer(product_types, many=True)
+                return Response({
+                    'product_types': product_types.data,
+                    'message': 'Product types retrieved successfully'
+                }, status=status.HTTP_200_OK)
+            else:
+                product_types = ProductType.objects.all()
+                product_types = ProductTypeSerializer(product_types, many=True)
+                return Response({
+                    'product_types': product_types.data,
+                    'message': 'Product types retrieved successfully'
+                }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'message': f'An error occurred: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+
+    # Delete
+    def delete(self, request):
+        try:
+            name = request.data.get('name')  # Use 'name' instead of 'id'
+
+            if not name:
+                return Response({
+                    'message': 'Product type name is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            product_type = ProductType.objects.get(name=name)
+            product_type.delete()
+
+            return Response({
+                'message': 'Product type deleted successfully'
+            }, status=status.HTTP_200_OK)
+        except ProductType.DoesNotExist:
+            return Response({
+                'message': 'Product type not found'
+            }, status=status.HTTP_404_NOT_FOUND)
 
 
 #excel import at export here
@@ -196,10 +279,10 @@ class RetrieveCategory(APIView):
 
 #pangkuha ng latest na number ng prodID
 class RetrieveProductIDView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        categoryID = request.data.get('categoryID')
+    def get(self, request):
+        categoryID = request.query_params.get('categoryID')
 
         try:
             if Product.objects.all().exists():
@@ -302,6 +385,9 @@ class UploadProduct(APIView):
             quantity = request.data.get('quantity')
             category = request.data.get('category')
             image = request.FILES.get('image')
+            type_name = request.data.get('type')  # Retrieve the product type
+            print("image: ",image)
+            
 
             print(f"Received data: name={name}, description={description}, price={price}, quantity={quantity}, category={category}, image={image}")
 
@@ -312,14 +398,17 @@ class UploadProduct(APIView):
 
             if category:
                 category = Category.objects.get(name=category.lower())
+                
             else:
                 category, created = Category.objects.get_or_create(categoryId='DEF', name='Default Category', defaults={'description': 'This is a default category.'})
 
+            product_type = ProductType.objects.get(name=type_name)
             product = Product.objects.create(
                 name=name,
                 description=description,
                 price=price,
                 category=category, 
+                type=product_type,
                 quantity=quantity,
                 image=image
             )

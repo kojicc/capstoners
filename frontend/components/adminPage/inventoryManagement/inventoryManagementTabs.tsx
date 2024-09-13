@@ -46,6 +46,7 @@ import axiosInstance from '../../../utils/axiosInstance';
 import { notifications } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
 import { readLocalStorageValue, useLocalStorage } from '@mantine/hooks';
+import useSWR from 'swr';
 
 interface Product {
   id: number;
@@ -56,6 +57,7 @@ interface Product {
   image: string;
   productId: string;
   category: string;
+  type: string;
 }
 
 interface Category {
@@ -64,6 +66,23 @@ interface Category {
   description: string;
   icon: string;
 }
+
+interface ProductType {
+  id: string;
+  name: string;
+  description: string;
+}
+
+// // Fetcher function
+// ganto mag fetch ng data from backend with query
+// const fetcher = ([url, categoryID]: [string, string]) => {
+//   const query = categoryID ? `?categoryID=${categoryID}` : '?categoryID=';
+//   console.log('Fetching URL:', `${url}${query}`); // Check the URL here
+//   return axiosInstance.get(`${url}${query}`).then((res) => res.data);
+// };
+
+const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
+
 
 const ProductAddPage = () => {
   const [images, setImages] = useState<Product[]>([]);
@@ -95,164 +114,58 @@ const ProductAddPage = () => {
   let categoryData = [];
   const [categories, setCategories] = useState<Category[]>([]);
 
-//   // const { role } = useContext(AuthContext);
-//   // const role = Cookies.get('Role');
-// const { role, loading } = useContext(AuthContext);
+  // ganto mag fetch ng data from backend with query
 
-//   // Custom hook to protect the route based on roles
-//   const { isRoleAllowed } = useProtectedRoute({ allowedRoles: ['student', 'admin'] });
+  //  const { data: products, error: productsError } = useSWR(
+  //    ['getImages/', state.categoryID || ''], // Pass an empty string when categoryID is falsy to fetch all products
+  //    fetcher,
+  //    { refreshInterval: 1000 }
+  //  );
 
-  const fetchImages = async () => {
-    try {
-      const { categoryID } = state;
-
-      if (categoryID) {
-        // Only send the categoryID if it is truthy (not null, undefined, or empty)
-        const response = await axios.get('getImages/', {
-          params: { categoryID },
-        });
-        setImages(response.data.images);
-        setFilteredProducts(response.data.images);
-        setFiltered(true);
-      } else {
-        const response = await axios.get('getImages/', {
-          params: { categoryID: '' },
-        }); // Fetch all images when categoryID is falsy (null, empty, etc.)
-        setImages(response.data.images);
-        setFilteredProducts(response.data.images);
-        setFiltered(false);
-        setProductsList(response.data.images);
-      }
-    } catch (error) {
-      console.error('Error fetching images:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchImages();
-  }, [state.categoryID]); // Fetch images when the component mounts
-
-  const router = useRouter();
-
-  // useEffect(() => {
-  //   if (!isRoleAllowed) {
-  //     modals.openConfirmModal({
-  //       title: 'Please confirm your action',
-  //       children: (
-  //         <Text size="sm">
-  //           Your role is{' '}
-  //           <b>
-  //             <i>{role}</i>
-  //           </b>{' '}
-  //           and is currently unauthorized, please login as student/admin first.
-  //         </Text>
-  //       ),
-  //       labels: { confirm: 'Login', cancel: 'Go back to home page' },
-  //       onCancel: () => router.push('/'),
-  //       onConfirm: () => router.push('/login'),
-  //       withCloseButton: false,
-  //     });
-  //   }
-  // }, []); // This will run the effect whenever `isRoleAllowed` changes
-
-  const categoryMap: { [key: string]: string } = {
-    Alcohol: 'ALC',
-    Glassware: 'GLW',
-    Linens: 'LIN',
-    Plates: 'PLT',
-    Utensils: 'UTN',
-    'Tableware/Furniture': 'TWF',
-  };
-
-  useEffect(() => {
-    // Update prodCategoryID based on the current prodCategory
-    setprodCategoryID(categoryMap[prodCategory] || '');
-  }, [prodCategory]);
-
-  useEffect(() => {
-    const fetchNextProductId = async () => {
-      if (!prodCategoryID) return; // Exit early if prodCategoryID is not set
-
-      try {
-        const response = await axiosInstance.post(
-          'getProduct/',
-          {
-            // Use POST request
-            categoryID: prodCategoryID, // Send prodCategory in the request body
-          },
-          {}
-        );
-
-        if (response.status === 200) {
-          setNextProductId(response.data.nextProductId);
-        } else {
-          setError('Failed to retrieve the next product ID');
-        }
-      } catch (error) {
-        setError((error as Error).message || 'An error occurred');
-      }
-    };
-
-    fetchNextProductId();
-  }, [prodCategoryID]); // The effect depends on prodCategory
-
-  const previews = prodImage.map((file, index) => {
-    const imageUrl = URL.createObjectURL(file);
-    return (
-      <Flex justify={'center'} key={index}>
-        <Image w={400} h={400} src={imageUrl} onLoad={() => URL.revokeObjectURL(imageUrl)} />
-      </Flex>
-    );
+  const { data: allProducts, error: productsError } = useSWR('getImages/', fetcher, {
+    refreshInterval: 1000,
   });
 
-  const handleUpload = async () => {
-    setIsLoading(true);
-    const formData = new FormData();
-    formData.append('name', prodName);
-    formData.append('description', prodDesc);
-    formData.append('price', prodPrice.toString());
-    formData.append('quantity', prodQuantity.toString());
-    formData.append('category', prodCategory);
-    if (prodImage.length > 0) {
-      formData.append('image', prodImage[0]);
-    }
 
-    try {
-      const response = await axios.post('uploadProduct/', formData);
+ useEffect(() => {
+   if (allProducts) {
+     console.log('All products:', allProducts);
+     setProductsList(allProducts.images || []); // Store all products
+     setImages(allProducts.images || []);
+     setFilteredProducts(allProducts.images || []);
+     setIsLoading(false);
+   }
+ }, [allProducts]);
+  
+  
+useEffect(() => {
+  if (productsList) {
+    let filtered = productsList;
 
-      setIsLoading(false);
-      notifications.show({
-        title: 'Success',
-        message: 'Product uploaded successfully',
-        color: 'teal',
-        icon: <IconSettings />,
-      });
-      setprodCategoryID('');
-      setprodName('');
-      setprodDesc('');
-      setprodPrice(0);
-      setprodQuantity(0);
-      setprodCategory('');
-
-      setprodImage([]);
-      setNextProductId('');
-      fetchImages();
-
-      if (response.status === 400) {
-        notifications.show({
-          title: 'Error',
-          message: 'Product not uploaded',
-          color: 'red',
-          icon: <IconSettings />,
-        });
-        setIsLoading(false);
+    // Filter by category ID if set
+    if (state.categoryID) {
+      // Filter by search input
+      if (searchInput) {
+        filtered = filtered.filter(
+          (product) =>
+            product.productId.toLowerCase().includes(searchInput) ||
+            product.category.toLowerCase().includes(searchInput) ||
+            product.name.toLowerCase().includes(searchInput)
+        );
       }
-    } catch (error) {
-      console.error('Error uploading image:', error);
+      else {
+              filtered = filtered.filter((product) => product.category === state.categoryID);
+
+      }
     }
-  };
+
+   
+
+    // Set the filtered results
+    setImages(filtered);
+    setFilteredProducts(filtered);
+  }
+}, [state.categoryID, searchInput, productsList]);
 
   const [categoryChanged, setCategoryChanged, removeValue] = useLocalStorage({
     key: 'categoryChanged',
@@ -292,25 +205,10 @@ const ProductAddPage = () => {
     }
   };
 
-  const handleSearch = (value: string) => {
-    setSearchInput(value);
-    const searchValue = value.trim().toLowerCase().split(' - ')[0];
-
-    if (searchValue === '') {
-      setFilteredProducts(productsList);
-      return;
-    }
-
-    const filteredProducts = productsList.filter((product) => {
-      return (
-        product.productId.toLowerCase().includes(searchValue) ||
-        product.category.toLowerCase().includes(searchValue) ||
-        product.name.toLowerCase().includes(searchValue)
-      );
-    });
-
-    setFilteredProducts(filteredProducts);
-  };
+ const handleSearch = (value: string) => {
+   const searchValue = value.trim().toLowerCase().split(' - ')[0];
+   setSearchInput(searchValue);
+ };
 
   return (
     <Paper pl={0} bg={'#ffff'}>
@@ -337,121 +235,6 @@ const ProductAddPage = () => {
 
           <Tabs.Panel value="Create">
             <Stack gap="xl">
-              <Card shadow="sm" padding="lg">
-                <Text size="lg" fw={500}>
-                  Product Details
-                </Text>
-
-                <TextInput
-                  label="Product ID"
-                  placeholder="Choose category to create new productID"
-                  leftSection={focused ? <IconIdBadge2 style={iconStyle} /> : null}
-                  required
-                  classNames={classes}
-                  value={nextProductId}
-                  onChange={(event) => setprodID(event.currentTarget.value)}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  mt="md"
-                  disabled
-                  autoComplete="nope"
-                  data-floating={floating}
-                  labelProps={{ 'data-floating': floating }}
-                />
-
-                <TextInput
-                  label="Product Name"
-                  placeholder="Enter product name"
-                  leftSection={focused ? <IconBadgeTmFilled style={iconStyle} /> : null}
-                  required
-                  aria-required
-                  classNames={classes}
-                  value={prodName}
-                  onChange={(event) => setprodName(event.currentTarget.value)}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  mt="md"
-                  autoComplete="nope"
-                  data-floating={floating}
-                  labelProps={{ 'data-floating': floating }}
-                />
-                <TextInput
-                  label="Product Description"
-                  placeholder="Enter product description"
-                  leftSection={focused ? <IconFileDescription style={iconStyle} /> : null}
-                  required
-                  classNames={classes}
-                  value={prodDesc}
-                  onChange={(event) => setprodDesc(event.currentTarget.value)}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  mt="md"
-                  autoComplete="nope"
-                  data-floating={floating}
-                  labelProps={{ 'data-floating': floating }}
-                />
-                <NumberInput
-                  leftSection={focused ? '₱' : null}
-                  label="Product Price"
-                  placeholder="Enter product price"
-                  required
-                  classNames={classes}
-                  value={prodPrice !== 0 ? prodPrice.toString() : ''}
-                  allowDecimal={false}
-                  onChange={(value) => setprodPrice(Number(value))}
-                  onClick={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  mt="md"
-                  autoComplete="nope"
-                  data-floating={floating}
-                  labelProps={{ 'data-floating': floating }}
-                />
-
-                <NumberInput
-                  label="Product Quantity"
-                  placeholder="Enter product quantity"
-                  required
-                  classNames={classes}
-                  leftSection={focused ? <IconBuildingWarehouse style={iconStyle} /> : null}
-                  value={prodQuantity !== 0 ? prodQuantity.toString() : ''}
-                  onChange={(value) => setprodQuantity(Number(value))}
-                  onClick={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  data-floating={floating}
-                  labelProps={{ 'data-floating': floating }}
-                  mt="md"
-                />
-
-                <Select
-                  mt="md"
-                  classNames={classes}
-                  leftSection={focused ? <IconCategoryFilled style={iconStyle} /> : null}
-                  defaultSearchValue={prodCategory}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  data={categories.map((category: { name: any }) => category.name)}
-                  placeholder="Pick a category"
-                  label="Product Category"
-                  labelProps={{ 'data-floating': floating }}
-                  clearable
-                  onChange={(value: string | null) => setprodCategory(value ?? '')}
-                />
-                <Dropzone my={20} accept={IMAGE_MIME_TYPE} onDrop={setprodImage}>
-                  <Text ta="center">Drop images here</Text>
-                </Dropzone>
-                <SimpleGrid
-                  type="container"
-                  cols={{ base: 1, sm: 2, lg: 5 }}
-                  spacing={{ base: 10, sm: 'xl' }}
-                  verticalSpacing={{ base: 'md', sm: 'xl' }}
-                  mt={previews.length > 0 ? 'xl' : 0}
-                >
-                  {previews.slice(0, 5)}
-                </SimpleGrid>
-                <Group justify="center" mt="xl">
-                  <Button onClick={handleUpload}>Upload</Button>
-                </Group>
-              </Card>
               <ActionsGridViewAdmin />
 
               <Autocomplete
@@ -460,7 +243,10 @@ const ProductAddPage = () => {
                     <CloseButton
                       size="sm"
                       onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => { setSearchInput(''); handleSearch('');}}
+                      onClick={() => {
+                        setSearchInput('');
+                        handleSearch('');
+                      }}
                       aria-label="Clear value"
                     />
                   )

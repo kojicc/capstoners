@@ -369,7 +369,11 @@ const UpdateCrudProductsAdmin = () => {
 
     try {
       setLoading(true);
-      await axiosInstance.put('updateProduct/', formData);
+      await axiosInstance.put('updateProduct/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       // Revalidate the SWR data to fetch the updated products
       mutate('getadminProductDetail/');
       handleCloseModal();

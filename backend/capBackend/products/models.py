@@ -6,6 +6,9 @@ from datetime import timedelta
 TIMEZONES = tuple(zip(pytz.all_timezones, pytz.all_timezones))
 
 
+
+
+
 class Category(models.Model):
     categoryId = models.CharField(max_length=10, primary_key=True, default='DEFAULT')
     name = models.CharField(max_length=255)
@@ -15,7 +18,15 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+class ProductType(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='product_types')
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, null=True)
 
+    def __str__(self):
+        return self.name
+    
+    
 class Product(models.Model):
     productId = models.CharField(max_length=20, unique=True,primary_key=True)
     name = models.CharField(max_length=255)

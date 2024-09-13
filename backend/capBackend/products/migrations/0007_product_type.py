@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='product',
-            name='type',
+            name='type_id',
             field=models.CharField(default='type A', max_length=255),
             preserve_default=False,
         ),
