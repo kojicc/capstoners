@@ -13,30 +13,31 @@ class Reservation(models.Model):
     reservation_id = models.CharField(primary_key=True, max_length=100, unique=True, editable=False)
     reserved_date = models.DateTimeField(default=timezone.now)
     reservation_date = models.DateTimeField()
-    reservation_date_end = models.DateTimeField(blank=True)
+    reservation_date_end = models.DateTimeField(blank=True, null=True)
     reservation_purpose = models.CharField(max_length=100, blank=True)
     status = models.CharField(max_length=80, default='PENDING')
+    is_group = models.BooleanField(default=False)
+    group_members = models.JSONField(default=list, blank=True, null=True)  # Ensure this is present
+    subject = models.CharField(max_length=200, blank=True, null=True)
+    
+    def add_group_member(self, member):
+        members = self.group_members
+        if member not in members:
+            members.append(member)
+            self.group_members = members
+            self.save()
+
+    def remove_group_member(self, member):
+        members = self.group_members
+        if member in members:
+            members.remove(member)
+            self.group_members = members
+            self.save()    
 
     def save(self, *args, **kwargs):
-        # Generate reservation_id if not provided
         if not self.reservation_id:
-            self.reservation_id = f'{self.user.username}_{timezone.now().strftime("%Y-%m-%d %H:%M")}_{uuid.uuid4().hex[:8]}'
-
-        # Set the reservation date if not provided
-        if not self.reservation_date_end:
-            # self.reservation_date_end = self.reservation_date.date().strftime("%m-%d-%Y-%H:%M") + timezone.timedelta(hours=24)
-            self.reservation_date_end =  datetime.datetime.strptime(self.reservation_date, "%Y-%m-%d %H:%M")+ timezone.timedelta(hours=24)
-            ""
-            print(self.reservation_date_end)
-
-        # Set a default purpose if none is provided
-        if not self.reservation_purpose:
-            self.reservation_purpose = 'Lab Assessment Borrowing Purpose'
-
+            self.reservation_id = f'{self.user.username}_{timezone.now().strftime("%Y%m%d_%H%M%S")}_{uuid.uuid4().hex[:8]}'
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f'Reservation {self.reservation_id} by {self.user.username}'
 
 
 class ReservationItem(models.Model):

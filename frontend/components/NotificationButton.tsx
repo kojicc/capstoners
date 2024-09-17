@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import useSWR from 'swr';
 import axiosInstance from '@/utils/axiosInstance';
-import { Menu, Checkbox, Text, ActionIcon } from '@mantine/core';
+import { Menu, Checkbox, Text, ActionIcon, MenuDivider } from '@mantine/core';
 import { IconBell } from '@tabler/icons-react';
 import moment from 'moment';
 import { modals } from '@mantine/modals';
 import { useRouter } from 'next/router';
 import { useClickOutside } from '@mantine/hooks';
 import Link from 'next/link';
+import { useAuth } from '@/utils/auth';
 
 interface Notification {
   id: number;
@@ -21,52 +22,77 @@ interface Notification {
 const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 
 const NotificationButton = () => {
+  const { username, role } = useAuth();
+
   const [notificationsList, setNotificationsList] = useState<Notification[]>([]);
   const [lastTimestamp, setLastTimestamp] = useState<string | null>(null);
   const [opened, setOpened] = useState<boolean>(false);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
   const ref = useClickOutside(() => {
-    if (!opened) return;
+    if (opened) return;
     setOpened(false);
   });
+
+  // const { data, error, isLoading } = useSWR('showNotification/', fetcher, {
+  //   refreshInterval: 5000, // Poll every 5 seconds
+  //   revalidateOnFocus: true,
+  //   revalidateOnReconnect: true,
+  //   onSuccess: (fetchedNotifications: Notification[]) => {
+  //     if (fetchedNotifications.length > 0) {
+  //       setLastTimestamp(fetchedNotifications[0].timestamp);
+  //       setNotificationsList(
+  //         fetchedNotifications.map((notification) => ({
+  //           ...notification,
+  //           checked: notification.read,
+  //         }))
+  //       );
+  //     }
+  //   },
+  // });
+
+  interface FetchedNotifications {
+    notifications: Notification[];
+    unread_count: number;
+  }
 
   const { data, error, isLoading } = useSWR('showNotification/', fetcher, {
     refreshInterval: 5000, // Poll every 5 seconds
     revalidateOnFocus: true,
     revalidateOnReconnect: true,
-    onSuccess: (fetchedNotifications: Notification[]) => {
-      if (fetchedNotifications.length > 0) {
-        setLastTimestamp(fetchedNotifications[0].timestamp);
-        setNotificationsList(
-          fetchedNotifications.map((notification) => ({
-            ...notification,
-            checked: notification.read,
-          }))
-        );
-      }
+    onSuccess: (fetchedNotifications: FetchedNotifications) => {
+      const { notifications, unread_count } = fetchedNotifications;
+      setLastTimestamp(notifications.length > 0 ? notifications[0].timestamp : null);
+      setNotificationsList(
+        notifications.map((notification) => ({
+          ...notification,
+          checked: notification.read,
+        }))
+      );
+      setUnreadCount(unread_count); // Set the unread count
     },
   });
 
-  const checkForNewNotifications = async () => {
-    try {
-      const response = await axiosInstance.get('long-polling/', {
-        params: { last_timestamp: lastTimestamp },
-      });
-      const newNotifications: Notification[] = response.data.notifications;
+  // const checkForNewNotifications = async () => {
+  //   try {
+  //     const response = await axiosInstance.get('long-polling/', {
+  //       params: { last_timestamp: lastTimestamp },
+  //     });
+  //     const newNotifications: Notification[] = response.data.notifications;
 
-      if (newNotifications.length > 0) {
-        setNotificationsList((prevNotifications) => [
-          ...newNotifications.slice(0, 5).map((notification) => ({
-            ...notification,
-            checked: notification.read,
-          })),
-          ...prevNotifications.slice(0, 5),
-        ]);
-        setLastTimestamp(newNotifications[newNotifications.length - 1].timestamp);
-      }
-    } catch (error) {
-      console.error('Error checking for new notifications:', error);
-    }
-  };
+  //     if (newNotifications.length > 0) {
+  //       setNotificationsList((prevNotifications) => [
+  //         ...newNotifications.slice(0, 5).map((notification) => ({
+  //           ...notification,
+  //           checked: notification.read,
+  //         })),
+  //         ...prevNotifications.slice(0, 5),
+  //       ]);
+  //       setLastTimestamp(newNotifications[newNotifications.length - 1].timestamp);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error checking for new notifications:', error);
+  //   }
+  // };
 
   const markAsRead = async (notificationId: number) => {
     try {
@@ -90,7 +116,8 @@ const NotificationButton = () => {
     }
   };
 
-  const unreadCount = notificationsList.filter((notification) => !notification.read).length;
+  // const unreadCount = notificationsList.filter((notification) => !notification.read).length || 0;
+  console.log('unreadCount', unreadCount);
   const router = useRouter();
 
   const openModal = (notification: Notification) => {
@@ -107,7 +134,7 @@ const NotificationButton = () => {
       onConfirm: () => {
         const reservationId = extractReservationId(notification.message);
         router.push({
-          pathname: '/adminDashboard',
+          pathname: username && role === 'admin' ? '/adminDashboard' : '/transactionsUser',
           query: { searchQuery: reservationId },
         });
       },
@@ -174,6 +201,7 @@ const NotificationButton = () => {
 
       <Menu.Dropdown ref={ref}>
         <Menu.Label>Latest Notifications</Menu.Label>
+        <MenuDivider />
         {isLoading ? (
           <Menu.Item disabled>Loading...</Menu.Item>
         ) : notificationsList.length > 0 ? (
@@ -237,9 +265,9 @@ const NotificationButton = () => {
           Mark Selected as Read
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item component={Link} href="/notifications" style={{ cursor: 'pointer' }}>
+        {/* <Menu.Item component={Link} href="/notifications" style={{ cursor: 'pointer' }}>
           View All Notifications
-        </Menu.Item>
+        </Menu.Item> */}
       </Menu.Dropdown>
     </Menu>
   );

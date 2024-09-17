@@ -36,6 +36,7 @@ from django.utils import timezone
 import io
 from rest_framework.parsers import MultiPartParser
 from datetime import datetime
+from django.core.mail import send_mail
 
 # pangview ng total reservations
 # class ReservationTotalAPIView(APIView):
@@ -381,6 +382,7 @@ class LongPollingAPIView(APIView):
 
 class showNotification(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request):
         token = request.COOKIES.get('jwt_access_token')
         if not token:
@@ -393,15 +395,18 @@ class showNotification(APIView):
             return JsonResponse({'error': 'Token expired'}, status=401)
         except jwt.InvalidTokenError:
             return JsonResponse({'error': 'Invalid token'}, status=401)
+
+        # Get the count of unread notifications
+        unread_count = Notification.objects.filter(user__username=username, read=0).count()
         
-        notification_unread = Notification.objects.filter(user__username=username, read=0).count()
-        notifications = Notification.objects.filter(user__username=username).order_by('-timestamp')[:5]  # Limit to 5
-        # notifications = Notification.objects.filter(user__username=username).order_by('-timestamp')
+        # Get the latest 5 notifications for the user
+        notifications = Notification.objects.filter(user__username=username).order_by('-timestamp')[:5]
+        
+        # Serialize notifications data
         notification_data = []
         for notification in notifications:
             message = notification.message
            
-            
             # Extract the part after 'by'
             match = re.search(r'by\s(\w+)', message)
             if match:
@@ -418,10 +423,13 @@ class showNotification(APIView):
             notification_dict = NotificationSerializer(notification).data
             notification_dict['full_name'] = full_name
             notification_data.append(notification_dict)
-        
-        notification_data.append({'unread': notification_unread})
 
-        return Response(notification_data, status=status.HTTP_200_OK)
+        # Return the notifications and unread count separately
+        return Response({
+            'notifications': notification_data,
+            'unread_count': unread_count
+        }, status=status.HTTP_200_OK)
+
 
 class readNotification(APIView):
     permission_classes = [IsAuthenticated]
@@ -450,10 +458,12 @@ class readNotification(APIView):
 
 
 
+logger = logging.getLogger(__name__)
 
 # pang checkout na?
 class ReservationCreateUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
     def post(self, request):
         try:
             token = request.COOKIES.get('jwt_access_token')
@@ -486,8 +496,15 @@ class ReservationCreateUpdateAPIView(APIView):
             reservation_purpose = request.data.get('reservation_purpose')
             reservation_status = request.data.get('status')
             reservation_id = request.data.get('reservationId')
+            is_group = request.data.get('is_group', False)
+            group_members = request.data.get('group_members', [])
+            subject = request.data.get('subject', None)
 
-            print(f"Reservation data received: Product IDs: {product_ids}, Quantities: {quantities}")
+            print(f"Reservation data received: Product IDs: {product_ids}, Quantities: {quantities}, Group members: {group_members}")
+
+            # Ensure group_members is a list
+            if not isinstance(group_members, list):
+                group_members = [group_members]
 
             philippines_tz = pytz.timezone('Asia/Manila')
 
@@ -516,8 +533,7 @@ class ReservationCreateUpdateAPIView(APIView):
                             reservation_item.quantity = quantity
                             reservation_item.save()
 
-                            # Adjust product quantities based on the change
-                            quantity_difference =  reservation_item.quantity
+                            quantity_difference = quantity - original_quantity
                             product.quantity += quantity_difference
                             product.reserved += quantity_difference
                             product.save()
@@ -528,31 +544,19 @@ class ReservationCreateUpdateAPIView(APIView):
                                 'message': 'Product not found in reservation'
                             }, status=status.HTTP_404_NOT_FOUND)
 
-                        if quantity > original_quantity:
-                            product.quantity -= (quantity - original_quantity)
-                            product.save()
-                        elif quantity < original_quantity:
-                            product.quantity += (original_quantity - quantity)
-                            product.save()
-
                 user = get_object_or_404(User, username=username)
 
-                if reservation_status == "APPROVED":
-                    notification_message = f'Your reservation {reservation_id} has been approved successfully and is awaiting your pickup.'
-                elif reservation_status == "REJECTED":
-                    notification_message = f'Your reservation {reservation_id} has been rejected.'
-                elif reservation_status == "CANCELLED":
-                    notification_message = f'Your reservation {reservation_id} has been cancelled.'
-                elif reservation_status == "COMPLETED":
-                    notification_message = f'Your reservation {reservation_id} has been completed.'
-                elif reservation_status == "AWAITING RETURN":
-                    notification_message = f'Your reservation {reservation_id} is awaiting return.'
-                elif reservation_status == "DAMAGED/LOST/PARTIALLY_COMPLETED":
-                    notification_message = f'Your reservation {reservation_id} has been marked as damaged/lost/partially completed.'
-                elif reservation_status == "AWAITING PAYMENT":
-                    notification_message = f'Your reservation {reservation_id} is awaiting payment.'
-                else:
-                    notification_message = f'Your reservation {reservation_id} has been updated.'
+                notification_message = f'Your reservation {reservation_id} has been updated.'  # Default message
+                status_messages = {
+                    "APPROVED": 'approved successfully and is awaiting your pickup.',
+                    "REJECTED": 'has been rejected.',
+                    "CANCELLED": 'has been cancelled.',
+                    "COMPLETED": 'has been completed.',
+                    "AWAITING RETURN": 'is awaiting return.',
+                    "DAMAGED/LOST/PARTIALLY_COMPLETED": 'has been marked as damaged/lost/partially completed.',
+                    "AWAITING PAYMENT": 'is awaiting payment.'
+                }
+                notification_message = f'Your reservation {reservation_id} has been {status_messages.get(reservation_status, "updated.")}'
 
                 print(f"Notification message: {notification_message}")
 
@@ -579,9 +583,6 @@ class ReservationCreateUpdateAPIView(APIView):
                 return Response({
                     'message': 'Reservation updated successfully'
                 }, status=status.HTTP_200_OK)
-
-
-
 
             else:
                 if not quantities:
@@ -622,7 +623,11 @@ class ReservationCreateUpdateAPIView(APIView):
                         reservation_date=reservation_date,
                         reservation_date_end=reservation_date_end,
                         reservation_purpose=reservation_purpose,
-                        status=reservation_status or 'PENDING'
+                        group_members=group_members,
+                        subject=subject,
+                        status=reservation_status or 'PENDING',
+                        is_group=is_group,
+                        
                     )
                     reservation.save()
 
@@ -638,9 +643,7 @@ class ReservationCreateUpdateAPIView(APIView):
                             )
                             reservation_item.save()
 
-                            # product.quantity -= quantity
                             product.save()
-
                             cart_item.delete()
 
                         except Cart.DoesNotExist:
@@ -701,6 +704,7 @@ class ReservationCreateUpdateAPIView(APIView):
 
 class AdminUpdateReservationStatusAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
     def post(self, request):
         print("Raw request data:", request.data)
         try:
@@ -728,7 +732,6 @@ class AdminUpdateReservationStatusAPIView(APIView):
                     'message': 'Invalid token'
                 }, status=status.HTTP_401_UNAUTHORIZED)
 
-
             username = request.data.get('username')
             product_ids = request.data.get('productIds')
             quantities = request.data.get('quantities')
@@ -742,18 +745,19 @@ class AdminUpdateReservationStatusAPIView(APIView):
 
             if reservation_id:
                 reservation = get_object_or_404(Reservation, reservation_id=reservation_id)
+                notification_message = ""
                 if reservation_status:
                     reservation.status = reservation_status
-                    notification_message = f'Your reservation`s status for {reservation_id} has been updated. by {usernameAdmin}'
+                    notification_message = f'Your reservation`s status for {reservation_id} has been updated by {usernameAdmin}.'
                 if reservation_date:
                     reservation.reservation_date = reservation_date
-                    notification_message = f'Your reservation`s pickup date for {reservation_id} has been updated. by {usernameAdmin}'
+                    notification_message = f'Your reservation`s pickup date for {reservation_id} has been updated by {usernameAdmin}.'
                 if reservation_date_end:
                     reservation.reservation_date_end = reservation_date_end
-                    notification_message = f'Your reservation`s return date for {reservation_id} has been updated. by {usernameAdmin}'
+                    notification_message = f'Your reservation`s return date for {reservation_id} has been updated by {usernameAdmin}.'
                 if reservation_purpose:
                     reservation.reservation_purpose = reservation_purpose
-                    notification_message = f'Your reservation`s purpose for {reservation_id} has been updated. by {usernameAdmin}'
+                    notification_message = f'Your reservation`s purpose for {reservation_id} has been updated by {usernameAdmin}.'
                 reservation.save()
 
                 if product_ids and quantities:
@@ -768,26 +772,16 @@ class AdminUpdateReservationStatusAPIView(APIView):
                             reservation_item = ReservationItem.objects.get(reservation=reservation, product=product)
                             reservation_item.quantity = quantity
                             reservation_item.save()
-                            print(f"product_id: {product_id}")
-
-                            print(f"quantity per product: {quantity}")
 
                             # Update product quantities based on status
                             if reservation_status == "DAMAGED/LOST/PARTIALLY_COMPLETED":
                                 product.quantity -= quantity
                                 product.broken_damaged += quantity
-                                
                             elif reservation_status == "APPROVED":
                                 product.quantity -= quantity
                                 product.reserved += quantity
 
                             product.save()
-
-                            # Update the product quantity based on the difference
-                            product_quantity_difference = quantity - reservation_item.quantity
-                            product.quantity -= product_quantity_difference
-                            product.save()
-                            notification_message = f'Your reservation {reservation_id} has been updated by {usernameAdmin}'
 
                         except ReservationItem.DoesNotExist:
                             return Response({
@@ -795,28 +789,24 @@ class AdminUpdateReservationStatusAPIView(APIView):
                             }, status=status.HTTP_404_NOT_FOUND)
 
                 user = get_object_or_404(User, username=username)
-                # Notification code...
-                
+
             if reservation_status:
-
                 if reservation_status == "APPROVED":
-                    notification_message = f'Your reservation {reservation_id} has been approved successfully and is awaiting your pickup. by {usernameAdmin}'
+                    notification_message = f'Your reservation {reservation_id} has been approved successfully and is awaiting your pickup by {usernameAdmin}.'
                 elif reservation_status == "REJECTED":
-                    notification_message = f'Your reservation {reservation_id} has been rejected. by {usernameAdmin}'
+                    notification_message = f'Your reservation {reservation_id} has been rejected by {usernameAdmin}.'
                 elif reservation_status == "CANCELLED":
-                    notification_message = f'Your reservation {reservation_id} has been cancelled. by {usernameAdmin}'
+                    notification_message = f'Your reservation {reservation_id} has been cancelled by {usernameAdmin}.'
                 elif reservation_status == "COMPLETED":
-                    notification_message = f'Your reservation {reservation_id} has been completed. by {usernameAdmin}'
+                    notification_message = f'Your reservation {reservation_id} has been completed by {usernameAdmin}.'
                 elif reservation_status == "AWAITING RETURN":
-                    notification_message = f'Your reservation {reservation_id} is awaiting return. by {usernameAdmin}'
+                    notification_message = f'Your reservation {reservation_id} is awaiting return by {usernameAdmin}.'
                 elif reservation_status == "DAMAGED/LOST/PARTIALLY_COMPLETED":
-                    notification_message = f'Your reservation {reservation_id} has been marked as damaged/lost/partially completed. by {usernameAdmin}'
+                    notification_message = f'Your reservation {reservation_id} has been marked as damaged/lost/partially completed by {usernameAdmin}.'
                 elif reservation_status == "AWAITING PAYMENT":
-                    notification_message = f'Your reservation {reservation_id} is awaiting payment. by {usernameAdmin}'
+                    notification_message = f'Your reservation {reservation_id} is awaiting payment by {usernameAdmin}.'
                 else:
-                    notification_message = f'Your reservation {reservation_id} has been updated. by {usernameAdmin}'
-
-                print(f"Notification message: {notification_message}")
+                    notification_message = f'Your reservation {reservation_id} has been updated by {usernameAdmin}.'
 
                 # Add notification to the model for the user
                 user_notification = Notification.objects.create(
@@ -824,23 +814,33 @@ class AdminUpdateReservationStatusAPIView(APIView):
                     message=notification_message,
                     read=0,
                 )
-                print(f"Notification updated for user {username} with ID {user_notification.id}")
 
                 # Create notifications for all admins
                 admin_users = User.objects.filter(role='admin')
-                print(f"Number of admins found: {admin_users.count()}")
                 for admin in admin_users:
-                    admin_notification = Notification.objects.create(
+                    Notification.objects.create(
                         user=admin,
                         message=f'Reservation {reservation_id} updated by {usernameAdmin}.',
                         read=0,
                     )
-                    print(f"Notification updated for admin {admin.username} with ID {admin_notification.id}")
 
-                return Response({
-                    'admin': usernameAdmin,
-                    'message': 'Reservation updated successfully'
-                }, status=status.HTTP_200_OK)
+            # After all updates and notifications, send a single email to the user
+            user_email = user.email
+            subject = f"Reservation {reservation_id} Status Update"
+            email_message = f"Dear {user.first_name},\n\n{notification_message}\n\nThank you."
+
+            send_mail(
+                subject,
+                email_message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user_email],
+                fail_silently=False,
+            )
+
+            return Response({
+                'admin': usernameAdmin,
+                'message': 'Reservation updated successfully'
+            }, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({
                 'message': 'User not found'

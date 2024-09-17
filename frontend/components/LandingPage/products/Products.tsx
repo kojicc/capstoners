@@ -1,94 +1,97 @@
-import React from 'react';
-import { Container, SimpleGrid, Title, Text, Grid, Group, ThemeIcon, Stack, Transition, Button, Tabs, rem, Skeleton } from '@mantine/core';
-import { Image } from '@mantine/core';
-import { IconArrowRight, IconChecks, IconDownload, IconFileTime, IconMessageCircle, IconPhoto, IconReceipt, IconSettings, IconStatusChange } from '@tabler/icons-react';
-import { useState, useRef } from 'react';
-import { useIntersection } from '@mantine/hooks';
-import classes from './Products.module.css';
-export function Products(){
-   
-    const child = <Skeleton height={140} radius="md" animate={false} />;
+import React, { useState, useEffect } from 'react';
+import { Container, Title, Grid, Tabs, Skeleton, Image, Text } from '@mantine/core';
+import useSWR from 'swr';
+import axios from '@/utils/axiosInstance';
 
-    const [activeTab, setActiveTab] = useState<string | null>('first');
+const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
-  
-
-return(
-<Container fluid pt={25} pb={50}>
-
-
-<Title pl={80} order={1} tt='uppercase' >most used laboratory items</Title>
-
-
-{/* 
-ilalagay dito mga pictures na need magbago depende sa pics na locally or nasa top na used?? maybe idk django backend pa yon or maybe not na manual changing nalang since di naman siguro featured to masyado */}
-<Tabs variant='pills' value={activeTab} onChange={setActiveTab} defaultValue="first">
-      <Tabs.List justify="center">
-        <Tabs.Tab value="first">First tab</Tabs.Tab>
-        <Tabs.Tab value="second">Second tab</Tabs.Tab>
-        <Tabs.Tab value="third">Third tab</Tabs.Tab>
-      </Tabs.List>
-    
- 
-
-    <Tabs.Panel value="first">
-    <Container my="md">
-    <div data-aos="fade-up" >
-      <Grid columns={24}>
-        <Grid.Col span={{ base: 12, xs: 4 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 8 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 8 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 4 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 3 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 3 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 6 }}>{child}</Grid.Col>
-       
-      </Grid>
-      </div>
-    </Container>
-      </Tabs.Panel>
-
-      <Tabs.Panel value="second">
-      <Container my="md">
-    <div data-aos="fade-up" >
-      <Grid columns={24}>
-        <Grid.Col span={{ base: 12, xs: 12 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 8 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 8 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 4 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 3 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 3 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 6 }}>{child}</Grid.Col>
-       
-      </Grid>
-      </div>
-    </Container>
-      </Tabs.Panel>
-
-      <Tabs.Panel value="third">
-      <Container my="md">
-    <div data-aos="fade-up" >
-      <Grid columns={24}>
-        <Grid.Col span={{ base: 12, xs: 6 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 8 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 8 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 4 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 3 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 3 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 6 }}>{child}</Grid.Col>
-       
-      </Grid>
-      </div>
-    </Container>
-      </Tabs.Panel>
-
-    
-    
-   
-    </Tabs>
-    </Container>
-    )
-
-  
+interface Product {
+  id: number;
+  title: string;
+  description: string;
+  image: string;
+  reserved: number;
+  category: string;
 }
 
+export function Products() {
+  const [categories, setCategories] = useState<string[]>([]);
+  const [productsByCategory, setProductsByCategory] = useState<{ [key: string]: Product[] }>({});
+  const [activeTab, setActiveTab] = useState<string | null>(null);
+
+  const { data: productsData, error: productsError } = useSWR('getImages/', fetcher);
+  const { data: categoriesData, error: categoriesError } = useSWR('getCategories/', fetcher);
+
+  useEffect(() => {
+    if (Array.isArray(categoriesData)) {
+      setCategories(categoriesData);
+      if (Array.isArray(productsData)) {
+        const categorizedProducts: { [key: string]: Product[] } = {};
+
+        productsData.forEach((product: Product) => {
+          if (!categorizedProducts[product.category]) {
+            categorizedProducts[product.category] = [];
+          }
+          categorizedProducts[product.category].push(product);
+        });
+
+        for (const category in categorizedProducts) {
+          categorizedProducts[category].sort((a, b) => b.reserved - a.reserved);
+        }
+
+        setProductsByCategory(categorizedProducts);
+        setActiveTab(categoriesData[0]); // Set the first category as the default active tab
+      }
+    }
+  }, [productsData, categoriesData]);
+
+  if (productsError || categoriesError) {
+    return <div>Error loading data</div>;
+  }
+
+  if (!categories.length) {
+    return <div>Loading categories...</div>;
+  }
+
+  return (
+    <Container fluid pt={25} pb={50}>
+      <Title pl={80} order={1} tt="uppercase">
+        Most Used Laboratory Items
+      </Title>
+
+      <Tabs variant="pills" value={activeTab} onChange={setActiveTab}>
+        <Tabs.List justify="center">
+          {categories.map((category) => (
+            <Tabs.Tab key={category} value={category}>
+              {category}
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+
+        {categories.map((category) => (
+          <Tabs.Panel key={category} value={category}>
+            <Container my="md">
+              <div data-aos="fade-up">
+                <Grid columns={24}>
+                  {productsByCategory[category]?.length > 0 ? (
+                    productsByCategory[category].slice(0, 5).map((product) => (
+                      <Grid.Col key={product.id} span={{ base: 12, xs: 6 }}>
+                        <Image src={product.image || '/fallback-image.png'} alt={product.title} />
+                        <Title order={4}>{product.title}</Title>
+                        <Text>{product.description}</Text>
+                      </Grid.Col>
+                    ))
+                  ) : (
+                    <Grid.Col span={24}>
+                      <Skeleton height={140} radius="md" animate={false} />
+                    </Grid.Col>
+                  )}
+                </Grid>
+              </div>
+            </Container>
+          </Tabs.Panel>
+        ))}
+      </Tabs>
+    </Container>
+  );
+}

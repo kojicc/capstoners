@@ -83,6 +83,9 @@ interface Reservation {
   quantities: string;
   reservation_purpose: string;
   reserved_date: string;
+  is_group: boolean;
+  group_members: string[];
+  subject: string;
 }
 
 export interface ThProps {
@@ -160,7 +163,6 @@ export default function TransactionHistory() {
   const [quantity, setQuantity] = useState<number[]>([]);
   const [disabled, setDisabled] = useState<boolean[]>([]);
   const [users, setUsers] = useState<Users[]>([]);
-
 
   const itemsPerPage = 5;
   const router = useRouter();
@@ -422,8 +424,15 @@ export default function TransactionHistory() {
   const [selectedMonthYear, setSelectedMonthYear] = useState<Date | null>(null);
   const [selectedYear, setSelectedYear] = useState(null);
 
-  const formatDateWithMilliseconds = (date: { getFullYear: () => any; getMonth: () => number; getDate: () => any; getHours: () => any; getMinutes: () => any; getSeconds: () => any; getMilliseconds: () => any; }) => {
-
+  const formatDateWithMilliseconds = (date: {
+    getFullYear: () => any;
+    getMonth: () => number;
+    getDate: () => any;
+    getHours: () => any;
+    getMinutes: () => any;
+    getSeconds: () => any;
+    getMilliseconds: () => any;
+  }) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -432,55 +441,50 @@ export default function TransactionHistory() {
     return `${year}-${month}-${day}`;
   };
 
-  const formatMonthandYear = (date: {
-    getFullYear: () => any;
-    getMonth: () => number;
-   
-  }) => {
+  const formatMonthandYear = (date: { getFullYear: () => any; getMonth: () => number }) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
 
     return `${year}-${month}`;
   };
 
- const handleExport = async () => {
-   try {
-     setLoadingImportExport(true);
-     let formattedDate = null;
-     if (selectedDate) {
-       formattedDate = formatDateWithMilliseconds(selectedDate);
-     } else if (selectedMonthYear) {
-       formattedDate = formatMonthandYear(selectedMonthYear);
-     }
+  const handleExport = async () => {
+    try {
+      setLoadingImportExport(true);
+      let formattedDate = null;
+      if (selectedDate) {
+        formattedDate = formatDateWithMilliseconds(selectedDate);
+      } else if (selectedMonthYear) {
+        formattedDate = formatMonthandYear(selectedMonthYear);
+      }
 
-     console.log('formattedDate:', formattedDate);
-     const response = await axiosInstance.get('importExportReservations/', {
-       responseType: 'blob',
-       params: {
-         username,
-         reserved_date: formattedDate, // Send formatted date
-       },
-     });
+      console.log('formattedDate:', formattedDate);
+      const response = await axiosInstance.get('importExportReservations/', {
+        responseType: 'blob',
+        params: {
+          username,
+          reserved_date: formattedDate, // Send formatted date
+        },
+      });
 
-     const url = window.URL.createObjectURL(new Blob([response.data]));
-     const link = document.createElement('a');
-     link.href = url;
-     link.setAttribute('download', 'reservations.xlsx');
-     document.body.appendChild(link);
-     link.click();
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'reservations.xlsx');
+      document.body.appendChild(link);
+      link.click();
 
-     notifications.show({ message: 'Export successful!', color: 'green' });
-   } catch (error) {
-     notifications.show({ message: 'Export failed.', color: 'red' });
-   } finally {
-     setLoadingImportExport(false);
-     setUsername('');
-     setOpenedExport(false);
-     setSelectedDate(null);
-     setSelectedMonthYear(null);
-   }
- };
-
+      notifications.show({ message: 'Export successful!', color: 'green' });
+    } catch (error) {
+      notifications.show({ message: 'Export failed.', color: 'red' });
+    } finally {
+      setLoadingImportExport(false);
+      setUsername('');
+      setOpenedExport(false);
+      setSelectedDate(null);
+      setSelectedMonthYear(null);
+    }
+  };
 
   // Import users
   const handleImport = async () => {
@@ -727,6 +731,21 @@ export default function TransactionHistory() {
                               Reservation Date End
                             </Th>
                             <Th
+                              sorted={sortBy === 'is_group'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('is_group')}
+                            >
+                              By group?
+                            </Th>
+
+                            <Th
+                              sorted={sortBy === 'subject'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('subject')}
+                            >
+                              Subject
+                            </Th>
+                            <Th
                               sorted={sortBy === 'reservation_purpose'}
                               reversed={reverseSortDirection}
                               onSort={() => handleSort('reservation_purpose')}
@@ -788,6 +807,13 @@ export default function TransactionHistory() {
                                     .tz('Asia/Manila')
                                     .format('YYYY-MM-DD HH:mm')}
                                 </td>
+                                <td className={styles.td}>
+                                  {' '}
+                                  {reservation.is_group
+                                    ? `Yes - ${reservation.group_members}`
+                                    : 'No'}
+                                </td>
+                                <td className={styles.td}>{reservation.subject}</td>
                                 <td className={styles.td}>{reservation.reservation_purpose}</td>
                                 <td className={styles.td}>{products}</td>
                                 <td className={styles.td}>{quantities}</td>

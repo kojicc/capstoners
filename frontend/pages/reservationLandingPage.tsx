@@ -1,12 +1,27 @@
 import { HeroBullets } from '@/components/reservationLandingPage/hero/HeroReservation';
 import { ProductCards } from '@/components/reservationLandingPage/sections/productCards';
-import { Autocomplete, Badge, Container, Group, Paper, ScrollArea, Stack } from '@mantine/core';
+import {
+  Autocomplete,
+  Badge,
+  Container,
+  Group,
+  Paper,
+  ScrollArea,
+  Stack,
+  Title,
+} from '@mantine/core';
 import { CartItems } from './cartReservations';
 import { CartIcon } from '@/components/cartButton';
 import { AutocompleteClearable } from '@/components/reservationLandingPage/sections/autocompleClearableReservation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import useSWR from 'swr';
 import axios from '@/utils/axiosInstance';
+import { Header } from '@/components/LandingPage/header/HeaderLP';
+import { Text } from '@mantine/core';
+import { useScrollIntoView } from '@mantine/hooks';
+import { Tooltip } from '@mantine/core';
+import { Footer } from '@/components/LandingPage/footer/footer';
+import { useRouter } from 'next/router';
 
 interface Category {
   categoryId: string;
@@ -21,66 +36,47 @@ const ReservationLandingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryID, setCategoryID] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
+  const router = useRouter();
+  const { searchQuery: searchFromHeader } = router.query; // Get search query from URL
 
-  const { data, error } = useSWR('getCategories/', fetcher);
+  // Create a ref for the Container you want to scroll into view
+  const { scrollIntoView, targetRef } = useScrollIntoView<HTMLDivElement>({
+    offset: 60, // Adjust the offset as needed
+  });
 
   useEffect(() => {
-    if (data) {
-      // Log data to confirm structure
-      console.log('Fetched Data:', data);
-
-      // Ensure data is in the expected format
-      if (data.categories && Array.isArray(data.categories)) {
-        setCategories(data.categories);
-      } else {
-        console.error('Unexpected data format:', data);
-      }
+    if (router.isReady && searchFromHeader) {
+      scrollIntoView({ alignment: 'start' });
     }
-  }, [data]);
-
-  if (error) return <div>Failed to load</div>;
-  if (!data) return <div>Loading...</div>;
-
-  // Map categories to categoryData
-  const categoryData = categories.map((category) => ({
-    value: category.categoryId,
-    label: category.name,
-  }));
+  }, [router.isReady, searchFromHeader, scrollIntoView]);
 
   return (
-    <>
-      <CartIcon />
-      {/* <HeroBullets /> */}
+    <div>
+      <Header />
+
+      <HeroBullets scrollTo={() => scrollIntoView({ alignment: 'start' })} />
       {/* <CheckoutPage /> */}
-      <Container>
+      <Container pt={50}>
         {/* <ReservationCategoryCards /> */}
-        <Stack gap="xl" mt={50} />
-        <AutocompleteClearable setSearchQuery={setSearchQuery} />
-        <ScrollArea type='auto' >
-          <Group justify="center" p={10} style={{ cursor: 'pointer' }}>
-            {categoryData.length > 0 ? (
-              categoryData.map((category) => (
-                <Badge
-                  key={category.value}
-                  component="a"
-                  onClick={() => setCategoryID(category.value)}
-                >
-                  {category.label}
-                </Badge>
-              ))
-            ) : (
-              <div>No categories available</div>
-            )}
-          </Group>
-        </ScrollArea>
-        <ProductCards categoryID={categoryID} searchQuery={searchQuery} />
-        <Stack />
+        <>
+          <Stack ref={targetRef}>
+            <AutocompleteClearable setSearchQuery={setSearchQuery} setCategoryID={setCategoryID} />
+          </Stack>
+
+          <ProductCards
+            categoryID={categoryID}
+            searchQuery={
+              searchQuery || (typeof searchFromHeader === 'string' ? searchFromHeader : '')
+            }
+          />
+        </>
       </Container>
 
-      <Paper p="xl" mt={50} shadow="xl">
+      {/* <Paper p="xl" mt={50} shadow="xl">
         <CartItems />
-      </Paper>
-    </>
+      </Paper> */}
+      <Footer />
+    </div>
   );
 };
 

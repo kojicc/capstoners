@@ -31,10 +31,9 @@ interface Role {
 }
 
 export function Hero() {
-    const { username,role } = useAuth();
+  const { username, role } = useAuth();
 
   // const { role } = useContext(AuthContext);
-
 
   // useEffect(() => {
   //   const checkRole = async () => {
@@ -113,7 +112,7 @@ export function Hero() {
               <Button
                 className={classes.disabled}
                 component="a"
-                href="productsCRUDAdmin"
+                href="reservationLandingPage"
                 data-disabled={isDisabled}
                 onClick={isDisabled ? (event) => event.preventDefault() : undefined}
                 size="xl"
@@ -153,7 +152,7 @@ export function Hero() {
               <Button
                 className={classes.disabled}
                 component="a"
-                href="https://mantine.dev"
+                href="userStatusPage"
                 data-disabled={isDisabled}
                 onClick={isDisabled ? (event) => event.preventDefault() : undefined}
                 size="xl"
@@ -172,7 +171,7 @@ export function Hero() {
               <Button
                 className={classes.disabled}
                 component="a"
-                href="transactionsAdmin"
+                href="transactionsUser"
                 data-disabled={isDisabled}
                 onClick={isDisabled ? (event) => event.preventDefault() : undefined}
                 size="xl"

@@ -10,6 +10,7 @@ import {
   NumberInput,
   Popover,
   Stack,
+  LoadingOverlay,
 } from '@mantine/core';
 import useSWR from 'swr';
 import axios from '@/utils/axiosInstance';
@@ -32,7 +33,7 @@ interface Product {
   discount?: number;
   quantity: number;
   reserved: number;
-  category_id: string;
+  category: string;
 }
 
 interface ProductCardsProps {
@@ -49,20 +50,19 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
   console.log('username', username);
 
   const productData = (product: Product) => [
-    { label: `Category ID: ${categoryID}`, icon: IconUsers },
+    { label: `Category ID: ${product.category}`, icon: IconUsers },
     { label: `Total Reservations: ${product.reserved}`, icon: IconGauge },
     { label: `Available Stock: ${product.quantity}`, icon: IconManualGearbox },
     { label: `Product ID: ${product.productId}`, icon: IconGasStation },
   ];
 
-  const { data, error } = useSWR<{ images: Product[]; message: string }>(
-    `getImages/?categoryID=${categoryID}`,
-    fetcher,
-    { refreshInterval: 1000 }
-  );
+  const { data, error } = useSWR<{ images: Product[]; message: string }>('getImages/', fetcher, {
+    refreshInterval: 1000,
+  });
 
   if (error) return <div>Error loading products</div>;
-  if (!data) return <div>Loading...</div>;
+  if (!data)
+    return <LoadingOverlay visible zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />;
 
   // Extract the second part of searchQuery (e.g., "ALC" from "Alcohol - ALC")
   const searchValue =
@@ -74,12 +74,26 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
   // Filter products based on the search value
   const filteredProducts = data.images.filter((product: Product) => {
     const lowerSearchValue = searchValue.toLowerCase();
-    return (
-      product.productId.toLowerCase().includes(lowerSearchValue) ||
-      product.name.toLowerCase().includes(lowerSearchValue) ||
-      (product.category_id && product.category_id.toLowerCase().includes(lowerSearchValue))
-    );
+    if (lowerSearchValue) {
+      return (
+        product.productId.toLowerCase().includes(lowerSearchValue) ||
+        product.name.toLowerCase().includes(lowerSearchValue) ||
+        (product.category && product.category.toLowerCase().includes(lowerSearchValue))
+      );
+    }
+    if (categoryID) {
+      return (
+        product.category === categoryID &&
+        (product.productId.toLowerCase().includes(lowerSearchValue) ||
+          product.name.toLowerCase().includes(lowerSearchValue) ||
+          (product.category && product.category.toLowerCase().includes(lowerSearchValue)))
+      );
+    } else {
+      return true; // Return all products if no search value or categoryID is provided
+    }
   });
+
+  console.log('filteredProducts', filteredProducts);
 
   const addTocart = async (productId: string, quantity: number) => {
     const response = await axios.post('reservationsCart/', {
@@ -138,10 +152,10 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
               <Group gap={30}>
                 <div>
                   <Text fz="xl" fw={700} style={{ lineHeight: 1 }}>
-                    ${product.price}
+                    ₱{product.price}
                   </Text>
                   <Text fz="sm" c="dimmed" fw={500} style={{ lineHeight: 1 }} mt={3}>
-                    per day
+                    per broken item
                   </Text>
                 </div>
 

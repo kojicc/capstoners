@@ -53,8 +53,6 @@ interface ApiResponse {
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 export function CartItems() {
-  
-  
   const { username } = useAuth();
 
   const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher, {
@@ -74,7 +72,7 @@ export function CartItems() {
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [isGroupCheckout, setIsGroupCheckout] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  
+
   const [subject, setSubject] = useState('');
 
   if (error) return <Alert color="red">Error loading cart items</Alert>;
@@ -203,16 +201,8 @@ export function CartItems() {
     }
   };
 
-
-
-
-  
-
-
   return (
     <Paper shadow="xl" radius="lg" withBorder p="xl">
-     
-
       <Text size="lg" mb="xl" w={500}>
         Cart Items
       </Text>
@@ -374,13 +364,16 @@ export function CartItems() {
           onChange={setReservationDate}
           mb="md"
         />
-        <DateTimePicker
-          required
-          label="Reservation End Date"
-          value={reservationEndDate}
-          onChange={setReservationEndDate}
+
+        <Autocomplete
+          label="Subject"
+          placeholder="Select a subject"
+          value={subject}
+          onChange={setSubject}
+          data={['Math', 'Science', 'History']} // Example subjects, replace with actual data
           mb="md"
         />
+
         <Group mt="md">
           <Button variant="filled" color="green" onClick={confirmCheckout}>
             Confirm Checkout

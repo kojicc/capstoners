@@ -35,48 +35,100 @@ import {
 } from '@tabler/icons-react';
 import classes from './HeaderMegaMenu.module.css';
 import { useWindowScroll } from '@mantine/hooks';
-import axios from 'axios';
+import axios from '@/utils/axiosInstance';
 import { useRouter } from 'next/router';
 import axiosInstance from '@/utils/axiosInstance';
-import { useContext, useEffect } from 'react';
-import { isLoggedIn } from '@/utils/auth';
+import { useContext, useEffect, useState } from 'react';
+import { isLoggedIn, useAuth } from '@/utils/auth';
 import Cookies from 'js-cookie';
 import NotificationButton from '@/components/NotificationButton';
+import { CartIcon } from '@/components/cartButton';
+import useSWR from 'swr';
 
-const mockdata = [
-  {
-    icon: IconGlass,
-    title: 'Glassware',
-    description: 'Explore our wide selection of glassware for your kitchen needs',
-  },
-  {
-    icon: IconToolsKitchen2,
-    title: 'Utensils',
-    description: 'Discover high-quality utensils to enhance your cooking experience',
-  },
-  {
-    icon: IconArmchair2,
-    title: 'Tableware/Furniture',
-    description: 'Find stylish and functional tableware and furniture for your kitchen',
-  },
-  {
-    icon: IconGlassFullFilled,
-    title: 'Alcohol',
-    description: 'Browse our collection of alcoholic beverages for your enjoyment',
-  },
-  {
-    icon: IconTemplate,
-    title: 'Plates',
-    description: 'Choose from a variety of plates to serve your delicious meals',
-  },
-  {
-    icon: IconHanger2,
-    title: 'Linens',
-    description: 'Discover our latest linens collection for your kitchen',
-  },
-];
+interface Category {
+  categoryId: string;
+  icon: any;
+  title: string;
+  description: string;
+}
+// let mockdata = [
+//   {
+//     icon: IconGlass,
+//     title: 'Glassware',
+//     description: 'Explore our wide selection of glassware for your kitchen needs',
+//   },
+//   {
+//     icon: IconToolsKitchen2,
+//     title: 'Utensils',
+//     description: 'Discover high-quality utensils to enhance your cooking experience',
+//   },
+//   {
+//     icon: IconArmchair2,
+//     title: 'Tableware/Furniture',
+//     description: 'Find stylish and functional tableware and furniture for your kitchen',
+//   },
+//   {
+//     icon: IconGlassFullFilled,
+//     title: 'Alcohol',
+//     description: 'Browse our collection of alcoholic beverages for your enjoyment',
+//   },
+//   {
+//     icon: IconTemplate,
+//     title: 'Plates',
+//     description: 'Choose from a variety of plates to serve your delicious meals',
+//   },
+//   {
+//     icon: IconHanger2,
+//     title: 'Linens',
+//     description: 'Discover our latest linens collection for your kitchen',
+//   },
+// ];
+// let mockdata: any[] = [];
 
+const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 export function Header() {
+    const { username, role } = useAuth();
+
+  const { data, error, isLoading } = useSWR('getCategories/', fetcher);
+  const router = useRouter();
+  const [mockdata, setMockdata] = useState<any[]>([]); // Use state for mockdata
+
+  // Function to handle navigation
+  const handleNavigation = (name: string, categoryId: string) => {
+    // Debugging log
+    console.log(`Navigating with query: ${name} - ${categoryId}`);
+    router
+      .push({
+        pathname: '/reservationLandingPage',
+        query: { searchQuery: `${name} - ${categoryId}` },
+      })
+      .then(() => {
+        console.log('Navigation successful');
+      })
+      .catch((err) => {
+        console.error('Navigation error:', err);
+      });
+  };
+  useEffect(() => {
+    console.log('Router object:', router);
+  }, [router]);
+  useEffect(() => {
+    if (error) {
+      console.error('Error fetching categories:', error);
+    }
+    if (data) {
+      console.log('Fetched Data:', data.categories); // Log the fetched data for verification
+
+      const updatedMockdata = data.categories.slice(0, 6).map((category: any) => ({
+        icon: IconGlass,
+        title: category.name,
+        description: category.description,
+        categoryId: category.categoryId, // Just store categoryId for the click handler
+      }));
+
+      setMockdata(updatedMockdata); // Update state with new mockdata
+    }
+  }, [data, error]);
   // const { user, role, logout } = useContext(AuthContext); // Use AuthContext here
 
   // console.log('User role:', user ? user.role : 'Not logged in');
@@ -99,7 +151,6 @@ export function Header() {
     checkLoginStatus();
   }, []);
 
-  const router = useRouter();
   const handleLogout = async () => {
     try {
       const response = await axiosInstance.get('logout/');
@@ -123,7 +174,12 @@ export function Header() {
   IconHanger2;
 
   const links = mockdata.map((item) => (
-    <UnstyledButton className={classes.subLink} key={item.title}>
+    <UnstyledButton
+      className={classes.subLink}
+      key={item.title}
+      component="a"
+      onClick={() => handleNavigation(item.title, item.categoryId)} // Direct onClick binding
+    >
       <Group wrap="nowrap" align="flex-start">
         <ThemeIcon size={34} variant="default" radius="md">
           <item.icon style={{ width: rem(22), height: rem(22) }} color={theme.colors.blue[6]} />
@@ -139,12 +195,13 @@ export function Header() {
       </Group>
     </UnstyledButton>
   ));
+
   const [scroll, scrollTo] = useWindowScroll();
   const pinned = useHeadroom({ fixedAt: 20 });
 
   // Determine if the header should remain transparent when scrolled up
   const isScrolledPastThreshold = scroll.y < 20;
-
+  
   return (
     <Box
       className={classes.box}
@@ -174,13 +231,18 @@ export function Header() {
           </Text>
 
           <Group h="100%" gap={0} visibleFrom="sm">
-            <a href="#" className={classes.link}>
+            <a href="/" className={classes.link}>
               Home
             </a>
+            {username && role === 'admin' ? (
+              <a href="adminDashboard" className={classes.link}>
+                Admin Dashboard
+              </a>
+            ) : null}
             {/*need maging pictures with short desc of categories ng equipment here  */}
             <HoverCard width={600} position="bottom" radius="md" shadow="md" withinPortal>
               <HoverCard.Target>
-                <a href="#" className={classes.link}>
+                <a href="reservationLandingPage" className={classes.link}>
                   <Center inline>
                     <Box component="span" mr={5}>
                       Equipments
@@ -196,7 +258,7 @@ export function Header() {
               <HoverCard.Dropdown style={{ overflow: 'hidden' }}>
                 <Group justify="space-between" px="md">
                   <Text fw={500}>Features</Text>
-                  <Anchor href="#" fz="xs">
+                  <Anchor href="reservationLandingPage" fz="xs">
                     View all
                   </Anchor>
                 </Group>
@@ -222,12 +284,12 @@ export function Header() {
                 </div>
               </HoverCard.Dropdown>
             </HoverCard>
-            <a href="#" className={classes.link}>
+            {/* <a href="#" className={classes.link}>
               About
             </a>
             <a href="#" className={classes.link}>
               Contact Us
-            </a>
+            </a> */}
             <a
               href="https://portal.dlsud.edu.ph/mydlsud/Login.aspx?ReturnUrl=%2fmydlsud%2fStudent%2findex.aspx"
               className={classes.link}
@@ -252,6 +314,7 @@ export function Header() {
                   Logout
                 </Button>
                 <NotificationButton />
+                <CartIcon />
               </>
             ) : (
               <>
