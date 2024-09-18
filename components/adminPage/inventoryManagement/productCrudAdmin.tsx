@@ -1,7 +1,19 @@
-import { useState, useEffect, AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode } from 'react';
+import { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode } from 'react';
 import axiosInstance from '@/utils/axiosInstance';
 import {
-  Table, Button, TextInput, Container, Title, Text, UnstyledButton, Group, Center, rem, ActionIcon, Modal, Stack,
+  Table,
+  Button,
+  TextInput,
+  Container,
+  Title,
+  Text,
+  UnstyledButton,
+  Group,
+  Center,
+  rem,
+  ActionIcon,
+  Modal,
+  Stack,
   Pagination,
   Flex,
   Overlay,
@@ -16,7 +28,18 @@ import {
   Grid,
   ScrollArea,
 } from '@mantine/core';
-import { IconSelector, IconChevronDown, IconChevronUp, IconSearch, IconEdit, IconTrash, IconFileArrowLeft, IconFileArrowRight, IconUpload, IconDownload } from '@tabler/icons-react';
+import {
+  IconSelector,
+  IconChevronDown,
+  IconChevronUp,
+  IconSearch,
+  IconEdit,
+  IconTrash,
+  IconFileArrowLeft,
+  IconFileArrowRight,
+  IconUpload,
+  IconDownload,
+} from '@tabler/icons-react';
 import classes from '@/components/modules.css/TableSort.module.css';
 import { notifications } from '@mantine/notifications';
 import moment from 'moment-timezone';
@@ -27,9 +50,6 @@ import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 // import { ReusableTable } from '@/components/transactionsUser';
 // import classes from '../components/modules.css/Demo.module.css';
 import useSWR, { mutate } from 'swr';
-
-
-
 
 interface Product {
   category: string;
@@ -81,14 +101,23 @@ function filterData(data: Product[] | undefined, search: string): Product[] {
   }
 
   const query = search.toLowerCase().trim();
-  return data.filter((item) =>
-    (item.productId?.toLowerCase() || '').includes(query)
-    || (item.name?.toLowerCase() || '').includes(query) || (item.description?.toLowerCase() || '').includes(query) || (item.price?.toString().toLowerCase() || '').includes(query) || (item.quantity?.toString().toLowerCase() || '').includes(query) || (item.image?.toLowerCase() || '').includes(query) || (item.type?.toLowerCase() || '').includes(query) || (item.category?.toLowerCase() || '').includes(query) 
-   
+  return data.filter(
+    (item) =>
+      (item.productId?.toLowerCase() || '').includes(query) ||
+      (item.name?.toLowerCase() || '').includes(query) ||
+      (item.description?.toLowerCase() || '').includes(query) ||
+      (item.price?.toString().toLowerCase() || '').includes(query) ||
+      (item.quantity?.toString().toLowerCase() || '').includes(query) ||
+      (item.image?.toLowerCase() || '').includes(query) ||
+      (item.type?.toLowerCase() || '').includes(query) ||
+      (item.category?.toLowerCase() || '').includes(query)
   );
 }
 
-function sortData(data: Product[], { sortBy, reversed, search }: { sortBy: keyof Product | null, reversed: boolean, search: string }) {
+function sortData(
+  data: Product[],
+  { sortBy, reversed, search }: { sortBy: keyof Product | null; reversed: boolean; search: string }
+) {
   const filteredData = filterData(data, search);
   // console.log('filteredData:', filteredData);
   return filteredData.sort((a, b) => {
@@ -284,7 +313,7 @@ const UpdateCrudProductsAdmin = () => {
   const [activePage, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [files, setFiles] = useState<FileWithPath[]>([]);
 
   const previews = files.map((file, index) => {
@@ -299,7 +328,7 @@ const UpdateCrudProductsAdmin = () => {
     data: productData,
     error: productError,
     isValidating: loadingProducts,
-  } = useSWR('getadminProductDetail/', fetcher,{refreshInterval: 1000});
+  } = useSWR('getadminProductDetail/', fetcher, { refreshInterval: 1000 });
 
   // Fetch categories with SWR
   const {
@@ -350,14 +379,12 @@ const UpdateCrudProductsAdmin = () => {
         message: 'Failed to delete product.',
         color: 'red',
       });
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   };
 
   const handleEdit = async () => {
-    
     const formData = new FormData();
     formData.append('productId', selectedProducts?.productId || '');
     formData.append('name', selectedProducts?.name || '');

@@ -43,9 +43,8 @@ interface ApiResponse {
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
-export function CartItems() {
-
-    const { username } = useAuth();
+export default function CartItems() {
+  const { username } = useAuth();
 
   // const { username } = useContext(AuthContext);
   const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher);
@@ -168,7 +167,7 @@ export function CartItems() {
       <Modal opened={modalOpen} onClose={() => setModalOpen(false)} title="Update Quantity">
         <NumberInput
           value={updateQuantity}
-          onChange={(val) => setUpdateQuantity(val as number || '')}
+          onChange={(val) => setUpdateQuantity((val as number) || '')}
           min={1}
           label="Quantity"
         />

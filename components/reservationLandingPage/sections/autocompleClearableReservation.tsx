@@ -1,5 +1,4 @@
 import {
-  AwaitedReactNode,
   Dispatch,
   JSXElementConstructor,
   Key,
@@ -121,7 +120,6 @@ export function AutocompleteClearable({
                   | ReactElement<any, string | JSXElementConstructor<any>>
                   | Iterable<ReactNode>
                   | ReactPortal
-                  | Promise<AwaitedReactNode>
                   | null
                   | undefined;
               }) => (
@@ -135,7 +133,7 @@ export function AutocompleteClearable({
                     component="a"
                     onClick={() => setCategoryID(category.value?.toString() || '')}
                   >
-                    {category.label}
+                    {String(category.label)}
                   </Badge>
                 </Tooltip>
               )
