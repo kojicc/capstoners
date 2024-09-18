@@ -25,7 +25,7 @@ import axios from '../utils/axiosInstance';
 import { useCategoryID } from '../utils/categoryIDContext';
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import { useDisclosure, useLocalStorage } from '@mantine/hooks';
 import useSWR, { mutate } from 'swr';
 import { get } from 'http';
@@ -518,7 +518,9 @@ const ActionsGridViewAdmin = () => {
             style={{ width: '100%' }}
           />
           <Dropzone my={20} accept={IMAGE_MIME_TYPE} onDrop={setprodImage}>
-            {prodImage.length > 0 ? 'Click or drop to change image' : 'Click or drop to upload image'}
+            {prodImage.length > 0
+              ? 'Click or drop to change image'
+              : 'Click or drop to upload image'}
           </Dropzone>
           <SimpleGrid
             type="container"
