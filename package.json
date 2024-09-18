@@ -19,6 +19,10 @@
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build"
   },
+  "engines": {
+    "node": "20.13.1",
+    "npm": "10.5.2"
+  },
   "dependencies": {
     "@mantine/charts": "^7.12.2",
     "@mantine/core": "^7.12.2",
