@@ -21,9 +21,7 @@ export const CategoryIDProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
-    <CategoryIDContext.Provider value={{ state, dispatch }}>
-      {children}
-    </CategoryIDContext.Provider>
+    <CategoryIDContext.Provider value={{ state, dispatch }}>{children}</CategoryIDContext.Provider>
   );
 };
 
