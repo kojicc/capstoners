@@ -22,7 +22,7 @@ import {
 import * as TablerIcons from '@tabler/icons-react';
 import classes from './modules.css/ActionsGrid.module.css';
 import axios from '../utils/axiosInstance';
-import { useCategoryID } from '../utils/categoryIDContext';
+import { useCategoryID } from '@/utils/categoryIDContext';
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import { useState, useEffect } from 'react';
