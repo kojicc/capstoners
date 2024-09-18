@@ -41,7 +41,7 @@ import {
 } from '@tabler/icons-react';
 import ActionsGridViewAdmin from '@/components/ActionsGridViewAdmin';
 import UpdateCrudProductsAdmin from '@/components/adminPage/inventoryManagement/productCrudAdmin';
-import { useCategoryID } from '../../../utils/categoryIDContext';
+import { useCategoryID } from '../../../utils/CategoryIDContext';
 import axiosInstance from '../../../utils/axiosInstance';
 import { notifications } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
@@ -82,7 +82,6 @@ interface ProductType {
 // };
 
 const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
-
 
 const ProductAddPage = () => {
   const [images, setImages] = useState<Product[]>([]);
@@ -126,46 +125,40 @@ const ProductAddPage = () => {
     refreshInterval: 1000,
   });
 
-
- useEffect(() => {
-   if (allProducts) {
-     console.log('All products:', allProducts);
-     setProductsList(allProducts.images || []); // Store all products
-     setImages(allProducts.images || []);
-     setFilteredProducts(allProducts.images || []);
-     setIsLoading(false);
-   }
- }, [allProducts]);
-  
-  
-useEffect(() => {
-  if (productsList) {
-    let filtered = productsList;
-
-    // Filter by category ID if set
-    if (state.categoryID) {
-      // Filter by search input
-      if (searchInput) {
-        filtered = filtered.filter(
-          (product) =>
-            product.productId.toLowerCase().includes(searchInput) ||
-            product.category.toLowerCase().includes(searchInput) ||
-            product.name.toLowerCase().includes(searchInput)
-        );
-      }
-      else {
-              filtered = filtered.filter((product) => product.category === state.categoryID);
-
-      }
+  useEffect(() => {
+    if (allProducts) {
+      console.log('All products:', allProducts);
+      setProductsList(allProducts.images || []); // Store all products
+      setImages(allProducts.images || []);
+      setFilteredProducts(allProducts.images || []);
+      setIsLoading(false);
     }
+  }, [allProducts]);
 
-   
+  useEffect(() => {
+    if (productsList) {
+      let filtered = productsList;
 
-    // Set the filtered results
-    setImages(filtered);
-    setFilteredProducts(filtered);
-  }
-}, [state.categoryID, searchInput, productsList]);
+      // Filter by category ID if set
+      if (state.categoryID) {
+        // Filter by search input
+        if (searchInput) {
+          filtered = filtered.filter(
+            (product) =>
+              product.productId.toLowerCase().includes(searchInput) ||
+              product.category.toLowerCase().includes(searchInput) ||
+              product.name.toLowerCase().includes(searchInput)
+          );
+        } else {
+          filtered = filtered.filter((product) => product.category === state.categoryID);
+        }
+      }
+
+      // Set the filtered results
+      setImages(filtered);
+      setFilteredProducts(filtered);
+    }
+  }, [state.categoryID, searchInput, productsList]);
 
   const [categoryChanged, setCategoryChanged, removeValue] = useLocalStorage({
     key: 'categoryChanged',
@@ -205,10 +198,10 @@ useEffect(() => {
     }
   };
 
- const handleSearch = (value: string) => {
-   const searchValue = value.trim().toLowerCase().split(' - ')[0];
-   setSearchInput(searchValue);
- };
+  const handleSearch = (value: string) => {
+    const searchValue = value.trim().toLowerCase().split(' - ')[0];
+    setSearchInput(searchValue);
+  };
 
   return (
     <Paper pl={0} bg={'#ffff'}>

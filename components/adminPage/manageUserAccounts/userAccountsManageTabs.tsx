@@ -41,7 +41,7 @@ import {
   IconIdBadge2,
 } from '@tabler/icons-react';
 import ActionsGridViewAdmin from '@/components/ActionsGridViewAdmin';
-import { useCategoryID } from '@/utils/categoryIDContext';
+import { useCategoryID } from '@/utils/CategoryIDContext';
 import axiosInstance from '@/utils/axiosInstance';
 import { notifications } from '@mantine/notifications';
 import { Header } from '@/components/LandingPage/header/HeaderLP';

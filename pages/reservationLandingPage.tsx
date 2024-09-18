@@ -10,7 +10,7 @@ import {
   Stack,
   Title,
 } from '@mantine/core';
-import { CartItems } from './cartReservations';
+import CartItems from './cartReservations';
 import { CartIcon } from '@/components/cartButton';
 import { AutocompleteClearable } from '@/components/reservationLandingPage/sections/autocompleClearableReservation';
 import { useState, useEffect, useRef } from 'react';

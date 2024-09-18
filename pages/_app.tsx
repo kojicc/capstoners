@@ -12,7 +12,7 @@ import { AuthProvider } from '@/utils/authContext';
 import { ModalsProvider } from '@mantine/modals';
 import '@mantine/notifications/styles.css';
 import { Notifications } from '@mantine/notifications';
-import { CategoryIDProvider } from '@/utils/categoryIDContext';
+import { CategoryIDProvider } from '@/utils/CategoryIDContext';
 import '@mantine/dropzone/styles.css';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -27,8 +27,7 @@ export default function App({ Component, pageProps }: AppProps) {
   }, []);
 
   return (
-    
-      <CategoryIDProvider>
+    <CategoryIDProvider>
       <MantineProvider theme={theme}>
         <AuthProvider>
           <Notifications />
@@ -42,10 +41,9 @@ export default function App({ Component, pageProps }: AppProps) {
               <link rel="shortcut icon" href="/favicon.svg" />
             </Head>
             <Component {...pageProps} />
-        </ModalsProvider>
+          </ModalsProvider>
         </AuthProvider>
-        </MantineProvider>
-      </CategoryIDProvider>
-    
+      </MantineProvider>
+    </CategoryIDProvider>
   );
 }
