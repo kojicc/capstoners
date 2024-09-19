@@ -65,7 +65,6 @@ export function AuthenticationForm(props: PaperProps) {
     </Combobox.Option>
   ));
 
-
   const [type, toggle1] = useToggle(['login', 'register']);
   const form = useForm({
     initialValues: {
@@ -84,7 +83,6 @@ export function AuthenticationForm(props: PaperProps) {
     // //   password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
     // },
   });
-  
 
   const [username, setUsernameAuth] = useState('');
   const [password, setPassword] = useState('');
@@ -97,7 +95,7 @@ export function AuthenticationForm(props: PaperProps) {
 
   // const [loading, { toggle }] = useDisclosure(false);
 
-const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const handleLogin = async () => {
     setLoading(true); // Show loading overlay
     try {
@@ -145,7 +143,14 @@ const [loading, setLoading] = useState(false);
         role,
       });
       console.log('Register response:', response.data);
-      router.push('/');
+
+      if (role === 'admin') {
+        router.push('/adminDashboard');
+      } else if (role === 'student') {
+        router.push('/');
+      } else {
+        router.push('/');
+      }
     } catch (err) {
       console.error('Register error:', err);
       setError('Invalid username or password');

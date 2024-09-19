@@ -52,7 +52,7 @@ interface ApiResponse {
 // Fetcher function using Axios
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
-export function CartItems() {
+export default function CartItems() {
   const { username } = useAuth();
 
   const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher, {

@@ -114,6 +114,7 @@ export default function TransactionHistoryUser() {
     {
       onSuccess: (data) => {
         // Filter the data to include only the specified statuses and dates within 5 days after the reservation date end
+        console.log('nakuha: ', data);
         const filteredData = data.reservations.filter((reservation: Reservation) => {
           const reservationEndDate = moment(reservation.reservation_date_end);
           const currentDate = moment();
@@ -131,6 +132,7 @@ export default function TransactionHistoryUser() {
           );
         });
         setReservations(filteredData);
+        console.log('nakuha:', filteredData);
       },
     }
   );

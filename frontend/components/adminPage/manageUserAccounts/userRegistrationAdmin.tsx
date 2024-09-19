@@ -17,7 +17,6 @@ import {
   useCombobox,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-// import { useCombobox } from '@mantine/hooks';
 import { useRouter } from 'next/router';
 import { useState, useRef } from 'react';
 import cx from 'clsx';
@@ -27,7 +26,7 @@ import classes from './DropdownOptionsAnimation.module.css';
 export function UserRegAdmin() {
   // State and utility hooks
   const [loading, setLoading] = useState(false);
-  const [value, setValue] = useState<string | null>('👥 Guest');
+  const [selectedRole, setSelectedRole] = useState<string | null>('👥 Guest');
   const [animating, setAnimating] = useState(false);
 
   // Form handling
@@ -96,11 +95,11 @@ export function UserRegAdmin() {
       });
     } finally {
       setLoading(false);
+      form.reset();
     }
   };
 
   const handleEmailChange = (val: string) => {
-    setValue(val);
     form.setFieldValue('email', val);
   };
 
@@ -117,7 +116,7 @@ export function UserRegAdmin() {
             store={combobox}
             withinPortal={false}
             onOptionSubmit={(val) => {
-              setValue(val);
+              setSelectedRole(val);
               form.setFieldValue('role', removeEmojis(val).toLowerCase());
               combobox.closeDropdown();
             }}
@@ -131,7 +130,7 @@ export function UserRegAdmin() {
                 onClick={() => combobox.toggleDropdown()}
                 rightSectionPointerEvents="none"
               >
-                {value || <Input.Placeholder>Pick value</Input.Placeholder>}
+                {selectedRole || <Input.Placeholder>Pick value</Input.Placeholder>}
               </InputBase>
             </Combobox.Target>
 
@@ -160,7 +159,7 @@ export function UserRegAdmin() {
             radius="md"
           />
 
-          <AutocompleteLoading value={form.values.email} onChange={handleEmailChange} />
+          <EmailAutocomplete value={form.values.email} onChange={handleEmailChange} />
 
           <TextInput
             autoComplete="new-password"
@@ -199,8 +198,8 @@ export function UserRegAdmin() {
   );
 }
 
-// The AutocompleteLoading component
-export function AutocompleteLoading({
+// The EmailAutocomplete component
+function EmailAutocomplete({
   value,
   onChange,
 }: {

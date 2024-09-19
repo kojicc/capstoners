@@ -1,5 +1,4 @@
 import {
-  AwaitedReactNode,
   Dispatch,
   JSXElementConstructor,
   Key,
@@ -52,6 +51,8 @@ export function AutocompleteClearable({
   useEffect(() => {
     if (router.query.searchQuery) {
       setSearchQuery(router.query.searchQuery as string);
+    } else {
+      setSearchQuery('');
     }
   }, [router.query.searchQuery]);
   const { categories, products, isLoading, error } = useData();
@@ -121,7 +122,6 @@ export function AutocompleteClearable({
                   | ReactElement<any, string | JSXElementConstructor<any>>
                   | Iterable<ReactNode>
                   | ReactPortal
-                  | Promise<AwaitedReactNode>
                   | null
                   | undefined;
               }) => (
@@ -133,7 +133,11 @@ export function AutocompleteClearable({
                   <Badge
                     key={category.value}
                     component="a"
-                    onClick={() => setCategoryID(category.value?.toString() || '')}
+                    onClick={() => {
+                      console.log('category.value', category.value);
+                      setSearchQuery(category.value?.toString() || '');
+                      setCategoryID(category.value?.toString() || '');
+                    }}
                   >
                     {category.label}
                   </Badge>

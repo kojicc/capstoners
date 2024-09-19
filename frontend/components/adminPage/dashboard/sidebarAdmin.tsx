@@ -9,21 +9,19 @@ import { Header } from '../../LandingPage/header/HeaderLP';
 import UserAccountsManage from '../manageUserAccounts/userAccountsManageTabs';
 import { useRouter } from 'next/router';
 
-
 export function NavbarSection() {
   const [opened, { toggle }] = useDisclosure();
   const [activeMain, setActiveMain] = useState('Dashboard');
   const [activeSub, setActiveSub] = useState('');
 
-    const router = useRouter();
+  const router = useRouter();
 
-
- useEffect(() => {
-   // If searchQuery is present, set Transactions as the active component
-   if (router.query.searchQuery) {
-     setActiveMain('Transactions');
-   }
- }, [router.query.searchQuery]);
+  useEffect(() => {
+    // If searchQuery is present, set Transactions as the active component
+    if (router.query.searchQuery) {
+      setActiveMain('Transactions');
+    }
+  }, [router.query.searchQuery]);
   const nestedLinks = [
     {
       label: 'Dashboard',
@@ -49,16 +47,12 @@ export function NavbarSection() {
       label: 'Go to Landing Page',
       icon: IconHistory,
       href: '/',
-    }
+    },
   ];
 
   const handleMainClick = (label: React.SetStateAction<string>) => {
     setActiveMain(label);
     setActiveSub('');
-  };
-
-  const handleSubClick = (subItem: { label: any; component?: React.JSX.Element }) => {
-    setActiveSub(subItem.label);
   };
 
   // const getComponent = () => {
@@ -116,7 +110,7 @@ export function NavbarSection() {
       padding="md"
       withBorder={true}
     >
-      <AppShell.Header >
+      <AppShell.Header>
         <Group h="100%" mx={'auto'}>
           <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" pos={'absolute'} />
           {/* <Header /> */}

@@ -285,35 +285,35 @@ class RetrieveProductIDView(APIView):
         categoryID = request.query_params.get('categoryID')
 
         try:
-            if Product.objects.all().exists():
+            # Check if any product exists for the given category
+            if Product.objects.filter(category_id=categoryID).exists():
                 products = Product.objects.filter(category_id=categoryID)
-                
-                if not products.exists():
-                    prefix = Category.objects.get(categoryId=categoryID).name[:3].upper()
-                    return Response({'nextProductId': f'{prefix}-1'}, status=200)
-                
 
+                # Serialize the products
                 products = ProductImageSerializer(products, many=True)
 
-                prefix = products.data[0]['productId'].split('-')[0]
-                products = Product.objects.filter(productId__startswith=prefix)
+                # Extract prefix from the product ID and handle numbering
+                prefix = categoryID
                 existing_numbers = set()
 
-                for product in products:
-                    match = re.match(rf'{prefix}-(\d+)', product.productId)
+                for product in products.data:
+                    match = re.match(rf'{prefix}-(\d+)', product['productId'])
                     if match:
                         existing_numbers.add(int(match.group(1)))
-                
+
                 # Find the first available number
                 number = 1
                 while number in existing_numbers:
                     number += 1
+
                 return Response({'nextProductId': f'{prefix}-{number}'}, status=200)
-                
+
             else:
-                return Response({'message': 'No products available'}, status=404)
+                # If no products exist for the given category, return CATEGORYID-1
+                return Response({'nextProductId': f'{categoryID}-1'}, status=200)
         except Exception as e:
-            return Response({'message': 'An error occurred', 'error': str(e)}, status=400)     
+            return Response({'message': 'An error occurred', 'error': str(e)}, status=400)
+
 
 class RetrieveProductImage(APIView):
     # permission_classes = [IsAuthenticated]
@@ -375,7 +375,7 @@ class RetrieveProductAdmin(APIView):
             }, status=400)
 
 
-class UploadProduct(APIView):
+class UploadProduct(APIView):   
     permission_classes = [IsAuthenticated]
     def post(self, request):
         try:
@@ -397,12 +397,17 @@ class UploadProduct(APIView):
                 }, status=400)
 
             if category:
-                category = Category.objects.get(name=category.lower())
+                category = Category.objects.get(name=category)
+
                 
             else:
                 category, created = Category.objects.get_or_create(categoryId='DEF', name='Default Category', defaults={'description': 'This is a default category.'})
+                # type, created = ProductType.objects.get_or_create(name='Default Type', category=category, defaults={'description': 'This is a default product type.'})
 
-            product_type = ProductType.objects.get(name=type_name)
+            product_type, created = ProductType.objects.get_or_create(
+                name=type_name,
+                defaults={'description': description or 'Default Description', 'category': category}
+            )
             product = Product.objects.create(
                 name=name,
                 description=description,

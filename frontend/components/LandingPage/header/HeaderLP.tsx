@@ -16,6 +16,9 @@ import {
   ScrollArea,
   rem,
   useMantineTheme,
+  Menu,
+  Modal,
+  PasswordInput,
 } from '@mantine/core';
 import { useDisclosure, useHeadroom, useLocalStorage } from '@mantine/hooks';
 import {
@@ -32,6 +35,8 @@ import {
   IconTemplate,
   IconHanger2,
   IconToolsKitchen2,
+  IconSettings,
+  IconLock,
 } from '@tabler/icons-react';
 import classes from './HeaderMegaMenu.module.css';
 import { useWindowScroll } from '@mantine/hooks';
@@ -44,6 +49,7 @@ import Cookies from 'js-cookie';
 import NotificationButton from '@/components/NotificationButton';
 import { CartIcon } from '@/components/cartButton';
 import useSWR from 'swr';
+import { notifications } from '@mantine/notifications';
 
 interface Category {
   categoryId: string;
@@ -51,52 +57,22 @@ interface Category {
   title: string;
   description: string;
 }
-// let mockdata = [
-//   {
-//     icon: IconGlass,
-//     title: 'Glassware',
-//     description: 'Explore our wide selection of glassware for your kitchen needs',
-//   },
-//   {
-//     icon: IconToolsKitchen2,
-//     title: 'Utensils',
-//     description: 'Discover high-quality utensils to enhance your cooking experience',
-//   },
-//   {
-//     icon: IconArmchair2,
-//     title: 'Tableware/Furniture',
-//     description: 'Find stylish and functional tableware and furniture for your kitchen',
-//   },
-//   {
-//     icon: IconGlassFullFilled,
-//     title: 'Alcohol',
-//     description: 'Browse our collection of alcoholic beverages for your enjoyment',
-//   },
-//   {
-//     icon: IconTemplate,
-//     title: 'Plates',
-//     description: 'Choose from a variety of plates to serve your delicious meals',
-//   },
-//   {
-//     icon: IconHanger2,
-//     title: 'Linens',
-//     description: 'Discover our latest linens collection for your kitchen',
-//   },
-// ];
-// let mockdata: any[] = [];
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+
 export function Header() {
-    const { username, role } = useAuth();
+  const { username, role } = useAuth();
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
   const { data, error, isLoading } = useSWR('getCategories/', fetcher);
   const router = useRouter();
-  const [mockdata, setMockdata] = useState<any[]>([]); // Use state for mockdata
+  const [mockdata, setMockdata] = useState<any[]>([]);
 
-  // Function to handle navigation
   const handleNavigation = (name: string, categoryId: string) => {
-    // Debugging log
-    console.log(`Navigating with query: ${name} - ${categoryId}`);
     router
       .push({
         pathname: '/reservationLandingPage',
@@ -109,29 +85,22 @@ export function Header() {
         console.error('Navigation error:', err);
       });
   };
-  useEffect(() => {
-    console.log('Router object:', router);
-  }, [router]);
+
   useEffect(() => {
     if (error) {
       console.error('Error fetching categories:', error);
     }
     if (data) {
-      console.log('Fetched Data:', data.categories); // Log the fetched data for verification
-
       const updatedMockdata = data.categories.slice(0, 6).map((category: any) => ({
         icon: IconGlass,
         title: category.name,
         description: category.description,
-        categoryId: category.categoryId, // Just store categoryId for the click handler
+        categoryId: category.categoryId,
       }));
 
-      setMockdata(updatedMockdata); // Update state with new mockdata
+      setMockdata(updatedMockdata);
     }
   }, [data, error]);
-  // const { user, role, logout } = useContext(AuthContext); // Use AuthContext here
-
-  // console.log('User role:', user ? user.role : 'Not logged in');
 
   const [isAuthenticated, setIsAuthenticated] = useLocalStorage({
     key: 'isAuthenticated',
@@ -154,16 +123,40 @@ export function Header() {
   const handleLogout = async () => {
     try {
       const response = await axiosInstance.get('logout/');
-      console.log('Logout response:', response.data);
       setIsAuthenticated(false);
-      // window.location.reload();
       Cookies.remove('access_token');
       Cookies.remove('refresh_token');
       Cookies.remove('Role');
-      // localStorage.removeItem('isAuthenticated');
       router.push('/login');
     } catch (error) {
       console.error('Logout error:', error);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axiosInstance.post('forgetPassword/', {
+        username,
+        newPassword,
+      });
+      console.log('Password change response:', response.data);
+      setModalOpen(false);
+      notifications.show({
+        title: 'Password changed',
+        message: 'Your password has been successfully changed and you will be logged out.',
+        color: 'teal',
+      });
+    } catch (error) {
+      console.error('Password change error:', error);
+    } finally {
+      setLoading(false);
+      handleLogout();
     }
   };
 
@@ -178,7 +171,7 @@ export function Header() {
       className={classes.subLink}
       key={item.title}
       component="a"
-      onClick={() => handleNavigation(item.title, item.categoryId)} // Direct onClick binding
+      onClick={() => handleNavigation(item.title, item.categoryId)}
     >
       <Group wrap="nowrap" align="flex-start">
         <ThemeIcon size={34} variant="default" radius="md">
@@ -199,9 +192,8 @@ export function Header() {
   const [scroll, scrollTo] = useWindowScroll();
   const pinned = useHeadroom({ fixedAt: 20 });
 
-  // Determine if the header should remain transparent when scrolled up
   const isScrolledPastThreshold = scroll.y < 20;
-  
+
   return (
     <Box
       className={classes.box}
@@ -235,11 +227,26 @@ export function Header() {
               Home
             </a>
             {username && role === 'admin' ? (
-              <a href="adminDashboard" className={classes.link}>
+              <a href="" className={classes.link}>
                 Admin Dashboard
               </a>
-            ) : null}
-            {/*need maging pictures with short desc of categories ng equipment here  */}
+            ) : (
+              <Menu>
+                <Menu.Target>
+                  <a className={classes.link} style={{ cursor: 'pointer' }}>
+                    Support
+                  </a>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    leftSection={<IconSettings size={14} />}
+                    onClick={() => setModalOpen(true)}
+                  >
+                    Change Password
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            )}
             <HoverCard width={600} position="bottom" radius="md" shadow="md" withinPortal>
               <HoverCard.Target>
                 <a href="reservationLandingPage" className={classes.link}>
@@ -284,12 +291,6 @@ export function Header() {
                 </div>
               </HoverCard.Dropdown>
             </HoverCard>
-            {/* <a href="#" className={classes.link}>
-              About
-            </a>
-            <a href="#" className={classes.link}>
-              Contact Us
-            </a> */}
             <a
               href="https://portal.dlsud.edu.ph/mydlsud/Login.aspx?ReturnUrl=%2fmydlsud%2fStudent%2findex.aspx"
               className={classes.link}
@@ -299,8 +300,6 @@ export function Header() {
           </Group>
 
           <Group visibleFrom="sm">
-            {/* Don sa log in and sign up, medyo dark pa yung background nya for the fkn button*/}
-
             {isAuthenticated ? (
               <>
                 <Button
@@ -378,6 +377,36 @@ export function Header() {
           </Group>
         </ScrollArea>
       </Drawer>
+
+      <Modal
+        opened={isModalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Change Password"
+        centered
+      >
+        <PasswordInput
+          label="New Password"
+          placeholder="Enter your new password"
+          autoComplete="new-password"
+          value={newPassword}
+          onChange={(event) => setNewPassword(event.currentTarget.value)}
+          required
+        />
+        <PasswordInput
+          label="Confirm New Password"
+          autoComplete="new-password"
+          placeholder="Confirm your new password"
+          value={confirmPassword}
+          onChange={(event) => setConfirmPassword(event.currentTarget.value)}
+          required
+          error={passwordError}
+        />
+        <Group justify="right" mt="md">
+          <Button onClick={handlePasswordChange} loading={loading}>
+            Change Password
+          </Button>
+        </Group>
+      </Modal>
     </Box>
   );
 }

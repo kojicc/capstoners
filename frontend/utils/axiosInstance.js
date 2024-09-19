@@ -2,7 +2,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import jwtDecode from 'jwt-decode'; // Ensure you have this installed
-import { handleLogout } from '../components/LandingPage/header/HeaderLP';
+import handleLogout from '../components/LandingPage/header/HeaderLP';
 import { useRouter } from 'next/router';
 
 // Create an Axios instance

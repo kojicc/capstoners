@@ -163,6 +163,7 @@ export default function TransactionHistory() {
   const [quantity, setQuantity] = useState<number[]>([]);
   const [disabled, setDisabled] = useState<boolean[]>([]);
   const [users, setUsers] = useState<Users[]>([]);
+  const [loader, setLoader] = useState(false);
 
   const itemsPerPage = 5;
   const router = useRouter();
@@ -277,7 +278,7 @@ export default function TransactionHistory() {
   const handleDelete = async () => {
     const reservationId = selectedReservation?.reservation_id || '';
     try {
-      const response = await axiosInstance.delete('/reservationsDelete/', {
+      const response = await axiosInstance.delete('reservationsDelete/', {
         data: { reservationId },
       });
 
@@ -339,6 +340,7 @@ export default function TransactionHistory() {
     };
 
     try {
+      setLoader(true);
       await axiosInstance.post('adminUpdateReservationStatus/', data, {
         headers: {
           'Content-Type': 'application/json',
@@ -354,6 +356,8 @@ export default function TransactionHistory() {
       });
     } catch (error) {
       console.error('Error updating reservation:', error);
+    } finally {
+      setLoader(false);
     }
   };
 
@@ -512,7 +516,7 @@ export default function TransactionHistory() {
   };
 
   return (
-    <Container>
+    <Container fluid>
       <Overlay color="#000" opacity={1} zIndex={-1} />
 
       <Flex
@@ -863,7 +867,7 @@ export default function TransactionHistory() {
           {/* Edit Modal */}
           <Modal opened={editModalOpened} onClose={handleCloseModal} title="Edit Reservation">
             <LoadingOverlay
-              visible={loading}
+              visible={loader}
               zIndex={1000}
               overlayProps={{ radius: 'sm', blur: 2 }}
             />

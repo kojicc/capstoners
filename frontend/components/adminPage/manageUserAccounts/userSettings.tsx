@@ -121,7 +121,8 @@ function filterData(data: Users[] | undefined, search: string): Users[] {
       (item.last_name?.toLowerCase() || '').includes(query) ||
       (item.username?.toLowerCase() || '').includes(query) ||
       (item.role?.toLowerCase() || '').includes(query) ||
-      (item.date_joined?.toLowerCase() || '').includes(query)
+      (item.date_joined?.toLowerCase() || '').includes(query) ||
+      (item.id?.toLowerCase() || '').includes(query)
   );
 }
 
@@ -223,6 +224,54 @@ const UpdateUser = () => {
   const strength = getStrength(value);
   const color = strength === 100 ? 'teal' : strength > 50 ? 'yellow' : 'red';
 
+  const handleExport = async () => {
+    try {
+      setLoadingImportExport(true);
+      const response = await axiosInstance.get('exportimportUser/', {
+        responseType: 'blob',
+        params: { username },
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'users.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      notifications.show({ message: 'Export successful!', color: 'green' });
+    } catch (error) {
+      notifications.show({ message: 'Export failed.', color: 'red' });
+    } finally {
+      setLoadingImportExport(false);
+      setUsername('');
+      setOpenedExport(false);
+    }
+  };
+
+  // Import users
+  const handleImport = async () => {
+    if (!file) return;
+
+    try {
+      setLoadingImportExport(true);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      await axiosInstance.post('exportimportUser/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      notifications.show({ message: 'Import successful!', color: 'green' });
+      setFile(null);
+    } catch (error) {
+      notifications.show({ message: 'Import failed.', color: 'red' });
+    } finally {
+      setLoadingImportExport(false);
+      setOpenedImportExport(false);
+    }
+  };
+
   useEffect(() => {
     if (usersData) {
       setUsers(usersData);
@@ -236,8 +285,118 @@ const UpdateUser = () => {
   if (usersError)
     return <LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />;
 
+  // if (!usersData)
+  //   return <LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />;
+
   if (!usersData)
-    return <LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />;
+    return (
+      <Group justify="center" gap="md" flex="column">
+        <Title my={20} c={'black'} order={2}>
+          User History - Admin
+        </Title>
+
+        <Group gap="md">
+          {/* Export Users Button */}
+          <Popover
+            opened={openedExport}
+            onChange={setOpenedExport}
+            withArrow
+            shadow="md"
+            position="bottom"
+            trapFocus={false}
+            closeOnClickOutside={false}
+          >
+            <Popover.Target>
+              <Tooltip label="Export User Information">
+                <ActionIcon
+                  onClick={() => setOpenedExport((o) => !o)}
+                  disabled={loading}
+                  color="blue"
+                  variant="outline"
+                >
+                  {loading ? <Loader size="xs" /> : <IconDownload size={16} />}
+                </ActionIcon>
+              </Tooltip>
+            </Popover.Target>
+            <Popover.Dropdown>
+              {/* <TextInput
+                    placeholder="Enter username to filter"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    mb="md"
+                  /> */}
+              <Autocomplete
+                autoComplete="new-password"
+                placeholder="Input username to filter"
+                value={username}
+                onChange={setUsername}
+                leftSection={
+                  <IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                }
+                my={20}
+                data={[
+                  {
+                    group: 'Usernames',
+                    items: users.map((user) => ({
+                      value: user.username,
+                      label: user.username,
+                    })),
+                  },
+                ]}
+                limit={5}
+                comboboxProps={{
+                  transitionProps: { transition: 'pop', duration: 200 },
+                  dropdownPadding: 10,
+                  shadow: 'xl',
+                }}
+              />
+              <Button onClick={handleExport} disabled={loading} fullWidth>
+                {loading ? <Loader size="xs" /> : 'Export'}
+              </Button>
+            </Popover.Dropdown>
+          </Popover>
+          {/* Import Users Button with Popover */}
+          <Popover
+            opened={openedImportExport}
+            onChange={setOpenedImportExport}
+            withArrow
+            shadow="md"
+            position="bottom"
+            trapFocus={false} // Allow interaction with the file explorer
+            closeOnClickOutside={false} // Keep the popover open when clicking outside
+          >
+            <Popover.Target>
+              <Tooltip label="Import User Information">
+                <ActionIcon
+                  onClick={() => setOpenedImportExport((o) => !o)}
+                  disabled={loading}
+                  color="green"
+                  variant="outline"
+                >
+                  {loading ? <Loader size="xs" /> : <IconUpload size={16} />}
+                </ActionIcon>
+              </Tooltip>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <FileInput
+                placeholder="Choose file"
+                onChange={(selectedFile) => setFile(selectedFile)}
+                accept=".xlsx"
+                required
+              />
+              <Button
+                mt="md"
+                onClick={handleImport}
+                disabled={loading || !file} // Disable the button if no file is selected
+                fullWidth
+              >
+                {loading ? <Loader size="xs" /> : 'Upload'}
+              </Button>
+            </Popover.Dropdown>
+          </Popover>
+        </Group>
+      </Group>
+    );
 
   // const allUserData = usersData;
   // setUsers(allUserData);
@@ -382,53 +541,6 @@ const UpdateUser = () => {
       },
     });
 
-  
-
-  const handleExport = async () => {
-    try {
-      setLoadingImportExport(true);
-      const response = await axiosInstance.get('exportimportUser/', { responseType: 'blob', params: { username } });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'users.xlsx');
-      document.body.appendChild(link);
-      link.click();
-      notifications.show({ message: 'Export successful!', color: 'green' });
-    } catch (error) {
-      notifications.show({ message: 'Export failed.', color: 'red' });
-    } finally {
-      setLoadingImportExport(false);
-      setUsername('');
-      setOpenedExport(false);
-    }
-  };
-
-  // Import users
-  const handleImport = async () => {
-    if (!file) return;
-
-    try {
-      setLoadingImportExport(true);
-      const formData = new FormData();
-      formData.append('file', file);
-
-      await axiosInstance.post('exportimportUser/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      notifications.show({ message: 'Import successful!', color: 'green' });
-      setFile(null);
-    } catch (error) {
-      notifications.show({ message: 'Import failed.', color: 'red' });
-    } finally {
-      setLoadingImportExport(false);
-      setOpenedImportExport(false);
-    }
-  };
-
   return (
     <Container fluid>
       <Flex
@@ -438,7 +550,6 @@ const UpdateUser = () => {
         direction="row"
         wrap="wrap"
         className={classes.inner}
-        
       >
         <Container fluid>
           <Group justify="center" gap="md" flex="column">
@@ -581,11 +692,7 @@ const UpdateUser = () => {
             <Text color="red">{error}</Text>
           ) : (
             <Container fluid>
-              <ScrollArea
-                offsetScrollbars
-                type="auto"
-                className={styles.tableContainer}
-              >
+              <ScrollArea offsetScrollbars type="auto" className={styles.tableContainer}>
                 <Grid>
                   <Grid.Col span="auto">
                     <div>
