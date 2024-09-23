@@ -98,24 +98,33 @@ class ProductTypeCRUD(APIView):
 #excel import at export here
 class ExportImportProductView(APIView):
     permission_classes = [IsAuthenticated]  # Uncomment if you want to enforce authentication
-    
+
     # exporter
     def get(self, request):
         products = Product.objects.all()
-        serializer = ProductImageSerializer(products, many=True)
-        data = serializer.data
+        categories = Category.objects.all()
+        
+        product_serializer = ProductImageSerializer(products, many=True)
+        category_serializer = CategorySerializer(categories, many=True)
+        
+        product_data = product_serializer.data
+        category_data = category_serializer.data
         
         # Convert data to DataFrame
-        df = pd.DataFrame(data)
+        product_df = pd.DataFrame(product_data)
+        category_df = pd.DataFrame(category_data)
         
         # Create an in-memory output file for the HTTP response
         output = io.BytesIO()
-        df.to_excel(output, index=False, engine='openpyxl')
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            product_df.to_excel(writer, index=False, sheet_name='Products')
+            category_df.to_excel(writer, index=False, sheet_name='Categories')
+        
         output.seek(0)  # Move to the beginning of the BytesIO object
         
         # Create the HTTP response with the Excel file
         response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename="products.xlsx"'
+        response['Content-Disposition'] = 'attachment; filename="products_and_categories.xlsx"'
         
         return response
 
@@ -123,22 +132,26 @@ class ExportImportProductView(APIView):
     def post(self, request):
         try:
             file = request.FILES['file']
-            df = pd.read_excel(file)
-            products = df.to_dict(orient='records')
+            df_products = pd.read_excel(file, sheet_name='Products')
+            df_categories = pd.read_excel(file, sheet_name='Categories')
             
-            for product in products:
-                # Handle category creation if it does not exist
-                category_id = product['category']
-                category, created = Category.objects.get_or_create(
-                    categoryId=category_id,
+            categories = df_categories.to_dict(orient='records')
+            products = df_products.to_dict(orient='records')
+            
+            for category in categories:
+                Category.objects.update_or_create(
+                    categoryId=category['categoryId'],
                     defaults={
-                        'name': f'Default Name {category_id}',  # Ensure unique names
-                        'description': 'Default Description',
-                        'icon': 'DefaultIcon'
+                        'name': category['name'],
+                        'description': category['description'],
+                        'icon': category['icon']
                     }
                 )
+            
+            for product in products:
+                category_id = product['category']
+                category = Category.objects.get(categoryId=category_id)
                 
-                # Use update_or_create to handle product creation or update
                 Product.objects.update_or_create(
                     productId=product['productId'],  # Match on productId to avoid duplicates
                     defaults={
@@ -154,7 +167,7 @@ class ExportImportProductView(APIView):
                 )
             
             return Response({
-                'message': 'Products uploaded and updated successfully'
+                'message': 'Products and categories uploaded and updated successfully'
             }, status=201)
         except Exception as e:
             return Response({

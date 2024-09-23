@@ -86,6 +86,7 @@ interface Reservation {
   is_group: boolean;
   group_members: string[];
   subject: string;
+  message: string;
 }
 
 export interface ThProps {
@@ -169,12 +170,35 @@ export default function TransactionHistory() {
   const router = useRouter();
 
   // SWR for fetching reservations
-  const { data, error, mutate, isValidating } = useSWR('adminReservationDetail/', fetcher, {
-    refreshInterval: 5000, // Refresh data every 5 seconds
-  });
+  const { data, error, mutate, isValidating } = useSWR<Reservation[]>(
+    'adminReservationDetail/',
+    fetcher,
+    {
+      refreshInterval: 5000, // Refresh data every 5 seconds
+    }
+  );
   const { data: usersData, error: usersError } = useSWR<Users[]>('adminupdateUsers/', fetcher, {
     refreshInterval: 1000,
   });
+
+  if (!data || data.length === 0) {
+    return (
+      <Flex justify="center" align="center" style={{ height: '100vh' }}>
+        <Title c={'white'}>No reservations available yet.</Title>
+      </Flex>
+    );
+  }
+
+  if (error) {
+    console.log('Error:', error);
+    return (
+      <Flex justify="center" align="center" style={{ height: '100vh' }}>
+        <Title c={'white'}>Error loading reservations: {error.message}</Title>
+      </Flex>
+    );
+  }
+
+  // Check if data contains a "message" field indicating no reservations
 
   useEffect(() => {
     if (usersData) {
@@ -183,7 +207,7 @@ export default function TransactionHistory() {
   }, [usersData]);
 
   const loading = isValidating && !data;
-  const reservations = data?.reservations || [];
+  const reservations = data || [];
 
   // Handle search
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {

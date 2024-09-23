@@ -179,8 +179,14 @@ const ProductAddPage = () => {
     };
   }, [setCategoryChanged]);
 
+  const { data: categoriesData, error: categoriesError } = useSWR('getCategories/', fetcher, {
+    refreshInterval: 1000,
+    onSuccess: (categoriesData) => {
+      setCategories(categoriesData.categories);
+    },
+  });
+
   useEffect(() => {
-    fetchCategories();
     removeValue();
   }, [categoryChanged]);
 

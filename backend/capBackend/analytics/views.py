@@ -10,6 +10,7 @@ from auth_app.models import User
 from reservations.models import Reservation
 from django.db.models import Sum
 from rest_framework.permissions import IsAuthenticated
+from django.utils import timezone
 
 
 # class PageViewViewSet(viewsets.ModelViewSet):
@@ -107,7 +108,17 @@ class TotalStocksPerCategoryAPIView(APIView):
         })
     
 
+class RecordPageView(APIView):
 
+    def get(self, request):
+        url = request.path
+        user_ip = request.META.get('REMOTE_ADDR')
+        timestamp = timezone.now()
+
+        # Create a new PageView entry
+        PageView.objects.create(url=url, user_ip=user_ip, timestamp=timestamp)
+
+        return Response({"message": "Page view recorded"})
 
 class getCompletedOrdersEachMonth(APIView):
     permission_classes = [IsAuthenticated]
