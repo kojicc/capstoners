@@ -14,3 +14,14 @@ media/
 .next/
 node_modules/
 tests/
+# Ignore unnecessary files
+*.log
+*.md
+.git/
+.next/
+node_modules/
+src/
+tests/
+public/**/*.png
+public/**/*.jpg
+public/**/*.gif
