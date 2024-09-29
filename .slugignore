@@ -1,5 +1,9 @@
-.git/
+# Ignoring unnecessary files
 node_modules/
 __pycache__/
+.git/
 .env
+README.md
 tests/
+staticfiles/
+media/
