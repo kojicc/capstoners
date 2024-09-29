@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from datetime import datetime, timedelta
+import django_heroku
 # from dotenv import load_dotenv
 import os
 
@@ -28,7 +29,7 @@ SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['capBackend.herokuapp.com']
 
 
 # Application definition
@@ -107,17 +108,27 @@ CHANNEL_LAYERS = {
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'cthmDB',
-        'USER': 'root',  #  MySQL username to
-        'PASSWORD': '12345',  #  MySQL password to
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'd97hl5on6rahp5',
+        'USER': 'udntsg3uhf7fi0',
+        'PASSWORD': 'p7f1c6785ea1bd9de771be195f29283b5d6e0c6c1f2f342503b431f060cc4fd64',
+        'HOST': 'cfls9h51f4i86c.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',
+        'PORT': '5432',
     }
-    
 }
 
 
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'cthmDB',
+#         'USER': 'admin',
+#         'PASSWORD': 'admin',
+#         # 'HOST': 'localhost',
+#         # 'PORT': '5432',
+#     }
+# }
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -154,6 +165,8 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+django_heroku.settings(locals())
 
 # STATICFILES_DIRS = [
 #     os.path.join(BASE_DIR, 'static')
