@@ -7,3 +7,10 @@ README.md
 tests/
 staticfiles/
 media/
+# Ignore development files
+*.log
+*.md
+.git/
+.next/
+node_modules/
+tests/
