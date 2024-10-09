@@ -329,52 +329,52 @@ class ReservationCartAPIView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LongPollingAPIView(APIView):
-    def get(self, request):
-        token = request.COOKIES.get('jwt_access_token')
-        if not token:
-            print('Authentication required: No token provided')
-            return JsonResponse({'error': 'Authentication required'}, status=401)
+# class LongPollingAPIView(APIView):
+#     def get(self, request):
+#         token = request.COOKIES.get('jwt_access_token')
+#         if not token:
+#             print('Authentication required: No token provided')
+#             return JsonResponse({'error': 'Authentication required'}, status=401)
 
-        try:
-            decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-            username = decoded_token.get('username')
-        except jwt.ExpiredSignatureError:
-            print(f'Token expired for username: {username}')
-            return JsonResponse({'error': 'Token expired'}, status=401)
-        except jwt.InvalidTokenError:
-            print(f'Invalid token for username: {username}')
-            return JsonResponse({'error': 'Invalid token'}, status=401)
+#         try:
+#             decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+#             username = decoded_token.get('username')
+#         except jwt.ExpiredSignatureError:
+#             print(f'Token expired for username: {username}')
+#             return JsonResponse({'error': 'Token expired'}, status=401)
+#         except jwt.InvalidTokenError:
+#             print(f'Invalid token for username: {username}')
+#             return JsonResponse({'error': 'Invalid token'}, status=401)
 
-        last_timestamp = request.GET.get('last_timestamp')
-        print(f'Last timestamp received: {last_timestamp}')
+#         last_timestamp = request.GET.get('last_timestamp')
+#         print(f'Last timestamp received: {last_timestamp}')
         
-        if last_timestamp:
-            last_timestamp = parse_datetime(last_timestamp)
+#         if last_timestamp:
+#             last_timestamp = parse_datetime(last_timestamp)
 
-            # Fetch new notifications after the last timestamp
-            new_notifications = Notification.objects.filter(
-                user__username=username,
-                timestamp__gt=last_timestamp,
-                read=0
-            )
-            print(f'New notifications fetched: {new_notifications.count()}')
-            print(f'New notifications: {new_notifications}')
-            # Update the read status of new notifications
-            if new_notifications.exists():
-                new_notifications.update(read=False)
-                notifications_data = [
-                    {'message': notification.message, 'timestamp': notification.timestamp.isoformat()}
-                    for notification in new_notifications
-                ]
-                print(f'Returning new notifications: {len(notifications_data)}')
-                return JsonResponse({'notifications': notifications_data})
-            else:
-                print('No new notifications found since last timestamp')
+#             # Fetch new notifications after the last timestamp
+#             new_notifications = Notification.objects.filter(
+#                 user__username=username,
+#                 timestamp__gt=last_timestamp,
+#                 read=0
+#             )
+#             print(f'New notifications fetched: {new_notifications.count()}')
+#             print(f'New notifications: {new_notifications}')
+#             # Update the read status of new notifications
+#             if new_notifications.exists():
+#                 new_notifications.update(read=False)
+#                 notifications_data = [
+#                     {'message': notification.message, 'timestamp': notification.timestamp.isoformat()}
+#                     for notification in new_notifications
+#                 ]
+#                 print(f'Returning new notifications: {len(notifications_data)}')
+#                 return JsonResponse({'notifications': notifications_data})
+#             else:
+#                 print('No new notifications found since last timestamp')
 
-        # If no last timestamp is provided or no new notifications
-        print('Returning empty notifications list')
-        return JsonResponse({'notifications': []})
+#         # If no last timestamp is provided or no new notifications
+#         print('Returning empty notifications list')
+#         return JsonResponse({'notifications': []})
 
 
 
@@ -400,7 +400,7 @@ class showNotification(APIView):
         unread_count = Notification.objects.filter(user__username=username, read=0).count()
         
         # Get the latest 5 notifications for the user
-        notifications = Notification.objects.filter(user__username=username).order_by('-timestamp')[:5]
+        notifications = Notification.objects.filter(user__username=username).order_by('-timestamp')
         
         # Serialize notifications data
         notification_data = []
@@ -882,7 +882,7 @@ class AdminReservationDetailAPIView(APIView):
             if not reservations.exists():
                 return Response({
                     'message': 'No reservations available'
-                }, status=status.HTTP_404_NOT_FOUND)
+                })
 
             # Combine reservation data with corresponding reservation items
             combined_data = []

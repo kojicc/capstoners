@@ -165,49 +165,142 @@ export default function TransactionHistory() {
   const [disabled, setDisabled] = useState<boolean[]>([]);
   const [users, setUsers] = useState<Users[]>([]);
   const [loader, setLoader] = useState(false);
+  const [openedImportExport, setOpenedImportExport] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [loadingImportExport, setLoadingImportExport] = useState(false);
+  const [username, setUsername] = useState('');
+  const [openedExport, setOpenedExport] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedMonthYear, setSelectedMonthYear] = useState<Date | null>(null);
+  const [selectedYear, setSelectedYear] = useState(null);
+  const [value, setValue] = useState<string[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const itemsPerPage = 5;
   const router = useRouter();
 
   // SWR for fetching reservations
-  const { data, error, mutate, isValidating } = useSWR<Reservation[]>(
-    'adminReservationDetail/',
-    fetcher,
-    {
-      refreshInterval: 5000, // Refresh data every 5 seconds
-    }
-  );
-  const { data: usersData, error: usersError } = useSWR<Users[]>('adminupdateUsers/', fetcher, {
-    refreshInterval: 1000,
+  const {
+    data: reservationsData,
+    error: reservationsError,
+    mutate,
+    isValidating,
+  } = useSWR('adminReservationDetail/', fetcher, {
+    refreshInterval: 5000, // Refresh data every 5 seconds
+    // onSuccess: (data) => {
+    //   setReservations(data.reservations);
+    // },
+    // onError(err, key, config) {
+    //   console.error('Failed to fetch reservations:', err);
+    // },
   });
 
-  if (!data || data.length === 0) {
-    return (
-      <Flex justify="center" align="center" style={{ height: '100vh' }}>
-        <Title c={'white'}>No reservations available yet.</Title>
-      </Flex>
-    );
-  }
+  useEffect(() => {
+    try {
+      setLoading(true);
+      if (reservationsData) {
+        if (reservationsData.message === 'No reservations available') {
+          setReservations([]);
+          setLoading(false);
+        }
+        if (reservationsData.reservations) {
+          setReservations(reservationsData.reservations);
+          setLoading(false);
+        }
 
-  if (error) {
-    console.log('Error:', error);
-    return (
-      <Flex justify="center" align="center" style={{ height: '100vh' }}>
-        <Title c={'white'}>Error loading reservations: {error.message}</Title>
-      </Flex>
-    );
-  }
+        console.log('Reservations:', reservationsData.reservations);
+      }
+      if (reservationsError) {
+        console.error('Error:', reservationsError);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }, [reservationsData]);
+  // const { data: usersData, error: usersError } = useSWR<Users[]>('adminupdateUsers/', fetcher, {
+  //   refreshInterval: 1000,
+  // });
+
+  // if (error) {
+  //   console.log('Error:', error);
+  //   return (
+  //     <Flex justify="center" align="center" style={{ height: '100vh' }}>
+  //       <Title c={'white'}>Error loading reservations: {error.message}</Title>
+  //     </Flex>
+  //   );
+  // }
+
+  const handleExport = async () => {
+    try {
+      setLoadingImportExport(true);
+      let formattedDate = null;
+      if (selectedDate) {
+        formattedDate = formatDateWithMilliseconds(selectedDate);
+      } else if (selectedMonthYear) {
+        formattedDate = formatMonthandYear(selectedMonthYear);
+      }
+
+      console.log('formattedDate:', formattedDate);
+      const response = await axiosInstance.get('importExportReservations/', {
+        responseType: 'blob',
+        params: {
+          username,
+          reserved_date: formattedDate, // Send formatted date
+        },
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'reservations.xlsx');
+      document.body.appendChild(link);
+      link.click();
+
+      notifications.show({ message: 'Export successful!', color: 'green' });
+    } catch (error) {
+      notifications.show({ message: 'Export failed.', color: 'red' });
+    } finally {
+      setLoadingImportExport(false);
+      setUsername('');
+      setOpenedExport(false);
+      setSelectedDate(null);
+      setSelectedMonthYear(null);
+    }
+  };
+
+  // Import users
+  const handleImport = async () => {
+    if (!file) return;
+
+    try {
+      setLoadingImportExport(true);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      await axiosInstance.post('importExportReservations/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      notifications.show({ message: 'Import successful!', color: 'green' });
+      setFile(null);
+    } catch (error) {
+      notifications.show({ message: 'Import failed.', color: 'red' });
+    } finally {
+      setLoadingImportExport(false);
+      setOpenedImportExport(false);
+    }
+  };
 
   // Check if data contains a "message" field indicating no reservations
 
-  useEffect(() => {
-    if (usersData) {
-      setUsers(usersData);
-    }
-  }, [usersData]);
-
-  const loading = isValidating && !data;
-  const reservations = data || [];
+  // useEffect(() => {
+  //   if (usersData) {
+  //     setUsers(usersData);
+  //   }
+  // }, [usersData]);
 
   // Handle search
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -393,7 +486,6 @@ export default function TransactionHistory() {
     setSelectedReservation((prev) => (prev ? { ...prev, [field]: formattedDate } : null));
   };
 
-  const [value, setValue] = useState<string[]>([]);
   const cards =
     selectedReservation?.items.map((item) => {
       const fullImageUrl = `http://localhost:8000${item.product.image}`;
@@ -443,15 +535,6 @@ export default function TransactionHistory() {
     activePage * itemsPerPage
   );
 
-  const [openedImportExport, setOpenedImportExport] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [loadingImportExport, setLoadingImportExport] = useState(false);
-  const [username, setUsername] = useState('');
-  const [openedExport, setOpenedExport] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedMonthYear, setSelectedMonthYear] = useState<Date | null>(null);
-  const [selectedYear, setSelectedYear] = useState(null);
-
   const formatDateWithMilliseconds = (date: {
     getFullYear: () => any;
     getMonth: () => number;
@@ -476,69 +559,6 @@ export default function TransactionHistory() {
     return `${year}-${month}`;
   };
 
-  const handleExport = async () => {
-    try {
-      setLoadingImportExport(true);
-      let formattedDate = null;
-      if (selectedDate) {
-        formattedDate = formatDateWithMilliseconds(selectedDate);
-      } else if (selectedMonthYear) {
-        formattedDate = formatMonthandYear(selectedMonthYear);
-      }
-
-      console.log('formattedDate:', formattedDate);
-      const response = await axiosInstance.get('importExportReservations/', {
-        responseType: 'blob',
-        params: {
-          username,
-          reserved_date: formattedDate, // Send formatted date
-        },
-      });
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'reservations.xlsx');
-      document.body.appendChild(link);
-      link.click();
-
-      notifications.show({ message: 'Export successful!', color: 'green' });
-    } catch (error) {
-      notifications.show({ message: 'Export failed.', color: 'red' });
-    } finally {
-      setLoadingImportExport(false);
-      setUsername('');
-      setOpenedExport(false);
-      setSelectedDate(null);
-      setSelectedMonthYear(null);
-    }
-  };
-
-  // Import users
-  const handleImport = async () => {
-    if (!file) return;
-
-    try {
-      setLoadingImportExport(true);
-      const formData = new FormData();
-      formData.append('file', file);
-
-      await axiosInstance.post('importExportReservations/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      notifications.show({ message: 'Import successful!', color: 'green' });
-      setFile(null);
-    } catch (error) {
-      notifications.show({ message: 'Import failed.', color: 'red' });
-    } finally {
-      setLoadingImportExport(false);
-      setOpenedImportExport(false);
-    }
-  };
-
   return (
     <Container fluid>
       <Overlay color="#000" opacity={1} zIndex={-1} />
@@ -552,504 +572,552 @@ export default function TransactionHistory() {
         wrap="wrap"
         className={classes.inner}
       >
-        <Container fluid>
-          <Group gap="md" p={10}>
-            <Title c={'white'} order={2}>
-              Transaction History - Admin
-            </Title>
+        {reservations.length === 0 ? (
+          <Stack gap="md">
+            <Title c={'white'}>No reservations available</Title>
+            <Popover
+              opened={openedImportExport}
+              onChange={setOpenedImportExport}
+              withArrow
+              shadow="md"
+              position="bottom"
+              trapFocus={false} // Allow interaction with the file explorer
+              closeOnClickOutside={false} // Keep the popover open when clicking outside
+            >
+              <Popover.Target>
+                <Tooltip label="Import User Information">
+                  <Button
+                    onClick={() => setOpenedImportExport((o) => !o)}
+                    disabled={loading}
+                    color="green"
+                    variant="outline"
+                  >
+                    {loading ? <Loader size="xs" /> : 'Do you want to import?'}
+                  </Button>
+                </Tooltip>
+              </Popover.Target>
+              <Popover.Dropdown>
+                <FileInput
+                  placeholder="Choose file"
+                  onChange={(selectedFile) => setFile(selectedFile)}
+                  accept=".xlsx"
+                  required
+                />
+                <Button
+                  mt="md"
+                  onClick={handleImport}
+                  disabled={loading || !file} // Disable the button if no file is selected
+                  fullWidth
+                >
+                  {loading ? <Loader size="xs" /> : 'Upload'}
+                </Button>
+              </Popover.Dropdown>
+            </Popover>
+          </Stack>
+        ) : reservationsError ? (
+          <Text color="red">{reservationsError}</Text>
+        ) : (
+          <Container fluid>
+            <Group gap="md" p={10}>
+              <Title c={'white'} order={2}>
+                Transaction History - Admin
+              </Title>
 
-            <Group gap="md">
-              {/* Export Users Button */}
-              <Popover
-                opened={openedExport}
-                onChange={setOpenedExport}
-                withArrow
-                shadow="md"
-                position="bottom"
-                trapFocus={false}
-                closeOnClickOutside={false}
-              >
-                <Popover.Target>
-                  <Tooltip label="Export User Information">
-                    <ActionIcon
-                      onClick={() => setOpenedExport((o) => !o)}
-                      disabled={loading}
-                      color="blue"
-                      variant="outline"
-                    >
-                      {loading ? <Loader size="xs" /> : <IconDownload size={16} />}
-                    </ActionIcon>
-                  </Tooltip>
-                </Popover.Target>
-                <Popover.Dropdown>
-                  {/* <TextInput
+              <Group gap="md">
+                {/* Export Users Button */}
+                <Popover
+                  opened={openedExport}
+                  onChange={setOpenedExport}
+                  withArrow
+                  shadow="md"
+                  position="bottom"
+                  trapFocus={false}
+                  closeOnClickOutside={false}
+                >
+                  <Popover.Target>
+                    <Tooltip label="Export User Information">
+                      <ActionIcon
+                        onClick={() => setOpenedExport((o) => !o)}
+                        disabled={loading}
+                        color="blue"
+                        variant="outline"
+                      >
+                        {loading ? <Loader size="xs" /> : <IconDownload size={16} />}
+                      </ActionIcon>
+                    </Tooltip>
+                  </Popover.Target>
+                  <Popover.Dropdown>
+                    {/* <TextInput
                     placeholder="Enter username to filter"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     mb="md"
                   /> */}
-                  <Autocomplete
-                    autoComplete="new-password"
-                    placeholder="Input username to filter"
-                    value={username}
-                    onChange={setUsername}
-                    leftSection={
-                      <IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                    }
-                    my={20}
-                    data={[
-                      {
-                        group: 'Usernames',
-                        items: users.map((user) => ({
-                          value: user.username,
-                          label: user.username,
-                        })),
-                      },
-                    ]}
-                    limit={5}
-                    comboboxProps={{
-                      transitionProps: { transition: 'pop', duration: 200 },
-                      dropdownPadding: 10,
-                      shadow: 'xl',
-                    }}
-                  />
+                    <Autocomplete
+                      autoComplete="new-password"
+                      placeholder="Input username to filter"
+                      value={username}
+                      onChange={setUsername}
+                      leftSection={
+                        <IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                      }
+                      my={20}
+                      data={[
+                        {
+                          group: 'Usernames',
+                          items: users.map((user) => ({
+                            value: user.username,
+                            label: user.username,
+                          })),
+                        },
+                      ]}
+                      limit={5}
+                      comboboxProps={{
+                        transitionProps: { transition: 'pop', duration: 200 },
+                        dropdownPadding: 10,
+                        shadow: 'xl',
+                      }}
+                    />
 
-                  {/* Date Picker for Filtering Data */}
-                  <DatePickerInput
-                    placeholder="Select Date"
-                    label="Pick Date"
-                    value={selectedDate}
-                    onChange={setSelectedDate}
-                    clearable
-                    disabled={!!selectedMonthYear} // Disable if MonthPickerInput has a value
-                  />
+                    {/* Date Picker for Filtering Data */}
+                    <DatePickerInput
+                      placeholder="Select Date"
+                      label="Pick Date"
+                      value={selectedDate}
+                      onChange={setSelectedDate}
+                      clearable
+                      disabled={!!selectedMonthYear} // Disable if MonthPickerInput has a value
+                    />
 
-                  <Divider orientation="horizontal" my="md" label="or" />
-                  <MonthPickerInput
-                    label="Pick Month and Year"
-                    placeholder="Pick date"
-                    value={selectedMonthYear}
-                    onChange={setSelectedMonthYear}
-                    disabled={!!selectedDate} // Disable if DatePickerInput has a value
-                    clearable
-                  />
-                  <Divider orientation="horizontal" my="md" />
+                    <Divider orientation="horizontal" my="md" label="or" />
+                    <MonthPickerInput
+                      label="Pick Month and Year"
+                      placeholder="Pick date"
+                      value={selectedMonthYear}
+                      onChange={setSelectedMonthYear}
+                      disabled={!!selectedDate} // Disable if DatePickerInput has a value
+                      clearable
+                    />
+                    <Divider orientation="horizontal" my="md" />
 
-                  <Button onClick={handleExport} disabled={loading} fullWidth>
-                    {loading ? <Loader size="xs" /> : 'Export'}
-                  </Button>
-                </Popover.Dropdown>
-              </Popover>
-              {/* Import Users Button with Popover */}
-              <Popover
-                opened={openedImportExport}
-                onChange={setOpenedImportExport}
-                withArrow
-                shadow="md"
-                position="bottom"
-                trapFocus={false} // Allow interaction with the file explorer
-                closeOnClickOutside={false} // Keep the popover open when clicking outside
-              >
-                <Popover.Target>
-                  <Tooltip label="Import User Information">
-                    <ActionIcon
-                      onClick={() => setOpenedImportExport((o) => !o)}
-                      disabled={loading}
-                      color="green"
-                      variant="outline"
+                    <Button onClick={handleExport} disabled={loading} fullWidth>
+                      {loading ? <Loader size="xs" /> : 'Export'}
+                    </Button>
+                  </Popover.Dropdown>
+                </Popover>
+                {/* Import Users Button with Popover */}
+                <Popover
+                  opened={openedImportExport}
+                  onChange={setOpenedImportExport}
+                  withArrow
+                  shadow="md"
+                  position="bottom"
+                  trapFocus={false} // Allow interaction with the file explorer
+                  closeOnClickOutside={false} // Keep the popover open when clicking outside
+                >
+                  <Popover.Target>
+                    <Tooltip label="Import User Information">
+                      <ActionIcon
+                        onClick={() => setOpenedImportExport((o) => !o)}
+                        disabled={loading}
+                        color="green"
+                        variant="outline"
+                      >
+                        {loading ? <Loader size="xs" /> : <IconUpload size={16} />}
+                      </ActionIcon>
+                    </Tooltip>
+                  </Popover.Target>
+                  <Popover.Dropdown>
+                    <FileInput
+                      placeholder="Choose file"
+                      onChange={(selectedFile) => setFile(selectedFile)}
+                      accept=".xlsx"
+                      required
+                    />
+                    <Button
+                      mt="md"
+                      onClick={handleImport}
+                      disabled={loading || !file} // Disable the button if no file is selected
+                      fullWidth
                     >
-                      {loading ? <Loader size="xs" /> : <IconUpload size={16} />}
-                    </ActionIcon>
-                  </Tooltip>
-                </Popover.Target>
-                <Popover.Dropdown>
-                  <FileInput
-                    placeholder="Choose file"
-                    onChange={(selectedFile) => setFile(selectedFile)}
-                    accept=".xlsx"
-                    required
-                  />
-                  <Button
-                    mt="md"
-                    onClick={handleImport}
-                    disabled={loading || !file} // Disable the button if no file is selected
-                    fullWidth
-                  >
-                    {loading ? <Loader size="xs" /> : 'Upload'}
-                  </Button>
-                </Popover.Dropdown>
-              </Popover>
+                      {loading ? <Loader size="xs" /> : 'Upload'}
+                    </Button>
+                  </Popover.Dropdown>
+                </Popover>
+              </Group>
             </Group>
-          </Group>
-          <Autocomplete
-            placeholder="Search reservations using reservation ids"
-            value={searchQuery}
-            onChange={setSearchQuery}
-            leftSection={<IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />}
-            mb="md"
-            data={[
-              {
-                group: 'ReservationIDs',
-                items: reservations.map(
-                  (reservation: { reservation_id: any }) => reservation.reservation_id
-                ),
-              },
-              {
-                group: 'Reservation Status',
-                items: [
-                  'PENDING',
-                  'APPROVED',
-                  'REJECTED',
-                  'CANCELLED',
-                  'COMPLETED',
-                  'AWAITING RETURN',
-                  'DAMAGED/LOST/PARTIALLY_COMPLETED',
-                  'AWAITING PAYMENT',
-                ],
-              },
-            ]}
-            limit={5}
-            comboboxProps={{
-              transitionProps: { transition: 'pop', duration: 200 },
-              dropdownPadding: 10,
-              shadow: 'xl',
-            }}
-          />
+            <Autocomplete
+              placeholder="Search reservations using reservation ids"
+              value={searchQuery}
+              onChange={setSearchQuery}
+              leftSection={<IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />}
+              mb="md"
+              data={[
+                {
+                  group: 'ReservationIDs',
+                  items: reservations.map(
+                    (reservation: { reservation_id: any }) => reservation.reservation_id
+                  ),
+                },
+                {
+                  group: 'Reservation Status',
+                  items: [
+                    'PENDING',
+                    'APPROVED',
+                    'REJECTED',
+                    'CANCELLED',
+                    'COMPLETED',
+                    'AWAITING RETURN',
+                    'DAMAGED/LOST/PARTIALLY_COMPLETED',
+                    'AWAITING PAYMENT',
+                  ],
+                },
+              ]}
+              limit={5}
+              comboboxProps={{
+                transitionProps: { transition: 'pop', duration: 200 },
+                dropdownPadding: 10,
+                shadow: 'xl',
+              }}
+            />
 
-          {loading ? (
-            <Text>Loading...</Text>
-          ) : error ? (
-            <Text color="red">{error}</Text>
-          ) : (
-            <Container fluid>
-              <ScrollArea offsetScrollbars type="auto" className={styles.tableContainer}>
-                <Grid>
-                  <Grid.Col span="auto">
-                    <div>
-                      <Table className={styles.table} horizontalSpacing="xl" verticalSpacing="xs">
-                        <thead>
-                          <tr className={styles.tr}>
-                            <Th
-                              sorted={sortBy === 'reservation_id'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('reservation_id')}
-                            >
-                              Reservation ID
-                            </Th>
-
-                            <Th
-                              sorted={sortBy === 'reserved_date'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('reserved_date')}
-                            >
-                              Reserved Date
-                            </Th>
-                            <Th
-                              sorted={sortBy === 'reservation_date'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('reservation_date')}
-                            >
-                              Reservation Date Start
-                            </Th>
-                            <Th
-                              sorted={sortBy === 'reservation_date_end'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('reservation_date_end')}
-                            >
-                              Reservation Date End
-                            </Th>
-                            <Th
-                              sorted={sortBy === 'is_group'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('is_group')}
-                            >
-                              By group?
-                            </Th>
-
-                            <Th
-                              sorted={sortBy === 'subject'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('subject')}
-                            >
-                              Subject
-                            </Th>
-                            <Th
-                              sorted={sortBy === 'reservation_purpose'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('reservation_purpose')}
-                            >
-                              Reservation Purpose
-                            </Th>
-                            <Th
-                              sorted={sortBy === 'product_ids'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('product_ids')}
-                            >
-                              Product IDs
-                            </Th>
-                            <Th
-                              sorted={sortBy === 'quantities'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('quantities')}
-                            >
-                              Quantities
-                            </Th>
-                            <Th
-                              sorted={sortBy === 'status'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('status')}
-                            >
-                              Status
-                            </Th>
-                            <Th>Actions</Th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {paginatedData.map((reservation) => {
-                            const products = reservation.items
-                              .map((item: { product: any }) => item.product.productId)
-                              .join(', ');
-                            const quantities = reservation.items
-                              .map((item: { quantity: any }) => item.quantity)
-                              .join(', ');
-
-                            return (
-                              <tr
-                                key={reservation.reservation_id}
-                                className={styles.tr}
-                                id={`reservation-${reservation.reservation_id}`}
+            {loading ? (
+              <>
+                <Text>Loading...</Text>
+              </>
+            ) : (
+              <Container fluid>
+                <ScrollArea offsetScrollbars type="auto" className={styles.tableContainer}>
+                  <Grid>
+                    <Grid.Col span="auto">
+                      <div>
+                        <Table className={styles.table} horizontalSpacing="xl" verticalSpacing="xs">
+                          <thead>
+                            <tr className={styles.tr}>
+                              <Th
+                                sorted={sortBy === 'reservation_id'}
+                                reversed={reverseSortDirection}
+                                onSort={() => handleSort('reservation_id')}
                               >
-                                <td className={styles.td}>{reservation.reservation_id}</td>
-                                <td className={styles.td}>
-                                  {moment(new Date(reservation.reserved_date))
-                                    .tz('Asia/Manila')
-                                    .format('YYYY-MM-DD HH:mm')}
-                                </td>
-                                <td className={styles.td}>
-                                  {moment(new Date(reservation.reservation_date))
-                                    .tz('Asia/Manila')
-                                    .format('YYYY-MM-DD HH:mm')}
-                                </td>
-                                <td className={styles.td}>
-                                  {moment(new Date(reservation.reservation_date_end))
-                                    .tz('Asia/Manila')
-                                    .format('YYYY-MM-DD HH:mm')}
-                                </td>
-                                <td className={styles.td}>
-                                  {' '}
-                                  {reservation.is_group
-                                    ? `Yes - ${reservation.group_members}`
-                                    : 'No'}
-                                </td>
-                                <td className={styles.td}>{reservation.subject}</td>
-                                <td className={styles.td}>{reservation.reservation_purpose}</td>
-                                <td className={styles.td}>{products}</td>
-                                <td className={styles.td}>{quantities}</td>
-                                <td className={styles.td}>{reservation.status}</td>
-                                <td className={styles.td}>
-                                  <Group gap="xs">
-                                    <ActionIcon
-                                      onClick={() => {
-                                        setSelectedReservation(reservation);
-                                        setEditModalOpened(true);
-                                      }}
-                                    >
-                                      <IconEdit />
-                                    </ActionIcon>
-                                    <ActionIcon
-                                      color="red"
-                                      onClick={() => {
-                                        setSelectedReservation(reservation);
-                                        setDeleteModalOpened(true);
-                                      }}
-                                    >
-                                      <IconTrash />
-                                    </ActionIcon>
-                                  </Group>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </Table>
-                    </div>
-                  </Grid.Col>
-                </Grid>
-              </ScrollArea>
-              <Flex justify="center">
-                <Pagination
-                  value={activePage}
-                  onChange={setPage}
-                  total={Math.ceil(sortedData.length / itemsPerPage)}
-                  mt="md"
-                  color="blue"
-                />
-              </Flex>
-            </Container>
-          )}
+                                Reservation ID
+                              </Th>
 
-          {/* Edit Modal */}
-          <Modal opened={editModalOpened} onClose={handleCloseModal} title="Edit Reservation">
-            <LoadingOverlay
-              visible={loader}
-              zIndex={1000}
-              overlayProps={{ radius: 'sm', blur: 2 }}
-            />
+                              <Th
+                                sorted={sortBy === 'reserved_date'}
+                                reversed={reverseSortDirection}
+                                onSort={() => handleSort('reserved_date')}
+                              >
+                                Reserved Date
+                              </Th>
+                              <Th
+                                sorted={sortBy === 'reservation_date'}
+                                reversed={reverseSortDirection}
+                                onSort={() => handleSort('reservation_date')}
+                              >
+                                Reservation Date Start
+                              </Th>
+                              <Th
+                                sorted={sortBy === 'reservation_date_end'}
+                                reversed={reverseSortDirection}
+                                onSort={() => handleSort('reservation_date_end')}
+                              >
+                                Reservation Date End
+                              </Th>
+                              <Th
+                                sorted={sortBy === 'is_group'}
+                                reversed={reverseSortDirection}
+                                onSort={() => handleSort('is_group')}
+                              >
+                                By group?
+                              </Th>
 
-            <Stack>
-              <TextInput
-                disabled
-                label="Reservation ID"
-                value={selectedReservation?.reservation_id || ''}
-                onChange={(event) =>
-                  setSelectedReservation(
-                    (prev) =>
-                      ({ ...prev, reservation_id: event.currentTarget.value }) as Reservation
-                  )
-                }
-              />
+                              <Th
+                                sorted={sortBy === 'subject'}
+                                reversed={reverseSortDirection}
+                                onSort={() => handleSort('subject')}
+                              >
+                                Subject
+                              </Th>
+                              <Th
+                                sorted={sortBy === 'reservation_purpose'}
+                                reversed={reverseSortDirection}
+                                onSort={() => handleSort('reservation_purpose')}
+                              >
+                                Reservation Purpose
+                              </Th>
+                              <Th
+                                sorted={sortBy === 'product_ids'}
+                                reversed={reverseSortDirection}
+                                onSort={() => handleSort('product_ids')}
+                              >
+                                Product IDs
+                              </Th>
+                              <Th
+                                sorted={sortBy === 'quantities'}
+                                reversed={reverseSortDirection}
+                                onSort={() => handleSort('quantities')}
+                              >
+                                Quantities
+                              </Th>
+                              <Th
+                                sorted={sortBy === 'status'}
+                                reversed={reverseSortDirection}
+                                onSort={() => handleSort('status')}
+                              >
+                                Status
+                              </Th>
+                              <Th>Actions</Th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {paginatedData.map((reservation) => {
+                              const products = reservation.items
+                                .map((item: { product: any }) => item.product.productId)
+                                .join(', ');
+                              const quantities = reservation.items
+                                .map((item: { quantity: any }) => item.quantity)
+                                .join(', ');
 
-              <TextInput
-                label="Reservation Purpose"
-                value={selectedReservation?.reservation_purpose || ''}
-                onChange={(event) =>
-                  setSelectedReservation(
-                    (prev) =>
-                      ({ ...prev, reservation_purpose: event.currentTarget.value }) as Reservation
-                  )
-                }
-              />
-
-              <Select
-                label="Status"
-                description="Select the status of the reservation"
-                defaultSearchValue={selectedReservation?.status || ''}
-                onChange={(value) =>
-                  setSelectedReservation((prev) => ({ ...prev, status: value! }) as Reservation)
-                }
-                data={[
-                  'APPROVED',
-                  'REJECTED',
-                  'CANCELLED',
-                  'COMPLETED',
-                  'AWAITING RETURN',
-                  'DAMAGED/LOST/PARTIALLY_COMPLETED',
-                  'AWAITING PAYMENT',
-                ]}
-                placeholder="Select status"
-              />
-              <DatesProvider settings={{ locale: 'en', firstDayOfWeek: 1, weekendDays: [1, 5] }}>
-                <DateTimePicker
-                  clearable
-                  hideOutsideDates
-                  valueFormat="YYYY-MM-DD HH:mm"
-                  value={
-                    selectedReservation?.reservation_date
-                      ? moment(selectedReservation.reservation_date).toDate()
-                      : null
-                  }
-                  onChange={(date) => handleDateChange(date, 'reservation_date')}
-                  label="Reservation Date"
-                  placeholder="Pick date and time"
-                  locale="en"
-                />
-                <DateTimePicker
-                  clearable
-                  hideOutsideDates
-                  valueFormat="YYYY-MM-DD HH:mm"
-                  value={
-                    selectedReservation?.reservation_date_end
-                      ? moment(selectedReservation.reservation_date_end).toDate()
-                      : null
-                  }
-                  onChange={(date) => handleDateChange(date, 'reservation_date_end')}
-                  label="Reservation Date End"
-                  placeholder="Pick date and time"
-                  locale="en"
-                />
-              </DatesProvider>
-
-              <Checkbox.Group
-                value={value}
-                onChange={handleCheckboxChange}
-                label="Pick the items you want to reserve/update."
-                description="Choose all items that you will need."
-              >
-                <Stack pt="md" gap="xs">
-                  {selectedReservation?.items.map((item, index) => {
-                    const fullImageUrl = `http://localhost:8000${item.product.image}`;
-
-                    return (
-                      <div key={item.product.productId}>
-                        <Checkbox.Card
-                          className={classes.root}
-                          radius="md"
-                          value={item.product.productId}
-                        >
-                          <Group wrap="nowrap" align="flex-start">
-                            <Checkbox.Indicator />
-                            <div>
-                              <Text className={classes.label}>
-                                Product ID: {item.product.productId}
-                              </Text>
-                              <Text className={classes.description}>Quantity: {item.quantity}</Text>
-                              <img
-                                src={fullImageUrl}
-                                alt={`Product ${item.product.productId}`}
-                                className={classes.image}
-                                style={{ width: '100px', height: '100px' }}
-                              />
-                            </div>
-                          </Group>
-                        </Checkbox.Card>
-
-                        <NumberInput
-                          label={`Quantity for ${item.product.productId}`}
-                          defaultValue={item.quantity}
-                          disabled={disabled[index]} // Toggle based on the checkbox
-                          value={quantity[index]}
-                          onChange={(value) => {
-                            setQuantity((prev) => {
-                              const newQuantities = [...prev];
-                              newQuantities[index] = Number(value);
-                              return newQuantities;
-                            });
-                          }}
-                          description="Enter the quantity of the product you want to reserve/update."
-                          min={1}
-                          stepHoldDelay={500}
-                          stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
-                        />
+                              return (
+                                <tr
+                                  key={reservation.reservation_id}
+                                  className={styles.tr}
+                                  id={`reservation-${reservation.reservation_id}`}
+                                >
+                                  <td className={styles.td}>{reservation.reservation_id}</td>
+                                  <td className={styles.td}>
+                                    {moment(new Date(reservation.reserved_date))
+                                      .tz('Asia/Manila')
+                                      .format('YYYY-MM-DD HH:mm')}
+                                  </td>
+                                  <td className={styles.td}>
+                                    {moment(new Date(reservation.reservation_date))
+                                      .tz('Asia/Manila')
+                                      .format('YYYY-MM-DD HH:mm')}
+                                  </td>
+                                  <td className={styles.td}>
+                                    {moment(new Date(reservation.reservation_date_end))
+                                      .tz('Asia/Manila')
+                                      .format('YYYY-MM-DD HH:mm')}
+                                  </td>
+                                  <td className={styles.td}>
+                                    {' '}
+                                    {reservation.is_group
+                                      ? `Yes - ${reservation.group_members}`
+                                      : 'No'}
+                                  </td>
+                                  <td className={styles.td}>{reservation.subject}</td>
+                                  <td className={styles.td}>{reservation.reservation_purpose}</td>
+                                  <td className={styles.td}>{products}</td>
+                                  <td className={styles.td}>{quantities}</td>
+                                  <td className={styles.td}>{reservation.status}</td>
+                                  <td className={styles.td}>
+                                    <Group gap="xs">
+                                      <ActionIcon
+                                        onClick={() => {
+                                          setSelectedReservation(reservation);
+                                          setEditModalOpened(true);
+                                        }}
+                                      >
+                                        <IconEdit />
+                                      </ActionIcon>
+                                      <ActionIcon
+                                        color="red"
+                                        onClick={() => {
+                                          setSelectedReservation(reservation);
+                                          setDeleteModalOpened(true);
+                                        }}
+                                      >
+                                        <IconTrash />
+                                      </ActionIcon>
+                                    </Group>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </Table>
                       </div>
-                    );
-                  })}
-                </Stack>
-              </Checkbox.Group>
+                    </Grid.Col>
+                  </Grid>
+                </ScrollArea>
+                <Flex justify="center">
+                  <Pagination
+                    value={activePage}
+                    onChange={setPage}
+                    total={Math.ceil(sortedData.length / itemsPerPage)}
+                    mt="md"
+                    color="blue"
+                  />
+                </Flex>
+              </Container>
+            )}
 
-              <Button onClick={handleEdit}>Save Changes</Button>
-            </Stack>
-          </Modal>
+            {/* Edit Modal */}
+            <Modal opened={editModalOpened} onClose={handleCloseModal} title="Edit Reservation">
+              <LoadingOverlay
+                visible={loader}
+                zIndex={1000}
+                overlayProps={{ radius: 'sm', blur: 2 }}
+              />
 
-          <Modal
-            opened={deleteModalOpened}
-            onClose={() => setDeleteModalOpened(false)}
-            title="Delete Reservation"
-          >
-            {' '}
-            <LoadingOverlay
-              visible={loading}
-              zIndex={1000}
-              overlayProps={{ radius: 'sm', blur: 2 }}
-            />
-            <Text>Are you sure you want to delete this reservation?</Text>
-            <Group justify="center" mt="md">
-              <Button color="red" onClick={handleDelete}>
-                Delete
-              </Button>
-              <Button onClick={() => setDeleteModalOpened(false)}>Cancel</Button>
-            </Group>
-          </Modal>
-        </Container>
+              <Stack>
+                <TextInput
+                  disabled
+                  label="Reservation ID"
+                  value={selectedReservation?.reservation_id || ''}
+                  onChange={(event) =>
+                    setSelectedReservation(
+                      (prev) =>
+                        ({ ...prev, reservation_id: event.currentTarget.value }) as Reservation
+                    )
+                  }
+                />
+
+                <TextInput
+                  label="Reservation Purpose"
+                  value={selectedReservation?.reservation_purpose || ''}
+                  onChange={(event) =>
+                    setSelectedReservation(
+                      (prev) =>
+                        ({ ...prev, reservation_purpose: event.currentTarget.value }) as Reservation
+                    )
+                  }
+                />
+
+                <Select
+                  label="Status"
+                  description="Select the status of the reservation"
+                  defaultSearchValue={selectedReservation?.status || ''}
+                  onChange={(value) =>
+                    setSelectedReservation((prev) => ({ ...prev, status: value! }) as Reservation)
+                  }
+                  data={[
+                    'APPROVED',
+                    'REJECTED',
+                    'CANCELLED',
+                    'COMPLETED',
+                    'AWAITING RETURN',
+                    'DAMAGED/LOST/PARTIALLY_COMPLETED',
+                    'AWAITING PAYMENT',
+                  ]}
+                  placeholder="Select status"
+                />
+                <DatesProvider settings={{ locale: 'en', firstDayOfWeek: 1, weekendDays: [1, 5] }}>
+                  <DateTimePicker
+                    clearable
+                    hideOutsideDates
+                    valueFormat="YYYY-MM-DD HH:mm"
+                    value={
+                      selectedReservation?.reservation_date
+                        ? moment(selectedReservation.reservation_date).toDate()
+                        : null
+                    }
+                    onChange={(date) => handleDateChange(date, 'reservation_date')}
+                    label="Reservation Date"
+                    placeholder="Pick date and time"
+                    locale="en"
+                  />
+                  <DateTimePicker
+                    clearable
+                    hideOutsideDates
+                    valueFormat="YYYY-MM-DD HH:mm"
+                    value={
+                      selectedReservation?.reservation_date_end
+                        ? moment(selectedReservation.reservation_date_end).toDate()
+                        : null
+                    }
+                    onChange={(date) => handleDateChange(date, 'reservation_date_end')}
+                    label="Reservation Date End"
+                    placeholder="Pick date and time"
+                    locale="en"
+                  />
+                </DatesProvider>
+
+                <Checkbox.Group
+                  value={value}
+                  onChange={handleCheckboxChange}
+                  label="Pick the items you want to reserve/update."
+                  description="Choose all items that you will need."
+                >
+                  <Stack pt="md" gap="xs">
+                    {selectedReservation?.items.map((item, index) => {
+                      const fullImageUrl = `http://localhost:8000${item.product.image}`;
+
+                      return (
+                        <div key={item.product.productId}>
+                          <Checkbox.Card
+                            className={classes.root}
+                            radius="md"
+                            value={item.product.productId}
+                          >
+                            <Group wrap="nowrap" align="flex-start">
+                              <Checkbox.Indicator />
+                              <div>
+                                <Text className={classes.label}>
+                                  Product ID: {item.product.productId}
+                                </Text>
+                                <Text className={classes.description}>
+                                  Quantity: {item.quantity}
+                                </Text>
+                                <img
+                                  src={fullImageUrl}
+                                  alt={`Product ${item.product.productId}`}
+                                  className={classes.image}
+                                  style={{ width: '100px', height: '100px' }}
+                                />
+                              </div>
+                            </Group>
+                          </Checkbox.Card>
+
+                          <NumberInput
+                            label={`Quantity for ${item.product.productId}`}
+                            defaultValue={item.quantity}
+                            disabled={disabled[index]} // Toggle based on the checkbox
+                            value={quantity[index]}
+                            onChange={(value) => {
+                              setQuantity((prev) => {
+                                const newQuantities = [...prev];
+                                newQuantities[index] = Number(value);
+                                return newQuantities;
+                              });
+                            }}
+                            description="Enter the quantity of the product you want to reserve/update."
+                            min={1}
+                            stepHoldDelay={500}
+                            stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
+                          />
+                        </div>
+                      );
+                    })}
+                  </Stack>
+                </Checkbox.Group>
+
+                <Button onClick={handleEdit}>Save Changes</Button>
+              </Stack>
+            </Modal>
+
+            <Modal
+              opened={deleteModalOpened}
+              onClose={() => setDeleteModalOpened(false)}
+              title="Delete Reservation"
+            >
+              {' '}
+              <LoadingOverlay
+                visible={loading}
+                zIndex={1000}
+                overlayProps={{ radius: 'sm', blur: 2 }}
+              />
+              <Text>Are you sure you want to delete this reservation?</Text>
+              <Group justify="center" mt="md">
+                <Button color="red" onClick={handleDelete}>
+                  Delete
+                </Button>
+                <Button onClick={() => setDeleteModalOpened(false)}>Cancel</Button>
+              </Group>
+            </Modal>
+          </Container>
+        )}
       </Flex>
     </Container>
   );

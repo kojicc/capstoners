@@ -226,27 +226,29 @@ export function Header() {
             <a href="/" className={classes.link}>
               Home
             </a>
-            {username && role === 'admin' ? (
-              <a href="" className={classes.link}>
-                Admin Dashboard
-              </a>
-            ) : (
-              <Menu>
-                <Menu.Target>
-                  <a className={classes.link} style={{ cursor: 'pointer' }}>
-                    Support
-                  </a>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item
-                    leftSection={<IconSettings size={14} />}
-                    onClick={() => setModalOpen(true)}
-                  >
-                    Change Password
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            )}
+            {username ? (
+              role === 'admin' ? (
+                <a href="" className={classes.link}>
+                  Admin Dashboard
+                </a>
+              ) : (
+                <Menu>
+                  <Menu.Target>
+                    <a className={classes.link} style={{ cursor: 'pointer' }}>
+                      Support
+                    </a>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Item
+                      leftSection={<IconSettings size={14} />}
+                      onClick={() => setModalOpen(true)}
+                    >
+                      Change Password
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              )
+            ) : null}
             <HoverCard width={600} position="bottom" radius="md" shadow="md" withinPortal>
               <HoverCard.Target>
                 <a href="reservationLandingPage" className={classes.link}>

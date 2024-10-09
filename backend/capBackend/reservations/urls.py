@@ -1,6 +1,6 @@
 # urls.py (app auth level)
 from django.urls import path
-from .views import ReservationCreateUpdateAPIView, ReservationDetailAPIView,  ReservationDeleteView, ReservationSearchView , LongPollingAPIView,showNotification,LongPollingAPIView,readNotification,AdminUpdateReservationStatusAPIView,AdminReservationDetailAPIView,ReservationCartAPIView,ReservationImportExportView
+from .views import ReservationCreateUpdateAPIView, ReservationDetailAPIView,  ReservationDeleteView, ReservationSearchView ,showNotification,readNotification,AdminUpdateReservationStatusAPIView,AdminReservationDetailAPIView,ReservationCartAPIView,ReservationImportExportView
 urlpatterns = [
     path('reservationsCreateUpdate/', ReservationCreateUpdateAPIView.as_view(), name='reservationsCreate'),
     path('adminUpdateReservationStatus/', AdminUpdateReservationStatusAPIView.as_view(), name='adminUpdateReservationStatus'),
@@ -11,9 +11,7 @@ urlpatterns = [
     path('reservationsSearch/', ReservationSearchView.as_view(), name='reservationsSearch'),
     # path('reservationsCartAdd/', ReservationCartCreateAPIView.as_view(), name='reservationsCartAdd'),
     # path('reservationsCartList/', ReservationCartListAPIView.as_view(), name='reservationsCartList'),
-    path('long-polling/', LongPollingAPIView.as_view(), name='long-polling'),
     path('showNotification/', showNotification.as_view(), name='showNotification'),
-    path('long-polling/', LongPollingAPIView.as_view(), name='long-polling'),
     path('mark_as_read/', readNotification.as_view(), name='mark_as_read'),
     path('reservationsCart/', ReservationCartAPIView.as_view(), name='reservationsCart'),
     path('importExportReservations/', ReservationImportExportView.as_view(), name='importExportReservations'),

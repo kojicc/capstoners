@@ -275,7 +275,7 @@ class deleteCategory(APIView):
             }, status=400)
 
 class RetrieveCategory(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     def get(self,request):
         try:
             categories = Category.objects.all()

@@ -33,14 +33,14 @@ export default function HomePage() {
 
       {/* <TransactionsAdmin/> */}
 
-      <Products />
+      {/* <Products /> */}
       <ContactUs />
-      <Button component="a" href="/cart">
+      {/* <Button component="a" href="/cart">
         Cart Test
       </Button>
       <Button component="a" href="/test">
         Notification Test
-      </Button>
+      </Button> */}
       <Footer />
     </>
   );

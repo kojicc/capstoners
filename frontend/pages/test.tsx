@@ -1,226 +1,136 @@
-import React, { useEffect, useState } from 'react';
+'use client';
+
+import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import axiosInstance from '@/utils/axiosInstance';
-import { notifications } from '@mantine/notifications';
-import { Button } from '@mantine/core';
-import NotificationButton from '@/components/NotificationButton';
+import {
+  Container,
+  Title,
+  Paper,
+  Text,
+  Group,
+  ActionIcon,
+  Badge,
+  Stack,
+  Box,
+  useMantineTheme,
+} from '@mantine/core';
+import { IconCheck, IconTrash, IconBellRinging } from '@tabler/icons-react';
+import { Header } from '@/components/LandingPage/header/HeaderLP';
 
-const Notifications = () => {
-    const [notificationsList, setNotificationsList] = useState<any[]>([]);
-    const [lastTimestamp, setLastTimestamp] = useState<string | null>(null);
-    
+const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 
+interface Notification {
+  id: number;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  checked: boolean;
+  full_name: string | null;
+}
+export default function ElegantNotifications() {
+  const theme = useMantineTheme();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
+  const { data, error, isLoading } = useSWR('showNotification/', fetcher, {
+    refreshInterval: 5000, // Poll every 5 seconds
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    onSuccess: (fetchedNotifications: { notifications: Notification[]; unread_count: number }) => {
+      console.log('API Response:', fetchedNotifications); // Log raw response
+      const { notifications, unread_count } = fetchedNotifications;
+      setNotifications(notifications);
+      setUnreadCount(unread_count);
+    },
+  });
 
-     // Function to extract reservation ID from the notification message
-     const extractReservationId = (message: string): string | null => {
-        // Update regex to match the full reservation ID, including possible timestamps or other details
-        const match = message.match(/reservation ([\d_]+-[\d_]+-[\d_]+-[\d_]+)/);
-        return match ? match[1] : null;
-    };
+  useEffect(() => {
+    if (data) {
+      console.log('Fetched Data:', data);
+    }
+    if (error) {
+      console.error('Error fetching data:', error);
+    }
+  }, [data, error]);
 
+  const markAsRead = async (id: number) => {
+    try {
+      await axiosInstance.post('mark_as_read/', { id });
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((notif) => (notif.id === id ? { ...notif, read: true } : notif))
+      );
+      setUnreadCount((prevCount) => prevCount - 1);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
 
+  const deleteNotification = (id: number) => {
+    setNotifications(notifications.filter((notif) => notif.id !== id));
+  };
 
-
-
-    // Function to show notification using Mantine
-    const showNotificationUI = (notification: any) => {
-        console.log("extractReservationId ",extractReservationId(notification.message) );
-        console.log("notificatin id",notification.reservation_id);
-
-        const reservationid = extractReservationId(notification.message);
-
-        if (notification.message === `Your reservation ${reservationid} has been approved successfully and is awaiting your pickup.`) 
-            {
-                notifications.show({
-                    id: notification.timestamp, // Use timestamp as a unique id
-                    message: notification.message,
-                    autoClose: 5000,
-                    title: "Approved Reservation Notification",
-                    color: 'green',
-                    withCloseButton: true,
-                    onClose: () => console.log('Notification closed'),
-                });
-            }
-        
-        else if (notification.message === `Your reservation ${reservationid} has been cancelled.`)
-        {
-            notifications.show({
-                id: notification.timestamp, // Use timestamp as a unique id
-                message: notification.message,
-                autoClose: 5000,
-                title: "Cancellation Notification",
-                color: 'red',
-                withCloseButton: true,
-                onClose: () => console.log('Notification closed'),
-            });
-        }
-
-        else if (notification.message === `Your reservation ${reservationid} has been rejected.`)
-        {
-            notifications.show({
-                id: notification.timestamp, // Use timestamp as a unique id
-                message: notification.message,
-                autoClose: 5000,
-                title: "Rejection Notification",
-                color: 'red',
-                withCloseButton: true,
-                onClose: () => console.log('Notification closed'),
-            });
-        }
-
-        else if (notification.message === `Your reservation ${reservationid} has been completed.`)
-        {
-            notifications.show({
-                id: notification.timestamp, // Use timestamp as a unique id
-                message: notification.message,
-                autoClose: 5000,
-                title: "Completion Notification",
-                color: 'green',
-                withCloseButton: true,
-                onClose: () => console.log('Notification closed'),
-            });
-        }
-
-        else if (notification.message === `Your reservation ${reservationid} is awaiting return.`)
-        {
-            notifications.show({
-                id: notification.timestamp, // Use timestamp as a unique id
-                message: notification.message,
-                autoClose: 5000,
-                title: "Return Notification",
-                color: 'blue',
-                withCloseButton: true,
-                onClose: () => console.log('Notification closed'),
-            });
-        }
-
-        else if (notification.message === `Your reservation ${reservationid} has been marked as damaged/lost/partially completed.`)
-        {
-            notifications.show({
-                id: notification.timestamp, // Use timestamp as a unique id
-                message: notification.message,
-                autoClose: 5000,
-                title: "Damaged/Lost/Partially Completed Notification",
-                color: 'red',
-                withCloseButton: true,
-                onClose: () => console.log('Notification closed'),
-            });
-        }
-        else if (notification.message === `Your reservation ${reservationid} is awaiting payment.`)
-        {
-            notifications.show({
-                id: notification.timestamp, // Use timestamp as a unique id
-                message: notification.message,
-                autoClose: 5000,
-                title: "Payment Notification",
-                color: 'yellow',
-                withCloseButton: true,
-                onClose: () => console.log('Notification closed'),
-            });
-        }
-
-        else if (notification.message === `Your reservation ${reservationid} has been created successfully."`)
-        {
-            notifications.show({
-                id: notification.timestamp, // Use timestamp as a unique id
-                message: notification.message,
-                autoClose: 5000,
-                title: "Creation Notification",
-                color: 'blue',
-                withCloseButton: true,
-                onClose: () => console.log('Notification closed'),
-            });
-        }
-
-        else{
-            notifications.show({
-                id: notification.timestamp, // Use timestamp as a unique id
-                message: notification.message,
-                autoClose: 5000,
-                title: "General Notification",
-                color: 'blue',
-                withCloseButton: true,
-                onClose: () => console.log('Notification closed'),
-        }
-        );
-        }
-        
-    };
-
-    // Function to fetch all notifications initially
-    const fetchAllNotifications = async () => {
-        try {
-            const response = await axiosInstance.get('showNotification/');
-            const fetchedNotifications = response.data;
-
-            setNotificationsList(fetchedNotifications);
-            if (fetchedNotifications.length > 0) {
-                setLastTimestamp(fetchedNotifications[0].timestamp);
-            }
-        } catch (error) {
-            console.error('Error fetching notifications:', error);
-        }
-    };
-
-    // Function to fetch new notifications via long polling
-    const fetchNewNotifications = async () => {
-        try {
-            const response = await axiosInstance.get('long-polling/', {
-                params: { last_timestamp: lastTimestamp }
-            });
-            const newNotifications = response.data.notifications;
-
-            if (newNotifications.length > 0) {
-                // Update the list with new notifications
-                setNotificationsList(prevNotifications => [
-                    ...prevNotifications,
-                    ...newNotifications
-                ]);
-                
-
-                // Show new notifications using Mantine
-                newNotifications.forEach(showNotificationUI);
-
-                // Update the last timestamp
-                setLastTimestamp(newNotifications[newNotifications.length - 1].timestamp);
-            }
-        } catch (error) {
-            console.error('Error fetching new notifications:', error);
-        }
-    };
-
-    useEffect(() => {
-        // Fetch all notifications on component mount
-        fetchAllNotifications();
-
-        // Polling every 5 seconds for new notifications
-        const intervalId = setInterval(fetchNewNotifications, 5000);
-
-        // Cleanup on component unmount
-        return () => clearInterval(intervalId);
-    }, [lastTimestamp]);
-
-    return (
-        <div>
-             <NotificationButton />
-            <h2>Notifications</h2>
-            <ul>
-                {notificationsList.map((notification, index) => (
-                    <li key={index}>{notification.message}</li>
-                ))}
-            </ul>
-            <Button
-      onClick={() =>
-        notifications.show({
-          title: 'Default notification',
-          message: 'Do not forget to star Mantine on GitHub! 🌟',
-        })
-      }
-    >
-      Show notification
-    </Button>
-        </div>
-    );
-};
-
-export default Notifications;
+  return (
+    <>
+      <Header />
+      <Container size="sm" py="xl">
+        <Paper shadow="md" radius="lg" p="md" withBorder mt={60}>
+          <Group justify="apart" mb="lg">
+            <Group>
+              <IconBellRinging size={28} stroke={1.5} color={theme.colors.blue[6]} />
+              <Title order={2}>Notifications</Title>
+            </Group>
+            <Badge size="lg" radius="xl" variant="dot" color="blue">
+              {unreadCount} New
+            </Badge>
+          </Group>
+          <Stack gap="xs">
+            {isLoading ? (
+              <Text>Loading...</Text>
+            ) : error ? (
+              <Text>Error loading notifications.</Text>
+            ) : notifications.length === 0 ? (
+              <Text>No notifications available.</Text>
+            ) : (
+              notifications.map((notification) => (
+                <Paper key={notification.id} shadow="sm" radius="md" p="md" withBorder>
+                  <Group justify="apart" mb="xs">
+                    <Text w={600} size="sm" color={notification.read ? 'dimmed' : 'dark'}>
+                      {notification.id}
+                    </Text>
+                    <Text size="xs" color="dimmed">
+                      {notification.timestamp}
+                    </Text>
+                  </Group>
+                  <Text size="sm" color={notification.read ? 'dimmed' : 'dark'} mb="sm">
+                    {notification.message}
+                  </Text>
+                  <Group justify="right" gap="xs">
+                    {!notification.read && (
+                      <ActionIcon
+                        variant="light"
+                        color="blue"
+                        onClick={() => markAsRead(notification.id)}
+                        title="Mark as read"
+                      >
+                        <IconCheck size={16} />
+                      </ActionIcon>
+                    )}
+                    <ActionIcon
+                      variant="light"
+                      color="red"
+                      onClick={() => deleteNotification(notification.id)}
+                      title="Delete notification"
+                    >
+                      <IconTrash size={16} />
+                    </ActionIcon>
+                  </Group>
+                </Paper>
+              ))
+            )}
+          </Stack>
+        </Paper>
+      </Container>
+    </>
+  );
+}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import useSWR from 'swr';
 import axiosInstance from '@/utils/axiosInstance';
-import { Menu, Checkbox, Text, ActionIcon, MenuDivider } from '@mantine/core';
+import { Menu, Checkbox, Text, ActionIcon, MenuDivider, Pagination, Center } from '@mantine/core';
 import { IconBell } from '@tabler/icons-react';
 import moment from 'moment';
 import { modals } from '@mantine/modals';
@@ -21,6 +21,15 @@ interface Notification {
 
 const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 
+const chunk = <T,>(array: T[], size: number): T[][] => {
+  if (!array.length) {
+    return [];
+  }
+  const head = array.slice(0, size);
+  const tail = array.slice(size);
+  return [head, ...chunk(tail, size)];
+};
+
 const NotificationButton = () => {
   const { username, role } = useAuth();
 
@@ -28,27 +37,11 @@ const NotificationButton = () => {
   const [lastTimestamp, setLastTimestamp] = useState<string | null>(null);
   const [opened, setOpened] = useState<boolean>(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [activePage, setPage] = useState(1);
   const ref = useClickOutside(() => {
     if (opened) return;
     setOpened(false);
   });
-
-  // const { data, error, isLoading } = useSWR('showNotification/', fetcher, {
-  //   refreshInterval: 5000, // Poll every 5 seconds
-  //   revalidateOnFocus: true,
-  //   revalidateOnReconnect: true,
-  //   onSuccess: (fetchedNotifications: Notification[]) => {
-  //     if (fetchedNotifications.length > 0) {
-  //       setLastTimestamp(fetchedNotifications[0].timestamp);
-  //       setNotificationsList(
-  //         fetchedNotifications.map((notification) => ({
-  //           ...notification,
-  //           checked: notification.read,
-  //         }))
-  //       );
-  //     }
-  //   },
-  // });
 
   interface FetchedNotifications {
     notifications: Notification[];
@@ -56,7 +49,7 @@ const NotificationButton = () => {
   }
 
   const { data, error, isLoading } = useSWR('showNotification/', fetcher, {
-    refreshInterval: 5000, // Poll every 5 seconds
+    refreshInterval: 5000,
     revalidateOnFocus: true,
     revalidateOnReconnect: true,
     onSuccess: (fetchedNotifications: FetchedNotifications) => {
@@ -68,31 +61,9 @@ const NotificationButton = () => {
           checked: notification.read,
         }))
       );
-      setUnreadCount(unread_count); // Set the unread count
+      setUnreadCount(unread_count);
     },
   });
-
-  // const checkForNewNotifications = async () => {
-  //   try {
-  //     const response = await axiosInstance.get('long-polling/', {
-  //       params: { last_timestamp: lastTimestamp },
-  //     });
-  //     const newNotifications: Notification[] = response.data.notifications;
-
-  //     if (newNotifications.length > 0) {
-  //       setNotificationsList((prevNotifications) => [
-  //         ...newNotifications.slice(0, 5).map((notification) => ({
-  //           ...notification,
-  //           checked: notification.read,
-  //         })),
-  //         ...prevNotifications.slice(0, 5),
-  //       ]);
-  //       setLastTimestamp(newNotifications[newNotifications.length - 1].timestamp);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error checking for new notifications:', error);
-  //   }
-  // };
 
   const markAsRead = async (notificationId: number) => {
     try {
@@ -109,15 +80,6 @@ const NotificationButton = () => {
     }
   };
 
-  const markSelectedAsRead = () => {
-    const checkedNotifications = notificationsList.filter((notification) => notification.checked);
-    if (checkedNotifications.length > 0) {
-      checkedNotifications.forEach((notification) => markAsRead(notification.id));
-    }
-  };
-
-  // const unreadCount = notificationsList.filter((notification) => !notification.read).length || 0;
-  console.log('unreadCount', unreadCount);
   const router = useRouter();
 
   const openModal = (notification: Notification) => {
@@ -140,7 +102,6 @@ const NotificationButton = () => {
       },
     });
 
-    // Mark the notification as read when the modal is opened
     markAsRead(notification.id);
   };
 
@@ -167,6 +128,9 @@ const NotificationButton = () => {
   const toggleMenu = () => {
     setOpened((prevOpened) => !prevOpened);
   };
+
+  const paginatedNotifications = chunk(notificationsList, 5);
+  const currentNotifications = paginatedNotifications[activePage - 1] || [];
 
   return (
     <Menu opened={opened} shadow="md" width={300}>
@@ -204,8 +168,8 @@ const NotificationButton = () => {
         <MenuDivider />
         {isLoading ? (
           <Menu.Item disabled>Loading...</Menu.Item>
-        ) : notificationsList.length > 0 ? (
-          notificationsList.slice(0, 5).map((notification) => (
+        ) : currentNotifications.length > 0 ? (
+          currentNotifications.map((notification) => (
             <Menu.Item
               key={notification.id}
               style={{
@@ -217,7 +181,7 @@ const NotificationButton = () => {
               onClick={() => {
                 if (notification.read) {
                   modals.closeAll();
-                  openModal(notification); // Open modal when clicking on a read notification
+                  openModal(notification);
                 }
               }}
             >
@@ -237,7 +201,7 @@ const NotificationButton = () => {
                   );
                   if (isChecked) {
                     modals.closeAll();
-                    openModal(notification); // Open modal when checkbox is checked or notification is read
+                    openModal(notification);
                   }
                 }}
                 label={
@@ -253,21 +217,28 @@ const NotificationButton = () => {
                   </Text>
                 }
                 description={moment(notification.timestamp).fromNow()}
-                indeterminate={notification.read} // Read notifications should be shown as indeterminate
+                indeterminate={notification.read}
               />
             </Menu.Item>
           ))
         ) : (
           <Menu.Item disabled>No new notifications</Menu.Item>
         )}
-        <Menu.Divider />
-        <Menu.Item onClick={markSelectedAsRead} style={{ cursor: 'pointer' }}>
+        {/* <Menu.Item onClick={markSelectedAsRead} style={{ cursor: 'pointer' }}>
           Mark Selected as Read
-        </Menu.Item>
+        </Menu.Item> */}
         <Menu.Divider />
         {/* <Menu.Item component={Link} href="/notifications" style={{ cursor: 'pointer' }}>
           View All Notifications
         </Menu.Item> */}
+        <Center>
+          <Pagination
+            total={paginatedNotifications.length}
+            value={activePage}
+            onChange={setPage}
+            mt="sm"
+          />
+        </Center>
       </Menu.Dropdown>
     </Menu>
   );

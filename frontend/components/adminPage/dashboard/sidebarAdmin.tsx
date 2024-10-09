@@ -109,6 +109,7 @@ export function NavbarSection() {
       navbar={{ width: 300, breakpoint: 'sm', collapsed: { mobile: !opened } }}
       padding="md"
       withBorder={true}
+      layout="alt"
     >
       <AppShell.Header>
         <Group h="100%" mx={'auto'}>
@@ -116,6 +117,7 @@ export function NavbarSection() {
           {/* <Header /> */}
         </Group>
       </AppShell.Header>
+
       <AppShell.Navbar p="md" m={'auto'}>
         <AppShell.Section grow my="md" component={ScrollArea}>
           <Title pb={'lg'} order={2}>
