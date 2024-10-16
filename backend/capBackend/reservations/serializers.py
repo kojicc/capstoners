@@ -1,7 +1,13 @@
 from rest_framework import serializers
 from .models import Reservation
-from .models import Cart, ReservationItem, Notification
+from .models import Cart, ReservationItem, Notification, ClassSchedule
 from  products.serializers import ProductImageonlySerializer
+
+class ClassScheduleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClassSchedule
+        fields = '__all__'
+        
 
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:

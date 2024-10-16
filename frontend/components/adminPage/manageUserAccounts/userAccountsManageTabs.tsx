@@ -48,7 +48,7 @@ import { Header } from '@/components/LandingPage/header/HeaderLP';
 import { useForm } from '@mantine/form';
 import { readLocalStorageValue, useLocalStorage } from '@mantine/hooks';
 import UpdateUser from './userSettings';
-import { AuthenticationForm } from '../../login/authForm';
+import { AuthenticationForm } from '../../loginandregisterUSER/authForm';
 import { UserRegAdmin } from './userRegistrationAdmin';
 
 interface Product {

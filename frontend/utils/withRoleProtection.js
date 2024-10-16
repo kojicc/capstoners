@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useState } from 'react';
-import { AuthContext } from '@/utils/authContext'; // Adjust the import path as necessary
+import { AuthContext } from '@/utils/authContext';
 import { LoadingOverlay, Text } from '@mantine/core';
 import { modals } from '@mantine/modals';
 import { useAuth } from '@/utils/auth'; // Adjust the import path as necessary
@@ -36,10 +36,23 @@ export const withRoleProtection = (WrappedComponent, allowedRoles) => {
               onCancel: () => router.push('/'),
               onConfirm: () => router.push('/login'),
               withCloseButton: false,
+              closeOnClickOutside: false,
+              closeOnEscape: false,
             });
           }
         } else {
-          router.push('/login');
+          modals.openConfirmModal({
+            title: 'Not Logged In',
+            children: (
+              <Text size="sm">You are not logged in. Please login to access this page.</Text>
+            ),
+            labels: { confirm: 'Login', cancel: 'Go back to home page' },
+            onCancel: () => router.push('/'),
+            onConfirm: () => router.push('/login'),
+            withCloseButton: false,
+            closeOnClickOutside: false,
+            closeOnEscape: false,
+          });
         }
       };
 

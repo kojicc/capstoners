@@ -7,8 +7,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Reservation
-from .serializers import ReservationItemSerializer, ReservationSerializer, NotificationSerializer, CartSerializer
+from .models import ClassSchedule, Reservation
+from .serializers import ClassScheduleSerializer, ReservationItemSerializer, ReservationSerializer, NotificationSerializer, CartSerializer
 # from .serializers import AddToCartSerializer
 from auth_app.models import User
 from products.models import Product
@@ -329,52 +329,61 @@ class ReservationCartAPIView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
-# class LongPollingAPIView(APIView):
-#     def get(self, request):
-#         token = request.COOKIES.get('jwt_access_token')
-#         if not token:
-#             print('Authentication required: No token provided')
-#             return JsonResponse({'error': 'Authentication required'}, status=401)
 
-#         try:
-#             decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-#             username = decoded_token.get('username')
-#         except jwt.ExpiredSignatureError:
-#             print(f'Token expired for username: {username}')
-#             return JsonResponse({'error': 'Token expired'}, status=401)
-#         except jwt.InvalidTokenError:
-#             print(f'Invalid token for username: {username}')
-#             return JsonResponse({'error': 'Invalid token'}, status=401)
+class ClassScheduleCRUDAPIView(APIView):
+    # permission_classes = [IsAuthenticated]
 
-#         last_timestamp = request.GET.get('last_timestamp')
-#         print(f'Last timestamp received: {last_timestamp}')
+    def get(self, request):
+        class_section = request.query_params.get('class_section')
+        print(f"Class section: {class_section}")
+        if class_section:
+            class_schedules = ClassSchedule.objects.filter(class_section__icontains=class_section)
+        else:
+            class_schedules = ClassSchedule.objects.all()
         
-#         if last_timestamp:
-#             last_timestamp = parse_datetime(last_timestamp)
+        serializer = ClassScheduleSerializer(class_schedules, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-#             # Fetch new notifications after the last timestamp
-#             new_notifications = Notification.objects.filter(
-#                 user__username=username,
-#                 timestamp__gt=last_timestamp,
-#                 read=0
-#             )
-#             print(f'New notifications fetched: {new_notifications.count()}')
-#             print(f'New notifications: {new_notifications}')
-#             # Update the read status of new notifications
-#             if new_notifications.exists():
-#                 new_notifications.update(read=False)
-#                 notifications_data = [
-#                     {'message': notification.message, 'timestamp': notification.timestamp.isoformat()}
-#                     for notification in new_notifications
-#                 ]
-#                 print(f'Returning new notifications: {len(notifications_data)}')
-#                 return JsonResponse({'notifications': notifications_data})
-#             else:
-#                 print('No new notifications found since last timestamp')
+    def post(self, request):
+        data = request.data
+        serializer = ClassScheduleSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#         # If no last timestamp is provided or no new notifications
-#         print('Returning empty notifications list')
-#         return JsonResponse({'notifications': []})
+    def put(self, request):
+        class_section = request.data.get('class_section')
+
+        # Ensure class_section is provided
+        if not class_section:
+            return Response({'message': 'class_section is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        class_schedule = get_object_or_404(ClassSchedule, class_section=class_section)
+        serializer = ClassScheduleSerializer(class_schedule, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        class_section = request.data.get('class_section')
+        class_start = request.data.get('class_start')
+        class_end = request.data.get('class_end')
+
+        # Ensure all required fields are provided
+        if not class_section or not class_start or not class_end:
+            return Response({'message': 'class_section, class_start, and class_end are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Fetch the class schedule based on class_section, class_start, and class_end
+        class_schedule = get_object_or_404(ClassSchedule, class_section=class_section, class_start=class_start, class_end=class_end)
+
+        # Delete the class schedule
+        class_schedule.delete()
+
+        return Response({'message': 'Class schedule deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
 
 
 
@@ -460,7 +469,7 @@ class readNotification(APIView):
 
 logger = logging.getLogger(__name__)
 
-# pang checkout na?
+# pang create ng reservation for checkout as user / update ng chineckout as user
 class ReservationCreateUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -489,6 +498,7 @@ class ReservationCreateUpdateAPIView(APIView):
                     'message': 'Invalid token'
                 }, status=status.HTTP_401_UNAUTHORIZED)
 
+            #region
             product_ids = request.data.get('productIds')
             quantities = request.data.get('quantities')
             reservation_date = request.data.get('reservation_date')
@@ -499,6 +509,8 @@ class ReservationCreateUpdateAPIView(APIView):
             is_group = request.data.get('is_group', False)
             group_members = request.data.get('group_members', [])
             subject = request.data.get('subject', None)
+            reservation_day = request.data.get('reservation_day', None)
+            #endregion
 
             print(f"Reservation data received: Product IDs: {product_ids}, Quantities: {quantities}, Group members: {group_members}")
 
@@ -508,6 +520,8 @@ class ReservationCreateUpdateAPIView(APIView):
 
             philippines_tz = pytz.timezone('Asia/Manila')
 
+
+            # pangupdate ng reservation as user
             if reservation_id:
                 print(f"Updating reservation: {reservation_id}")
                 reservation = get_object_or_404(Reservation, reservation_id=reservation_id)
@@ -515,6 +529,10 @@ class ReservationCreateUpdateAPIView(APIView):
                     reservation.status = reservation_status
                 if reservation_date:
                     reservation.reservation_date = reservation_date
+                if reservation_day:
+                    reservation.reservation_day = reservation_day
+
+                
                 reservation.save()
 
                 if product_ids and quantities:
@@ -554,7 +572,8 @@ class ReservationCreateUpdateAPIView(APIView):
                     "COMPLETED": 'has been completed.',
                     "AWAITING RETURN": 'is awaiting return.',
                     "DAMAGED/LOST/PARTIALLY_COMPLETED": 'has been marked as damaged/lost/partially completed.',
-                    "AWAITING PAYMENT": 'is awaiting payment.'
+                    "AWAITING PAYMENT": 'is awaiting payment.',
+                    "RESOLVED": 'has been resolved.',
                 }
                 notification_message = f'Your reservation {reservation_id} has been {status_messages.get(reservation_status, "updated.")}'
 
@@ -627,6 +646,7 @@ class ReservationCreateUpdateAPIView(APIView):
                         subject=subject,
                         status=reservation_status or 'PENDING',
                         is_group=is_group,
+                        reservation_day=reservation_day
                         
                     )
                     reservation.save()
@@ -702,6 +722,7 @@ class ReservationCreateUpdateAPIView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
+#updating the reservations as admin
 class AdminUpdateReservationStatusAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -740,6 +761,7 @@ class AdminUpdateReservationStatusAPIView(APIView):
             reservation_purpose = request.data.get('reservation_purpose')
             reservation_status = request.data.get('status')
             reservation_id = request.data.get('reservationId')
+            reservation_day = request.data.get('reservation_day')
 
             print(f"Reservation data received: Product IDs: {product_ids}, Quantities: {quantities}")
 
@@ -749,16 +771,15 @@ class AdminUpdateReservationStatusAPIView(APIView):
                 if reservation_status:
                     reservation.status = reservation_status
                     notification_message = f'Your reservation`s status for {reservation_id} has been updated by {usernameAdmin}.'
-                if reservation_date:
-                    reservation.reservation_date = reservation_date
-                    notification_message = f'Your reservation`s pickup date for {reservation_id} has been updated by {usernameAdmin}.'
-                if reservation_date_end:
-                    reservation.reservation_date_end = reservation_date_end
-                    notification_message = f'Your reservation`s return date for {reservation_id} has been updated by {usernameAdmin}.'
                 if reservation_purpose:
                     reservation.reservation_purpose = reservation_purpose
                     notification_message = f'Your reservation`s purpose for {reservation_id} has been updated by {usernameAdmin}.'
-                reservation.save()
+                if reservation_day or reservation_date or reservation_date_end:
+                    reservation.reservation_day = reservation_day
+                    reservation.reservation_date = reservation_date
+                    reservation.reservation_date_end = reservation_date_end
+                    notification_message = f'Your reservation`s schedule for {reservation_id} has been updated by {usernameAdmin}.'
+                    reservation.save()
 
                 if product_ids and quantities:
                     if len(product_ids) != len(quantities):
@@ -780,6 +801,14 @@ class AdminUpdateReservationStatusAPIView(APIView):
                             elif reservation_status == "APPROVED":
                                 product.quantity -= quantity
                                 product.reserved += quantity
+                            elif reservation_status == "RESOLVED":
+                                product.quantity += quantity
+                                product.reserved -= quantity
+                            elif reservation_status == "CANCELLED":
+                                product.reserved -= quantity
+                            elif reservation_status == "COMPLETED":
+                                product.reserved -= quantity
+                                product.quantity += quantity
 
                             product.save()
 
@@ -805,6 +834,8 @@ class AdminUpdateReservationStatusAPIView(APIView):
                     notification_message = f'Your reservation {reservation_id} has been marked as damaged/lost/partially completed by {usernameAdmin}.'
                 elif reservation_status == "AWAITING PAYMENT":
                     notification_message = f'Your reservation {reservation_id} is awaiting payment by {usernameAdmin}.'
+                elif reservation_status == "RESOLVED":
+                    notification_message = f'Your reservation {reservation_id} has been resolved and approved by {usernameAdmin}.'
                 else:
                     notification_message = f'Your reservation {reservation_id} has been updated by {usernameAdmin}.'
 
@@ -921,7 +952,7 @@ class AdminReservationDetailAPIView(APIView):
                 'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
         
-# pang view ng reservation
+# pang view ng reservation as user
 class ReservationDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
@@ -1371,6 +1402,52 @@ class ReservationSearchView(APIView):
 
 
 
+# class LongPollingAPIView(APIView):
+#     def get(self, request):
+#         token = request.COOKIES.get('jwt_access_token')
+#         if not token:
+#             print('Authentication required: No token provided')
+#             return JsonResponse({'error': 'Authentication required'}, status=401)
+
+#         try:
+#             decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+#             username = decoded_token.get('username')
+#         except jwt.ExpiredSignatureError:
+#             print(f'Token expired for username: {username}')
+#             return JsonResponse({'error': 'Token expired'}, status=401)
+#         except jwt.InvalidTokenError:
+#             print(f'Invalid token for username: {username}')
+#             return JsonResponse({'error': 'Invalid token'}, status=401)
+
+#         last_timestamp = request.GET.get('last_timestamp')
+#         print(f'Last timestamp received: {last_timestamp}')
+        
+#         if last_timestamp:
+#             last_timestamp = parse_datetime(last_timestamp)
+
+#             # Fetch new notifications after the last timestamp
+#             new_notifications = Notification.objects.filter(
+#                 user__username=username,
+#                 timestamp__gt=last_timestamp,
+#                 read=0
+#             )
+#             print(f'New notifications fetched: {new_notifications.count()}')
+#             print(f'New notifications: {new_notifications}')
+#             # Update the read status of new notifications
+#             if new_notifications.exists():
+#                 new_notifications.update(read=False)
+#                 notifications_data = [
+#                     {'message': notification.message, 'timestamp': notification.timestamp.isoformat()}
+#                     for notification in new_notifications
+#                 ]
+#                 print(f'Returning new notifications: {len(notifications_data)}')
+#                 return JsonResponse({'notifications': notifications_data})
+#             else:
+#                 print('No new notifications found since last timestamp')
+
+#         # If no last timestamp is provided or no new notifications
+#         print('Returning empty notifications list')
+#         return JsonResponse({'notifications': []})
 
 
 

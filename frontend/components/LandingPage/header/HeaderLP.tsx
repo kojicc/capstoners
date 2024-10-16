@@ -37,6 +37,7 @@ import {
   IconToolsKitchen2,
   IconSettings,
   IconLock,
+  IconCalendar,
 } from '@tabler/icons-react';
 import classes from './HeaderMegaMenu.module.css';
 import { useWindowScroll } from '@mantine/hooks';
@@ -198,9 +199,8 @@ export function Header() {
     <Box
       className={classes.box}
       style={{
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/RAFAEL.jpg')`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundPosition: 'relative',
         backgroundBlendMode: 'color-burn',
       }}
     >
@@ -232,7 +232,7 @@ export function Header() {
                   Admin Dashboard
                 </a>
               ) : (
-                <Menu>
+                <Menu trigger="click-hover" withArrow position="bottom-start">
                   <Menu.Target>
                     <a className={classes.link} style={{ cursor: 'pointer' }}>
                       Support
@@ -244,6 +244,12 @@ export function Header() {
                       onClick={() => setModalOpen(true)}
                     >
                       Change Password
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={<IconCalendar size={14} />}
+                      onClick={() => router.push('transactionsUser')}
+                    >
+                      Transaction History
                     </Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
@@ -345,11 +351,12 @@ export function Header() {
         title="Navigation"
         hiddenFrom="sm"
         zIndex={1000000}
+        className={classes.drawer}
       >
         <ScrollArea h={`calc(100vh - ${rem(80)})`} mx="-md">
           <Divider my="sm" />
 
-          <a href="#" className={classes.link}>
+          <a href="/" className={classes.link}>
             Home
           </a>
           <UnstyledButton className={classes.link} onClick={toggleLinks}>
@@ -363,7 +370,9 @@ export function Header() {
               />
             </Center>
           </UnstyledButton>
-          <Collapse in={linksOpened}>{links}</Collapse>
+          <Collapse ml={50} in={linksOpened}>
+            {links}
+          </Collapse>
           <a href="#" className={classes.link}>
             Learn
           </a>

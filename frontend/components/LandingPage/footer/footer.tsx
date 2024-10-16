@@ -16,7 +16,6 @@ const data = [
       { label: 'Join Discord', link: '#' },
       { label: 'Follow on Twitter', link: '#' },
       { label: 'Email newsletter', link: '#' },
-    
     ],
   },
 ];
@@ -29,7 +28,6 @@ export function Footer() {
         className={classes.link}
         component="a"
         href={link.link}
-        
         onClick={(event) => event.preventDefault()}
       >
         {link.label}
@@ -48,18 +46,17 @@ export function Footer() {
     <footer className={classes.footer}>
       <Container className={classes.inner}>
         <div className={classes.logo}>
-          <Title c={'white'} tt={'uppercase'}> <span style={{}}>
-    
-  cthm laboratory
-    </span> 
-    <span style={{ fontWeight: 700, color: '#f3c565' , paddingRight:-100}}>.</span></Title>
+          <Title c={'white'} tt={'uppercase'}>
+            {' '}
+            <span style={{}}>cthm laboratory</span>
+            <span style={{ fontWeight: 700, color: '#f3c565', paddingRight: -100 }}>.</span>
+          </Title>
           <Text size="xs" c="dimmed" className={classes.description}>
-           Giving you just the very best.
+            Giving you just the very best.
           </Text>
         </div>
         <div className={classes.groups}>{groups}</div>
       </Container>
-
 
       <Container className={classes.afterFooter}>
         <Text c="dimmed" size="sm">

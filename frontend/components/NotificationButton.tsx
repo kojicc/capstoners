@@ -7,7 +7,6 @@ import moment from 'moment';
 import { modals } from '@mantine/modals';
 import { useRouter } from 'next/router';
 import { useClickOutside } from '@mantine/hooks';
-import Link from 'next/link';
 import { useAuth } from '@/utils/auth';
 
 interface Notification {
@@ -38,10 +37,7 @@ const NotificationButton = () => {
   const [opened, setOpened] = useState<boolean>(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [activePage, setPage] = useState(1);
-  const ref = useClickOutside(() => {
-    if (opened) return;
-    setOpened(false);
-  });
+  const ref = useClickOutside(() => setOpened(false));
 
   interface FetchedNotifications {
     notifications: Notification[];
@@ -107,12 +103,13 @@ const NotificationButton = () => {
 
   const extractReservationId = (message: string): string => {
     const regex1 = /Reservation\s(\d+_\d{2}-\d{2}-\d{4}-\d{2}_\w+)/;
-    const regex2 = /Your reservation\s(\d+_\d{2}-\d{2}-\d{4}-\d{2}_\w+)/;
-    const regex3 = /New reservation\s(\d+_\d{2}-\d{2}-\d{4}-\d{2}_\w+)/;
+    const regex2 = /Your reservation\s(\w+_\d{2}-\d{2}-\d{4}-\d{2}_\w+)/;
+    const regex3 = /New reservation\s(\w+_\d{2}-\d{2}-\d{4}-\d{2}_\w+)/;
 
     const match1 = message.match(regex1);
     const match2 = message.match(regex2);
     const match3 = message.match(regex3);
+    console.log('Matches', match1, match2, match3);
 
     if (match1) {
       return match1[1];
@@ -224,13 +221,7 @@ const NotificationButton = () => {
         ) : (
           <Menu.Item disabled>No new notifications</Menu.Item>
         )}
-        {/* <Menu.Item onClick={markSelectedAsRead} style={{ cursor: 'pointer' }}>
-          Mark Selected as Read
-        </Menu.Item> */}
         <Menu.Divider />
-        {/* <Menu.Item component={Link} href="/notifications" style={{ cursor: 'pointer' }}>
-          View All Notifications
-        </Menu.Item> */}
         <Center>
           <Pagination
             total={paginatedNotifications.length}

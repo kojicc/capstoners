@@ -8,12 +8,25 @@ from django.conf import settings
 
 
 # Create your models here.
+
+
+class ClassSchedule(models.Model):
+    class_section = models.CharField(max_length=100, primary_key=True)
+    class_name = models.CharField(max_length=100)
+    class_days = models.JSONField(default=dict)  # Updated to allow multiple times per day
+    class_instructor = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.class_section} - {self.class_name}"
+
+
 class Reservation(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field='username')
     reservation_id = models.CharField(primary_key=True, max_length=100, unique=True, editable=False)
     reserved_date = models.DateTimeField(default=timezone.now)
+    reservation_day = models.CharField(max_length=100)
     reservation_date = models.DateTimeField()
-    reservation_date_end = models.DateTimeField(blank=True, null=True)
+    reservation_date_end = models.DateTimeField()
     reservation_purpose = models.CharField(max_length=100, blank=True)
     status = models.CharField(max_length=80, default='PENDING')
     is_group = models.BooleanField(default=False)

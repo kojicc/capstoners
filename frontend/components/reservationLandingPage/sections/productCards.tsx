@@ -11,15 +11,14 @@ import {
   Popover,
   Stack,
   LoadingOverlay,
+  Pagination,
 } from '@mantine/core';
 import useSWR from 'swr';
 import axios from '@/utils/axiosInstance';
 import { IconGasStation, IconGauge, IconManualGearbox, IconUsers } from '@tabler/icons-react';
 import classes from '@/components/modules.css/FeaturesCard.module.css';
-import { useContext, useState } from 'react';
-import { AuthContext } from '@/utils/authContext';
+import { useState, useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
-import { AutocompleteClearable } from './autocompleClearableReservation';
 import { useAuth } from '@/utils/auth';
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
@@ -38,16 +37,28 @@ interface Product {
 
 interface ProductCardsProps {
   categoryID: string;
-  searchQuery: string; // Assuming this is something like "Alcohol - ALC"
+  searchQuery: string;
+}
+
+function chunk<T>(array: T[], size: number): T[][] {
+  if (!array.length) {
+    return [];
+  }
+  const head = array.slice(0, size);
+  const tail = array.slice(size);
+  return [head, ...chunk(tail, size)];
 }
 
 export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
-  const [addTocartQuantity, setAddTocartQuantity] = useState(0);
+  const [addTocartQuantity, setAddTocartQuantity] = useState(1); // Set initial quantity to 1
   const [addTocartProductId, setAddTocartProductId] = useState('');
   const { username } = useAuth();
+  const [activePage, setPage] = useState(1);
+  const [openedPopover, setOpenedPopover] = useState<string | null>(null); // Track the opened popover
 
-  // const { username } = useContext(AuthContext);
-  console.log('username', username);
+  useEffect(() => {
+    setPage(1);
+  }, [categoryID, searchQuery]);
 
   const productData = (product: Product) => [
     { label: `Category ID: ${product.category}`, icon: IconUsers },
@@ -64,14 +75,11 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
   if (!data)
     return <LoadingOverlay visible zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />;
 
-  // Extract the second part of searchQuery (e.g., "ALC" from "Alcohol - ALC")
   const searchValue =
     searchQuery.trim().split(' - ')[1]?.toLowerCase() ||
     searchQuery.trim().split('-')[1]?.toLowerCase() ||
     '';
-  console.log('searchValue', searchValue);
 
-  // Filter products based on the search value
   const filteredProducts = data.images.filter((product: Product) => {
     const lowerSearchValue = searchValue.toLowerCase();
     if (lowerSearchValue) {
@@ -89,30 +97,42 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
           (product.category && product.category.toLowerCase().includes(lowerSearchValue)))
       );
     } else {
-      return true; // Return all products if no search value or categoryID is provided
+      return true;
     }
   });
 
-  console.log('filteredProducts', filteredProducts);
+  const paginatedProducts = chunk(filteredProducts, 5);
+  const currentProducts = paginatedProducts[activePage - 1] || [];
 
-  const addTocart = async (productId: string, quantity: number) => {
+  const addTocart = async (productId: string, quantity: number, productName: string) => {
     const response = await axios.post('reservationsCart/', {
       productId,
       quantity,
       username,
     });
     if (response.status === 200) {
-      notifications.show({ title: 'Success', message: 'Product added to cart', color: 'green' });
+      notifications.show({
+        title: 'Success',
+        message: `${quantity} ${productName}(s) added to cart`,
+        color: 'green',
+      });
     } else {
-      notifications.show({ title: 'Error', message: 'Error adding product to cart', color: 'red' });
+      notifications.show({
+        title: 'Error',
+        message: `Error adding ${productName} to cart`,
+        color: 'red',
+      });
     }
   };
 
   return (
     <Paper shadow="xl" radius="lg" withBorder p="xl" bg={'#592f55'}>
-      {/* <AutocompleteClearable /> */}
-      <SimpleGrid cols={3} verticalSpacing="lg">
-        {filteredProducts.map((product: Product) => (
+      <SimpleGrid
+        cols={{ base: 1, sm: 2, lg: 3 }}
+        spacing={{ base: 10, sm: 'xl' }}
+        verticalSpacing={{ base: 'md', sm: 'xl' }}
+      >
+        {currentProducts.map((product: Product) => (
           <Card key={product.productId} withBorder radius="md" className={classes.card}>
             <Card.Section className={classes.imageSection}>
               <Image
@@ -159,38 +179,69 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
                   </Text>
                 </div>
 
-                <Popover width={200} position="bottom" withArrow shadow="md">
-                  <Popover.Target>
-                    <Button radius="xl" style={{ flex: 1 }}>
-                      Rent now
-                    </Button>
-                  </Popover.Target>
-                  <Popover.Dropdown>
-                    <NumberInput
-                      defaultValue={0}
-                      min={1}
-                      max={product.quantity}
-                      value={addTocartQuantity}
-                      onChange={(value) => setAddTocartQuantity(Number(value))}
-                      label="Select quantity"
-                    />
-                    <Button
-                      fullWidth
-                      mt="md"
-                      onClick={() => {
-                        addTocart(product.productId, addTocartQuantity);
-                        setAddTocartQuantity(0);
-                      }}
-                    >
-                      Add to Cart
-                    </Button>
-                  </Popover.Dropdown>
-                </Popover>
+                {product.quantity === 0 ? (
+                  <Button radius="xl" p={0} style={{ flex: 1 }} disabled>
+                    Out of Stock
+                  </Button>
+                ) : (
+                  <Popover
+                    width={200}
+                    position="bottom"
+                    withArrow
+                    shadow="md"
+                    opened={openedPopover === product.productId}
+                    onChange={(opened) => setOpenedPopover(opened ? product.productId : null)}
+                  >
+                    <Popover.Target>
+                      <Button
+                        radius="xl"
+                        style={{ flex: 1 }}
+                        onClick={() =>
+                          setOpenedPopover((prev) =>
+                            prev === product.productId ? null : product.productId
+                          )
+                        }
+                      >
+                        Rent now
+                      </Button>
+                    </Popover.Target>
+                    <Popover.Dropdown>
+                      <NumberInput
+                        defaultValue={1}
+                        min={1}
+                        max={product.quantity}
+                        value={addTocartQuantity}
+                        onChange={(value) => setAddTocartQuantity(Number(value))}
+                        label="Select quantity"
+                      />
+                      <Button
+                        fullWidth
+                        mt="md"
+                        onClick={() => {
+                          addTocart(product.productId, addTocartQuantity, product.name);
+                          setAddTocartQuantity(1); // Reset quantity to 1
+                          setAddTocartProductId('');
+                          setOpenedPopover(null); // Close the popover
+                        }}
+                      >
+                        Add to Cart
+                      </Button>
+                    </Popover.Dropdown>
+                  </Popover>
+                )}
               </Group>
             </Card.Section>
           </Card>
         ))}
       </SimpleGrid>
+      <Center>
+        <Pagination
+          total={paginatedProducts.length}
+          value={activePage}
+          onChange={setPage}
+          mt="sm"
+        />
+      </Center>
     </Paper>
   );
 }

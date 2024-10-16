@@ -1,7 +1,8 @@
 # urls.py (app auth level)
 from django.urls import path
-from .views import ReservationCreateUpdateAPIView, ReservationDetailAPIView,  ReservationDeleteView, ReservationSearchView ,showNotification,readNotification,AdminUpdateReservationStatusAPIView,AdminReservationDetailAPIView,ReservationCartAPIView,ReservationImportExportView
+from .views import ReservationCreateUpdateAPIView, ReservationDetailAPIView,  ReservationDeleteView, ReservationSearchView ,showNotification,readNotification,AdminUpdateReservationStatusAPIView,AdminReservationDetailAPIView,ReservationCartAPIView,ReservationImportExportView, ClassScheduleCRUDAPIView
 urlpatterns = [
+    path('classScheduleCRUD/', ClassScheduleCRUDAPIView.as_view(), name='classScheduleCRUD'),
     path('reservationsCreateUpdate/', ReservationCreateUpdateAPIView.as_view(), name='reservationsCreate'),
     path('adminUpdateReservationStatus/', AdminUpdateReservationStatusAPIView.as_view(), name='adminUpdateReservationStatus'),
     path('reservationsDetail/', ReservationDetailAPIView.as_view(), name='reservationsDetail'),

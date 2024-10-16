@@ -148,7 +148,7 @@ export function Hero() {
                   </Text>
                 </div>
               </Button>
-
+              {/* 
               <Button
                 className={classes.disabled}
                 component="a"
@@ -166,7 +166,7 @@ export function Hero() {
                     Status
                   </Text>
                 </div>
-              </Button>
+              </Button> */}
 
               <Button
                 className={classes.disabled}

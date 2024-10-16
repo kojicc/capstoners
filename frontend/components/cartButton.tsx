@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import useSWR, { mutate } from 'swr';
 import {
   ActionIcon,
@@ -12,20 +12,27 @@ import {
   Checkbox,
   Modal,
   TextInput,
-  NumberInput,
   TagsInput,
   Autocomplete,
   Anchor,
   Stack,
   Box,
+  Select,
+  rem,
+  NumberInput,
+  Grid,
+  Image,
+  Title,
+  Table,
+  Flex,
 } from '@mantine/core';
-import { IconShoppingCart } from '@tabler/icons-react';
+import { IconShoppingCart, IconClock } from '@tabler/icons-react';
 import axios from '@/utils/axiosInstance'; // Adjust this import to your Axios setup
 import { useAuth } from '@/utils/auth';
 import { notifications } from '@mantine/notifications';
 import { useRouter } from 'next/router';
 import dayjs from 'dayjs';
-import { DateTimePicker } from '@mantine/dates';
+import { DateInput } from '@mantine/dates';
 
 interface Product {
   productId: string;
@@ -50,15 +57,33 @@ interface ApiResponse {
   message: string;
 }
 
+interface ClassSchedule {
+  class_section: string;
+  class_name: string;
+  class_days: {
+    [day: string]: {
+      start: string;
+      end: string;
+    }[];
+  };
+  class_instructor: string;
+}
+
 // Fetcher function using Axios
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 export function CartIcon() {
   const [opened, setOpened] = useState(false);
-  const { username } = useAuth();
+  const { username, class_section } = useAuth();
+
   const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher, {
     refreshInterval: 1000,
   });
+
+  const { data: classSchedules } = useSWR<ClassSchedule[]>(
+    `classScheduleCRUD/?class_section=${class_section}`,
+    fetcher
+  );
 
   const router = useRouter();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -67,52 +92,83 @@ export function CartIcon() {
   const [selectedItem, setSelectedItem] = useState<CartItem | null>(null);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
-  const [reservationDate, setReservationDate] = useState<Date | null>(null);
-  const [reservationEndDate, setReservationEndDate] = useState<Date | null>(null);
   const [reservationPurpose, setReservationPurpose] = useState('');
   const [reservationStatus, setReservationStatus] = useState('PENDING');
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [isGroupCheckout, setIsGroupCheckout] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [selectedClassTime, setSelectedClassTime] = useState('');
   const [subject, setSubject] = useState('');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [disabledCheckoutButton, setDisabledCheckoutButton] = useState(true);
 
-  // Calculate total price based on selected items
+  useEffect(() => {
+    const isFormValid =
+      reservationPurpose.trim() !== '' &&
+      selectedDate !== null &&
+      selectedClassTime.trim() !== '' &&
+      subject.trim() !== '' &&
+      (!isGroupCheckout || selectedUsers.length > 0);
+
+    const isTimeValid = () => {
+      if (!selectedDate || !classSchedules) return false;
+
+      const selectedDay = dayjs(selectedDate).format('dddd').toUpperCase();
+      const today = dayjs();
+
+      const classTimes = classSchedules.flatMap(
+        (schedule) => schedule.class_days[selectedDay]?.map((time) => time.end) || []
+      );
+
+      return classTimes.every((endTime) =>
+        today.isBefore(
+          dayjs(selectedDate)
+            .set('hour', parseInt(endTime.split(':')[0]))
+            .set('minute', parseInt(endTime.split(':')[1]))
+        )
+      );
+    };
+
+    setDisabledCheckoutButton(!isFormValid || !isTimeValid());
+  }, [
+    reservationPurpose,
+    selectedDate,
+    selectedClassTime,
+    subject,
+    isGroupCheckout,
+    selectedUsers,
+    classSchedules,
+  ]);
+
   const totalPrice = selectedItems.reduce((total, productId) => {
     const item = data?.cart_items.find((item) => item.product.productId === productId);
     return total + (item ? item.quantity * parseFloat(item.product.price) : 0);
   }, 0);
 
-  // Handle checkbox toggle
   const handleCheckboxChange = (productId: string) => {
     setSelectedItems((prev) =>
       prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
     );
   };
 
-  // Handle deletion of items
-  const handleDelete = async () => {
+  const handleDelete = async (productId: string) => {
     try {
       await axios.delete('reservationsCart/', {
-        data: { username, productIds: selectedItems },
+        data: { username, productIds: [productId] },
       });
 
-      // Update the cart after deletion
       mutate(`reservationsCart/?username=${username}`);
-
-      // Show notification and reset selected items
-      notifications.show({ message: 'Items deleted from cart', color: 'green' });
-      setSelectedItems([]);
+      notifications.show({ message: 'Item deleted from cart', color: 'green' });
+      setSelectedItems((prev) => prev.filter((id) => id !== productId));
     } catch (error) {
-      notifications.show({ message: 'Failed to delete items', color: 'red' });
+      notifications.show({ message: 'Failed to delete item', color: 'red' });
       console.error(error);
     }
   };
 
-  // Handle loading and error states
   if (error) return <Text color="red">Error loading cart items</Text>;
   if (!data) return <Loader size="sm" />;
 
-  // Handle checkout by passing selected items to checkout page
   const handleCheckout = () => {
     setCheckoutModalOpen(true);
   };
@@ -125,42 +181,50 @@ export function CartIcon() {
           data.cart_items.find((item) => item.product.productId === productId)?.quantity || 0
       );
 
-      // Make the API call
+      const [day] = selectedClassTime.split(' ');
+      const startTime = selectedClassTime.split(' ')[1];
+      const endTime = selectedClassTime.split(' ')[3];
+
+      const reservation_date = dayjs(selectedDate)
+        .set('hour', parseInt(startTime.split(':')[0]))
+        .set('minute', parseInt(startTime.split(':')[1]))
+        .set('second', parseInt(startTime.split(':')[2]))
+        .format();
+
+      const reservation_date_end = dayjs(selectedDate)
+        .set('hour', parseInt(endTime.split(':')[0]))
+        .set('minute', parseInt(endTime.split(':')[1]))
+        .set('second', 0)
+        .format();
+
       const response = await axios.post('reservationsCreateUpdate/', {
         username,
         productIds,
         quantities,
-        reservation_date: reservationDate
-          ? dayjs(reservationDate).format('YYYY-MM-DD HH:mm')
-          : null,
-        reservation_date_end: reservationEndDate
-          ? dayjs(reservationEndDate).format('YYYY-MM-DD HH:mm')
-          : null,
         reservation_purpose: reservationPurpose,
         is_group: isGroupCheckout,
         group_members: isGroupCheckout ? selectedUsers : [],
         subject: subject,
+        reservation_day: day,
+        reservation_date: reservation_date,
+        reservation_date_end: reservation_date_end,
       });
 
-      // Handle the success response after retry (if any)
       notifications.show({
         title: 'Success',
         message: `Checkout successful and your reservation ID is ${response.data.reservation_id}`,
         color: 'green',
       });
 
-      // Clear the selected items, form data, and refresh the cart
       setSelectedItems([]);
-      setReservationDate(null);
-      setReservationEndDate(null);
       setReservationPurpose('');
       setReservationStatus('PENDING');
       setIsGroupCheckout(false);
       setSelectedUsers([]);
+      setSelectedClassTime('');
       setSubject('');
       mutate(`reservationsCart/?username=${username}`);
     } catch (error) {
-      // Show an error notification if the request fails even after retrying
       console.error(error);
       notifications.show({ title: 'Error', message: 'Checkout failed', color: 'red' });
     } finally {
@@ -190,6 +254,65 @@ export function CartIcon() {
       setModalOpen(false);
     }
   };
+
+  const filteredClassTimeOptions = selectedDate
+    ? classSchedules?.flatMap((schedule) =>
+        Object.entries(schedule.class_days)
+          .filter(([day]) => dayjs(selectedDate).format('dddd').toUpperCase() === day)
+          .flatMap(([day, times]) =>
+            times.map((time) => ({
+              value: `${day} ${time.start} - ${time.end}`,
+              label: `${schedule.class_name} (${day} ${time.start} - ${time.end})`,
+            }))
+          )
+      )
+    : [];
+
+  const cthmSubjects = [
+    'Hospitality Management',
+    'Tourism Management',
+    'Culinary Arts',
+    'Hotel Administration',
+    'Event Management',
+  ];
+
+  const getDatesForCurrentWeek = (days: string[]) => {
+    const daysOfWeek = [
+      'SUNDAY',
+      'MONDAY',
+      'TUESDAY',
+      'WEDNESDAY',
+      'THURSDAY',
+      'FRIDAY',
+      'SATURDAY',
+    ];
+    const today = new Date();
+    const currentDayIndex = today.getDay();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - currentDayIndex);
+
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      if (days.includes(daysOfWeek[date.getDay()])) {
+        dates.push(date);
+      }
+    }
+    return dates;
+  };
+
+  const allClassDays = classSchedules
+    ? Array.from(
+        new Set(
+          classSchedules.flatMap((schedule) =>
+            Object.keys(schedule.class_days).map((day) => day.toUpperCase())
+          )
+        )
+      )
+    : [];
+
+  const selectableDates = getDatesForCurrentWeek(allClassDays);
 
   return (
     <>
@@ -241,6 +364,13 @@ export function CartIcon() {
                   >
                     Edit
                   </Button>
+                  <Button
+                    variant="light"
+                    color="red"
+                    onClick={() => handleDelete(item.product.productId)}
+                  >
+                    Delete
+                  </Button>
                 </Group>
               </Paper>
             ))}
@@ -256,7 +386,11 @@ export function CartIcon() {
         </Group>
         <Divider my="md" />
         <Group justify="right" mt="md">
-          <Button color="red" onClick={handleDelete} disabled={selectedItems.length === 0}>
+          <Button
+            color="red"
+            onClick={() => handleDelete(selectedItems[0])}
+            disabled={selectedItems.length === 0}
+          >
             Delete Selected ({selectedItems.length} items)
           </Button>
           <Button onClick={handleCheckout} disabled={selectedItems.length === 0}>
@@ -265,7 +399,6 @@ export function CartIcon() {
         </Group>
       </Drawer>
 
-      {/* Update Modal */}
       <Modal opened={modalOpen} onClose={() => setModalOpen(false)} title="Update Cart Item">
         {selectedItem && (
           <>
@@ -277,7 +410,7 @@ export function CartIcon() {
                 setSelectedItem((prev) => (prev ? { ...prev, quantity: value as number } : null))
               }
               min={1}
-              max={selectedItem.product.quantity} // Set max to available stock
+              max={selectedItem.product.quantity}
               mb="md"
             />
             <Group mt="md">
@@ -292,7 +425,6 @@ export function CartIcon() {
         )}
       </Modal>
 
-      {/* Confirmation Modal */}
       <Modal
         opened={confirmationModalOpen}
         onClose={() => setConfirmationModalOpen(false)}
@@ -302,7 +434,7 @@ export function CartIcon() {
           Are you sure you want to delete this item from your cart?
         </Text>
         <Group>
-          <Button variant="light" color="red" onClick={handleDelete}>
+          <Button variant="light" color="red" onClick={() => handleDelete(selectedItems[0])}>
             Confirm
           </Button>
           <Button variant="light" color="gray" onClick={() => setConfirmationModalOpen(false)}>
@@ -311,73 +443,207 @@ export function CartIcon() {
         </Group>
       </Modal>
 
-      {/* Checkout Modal */}
       <Modal
         opened={checkoutModalOpen}
-        onClose={() => setCheckoutModalOpen(false)}
+        onClose={() => {
+          setCheckoutModalOpen(false);
+          setSelectedDate(null);
+          setSelectedItems([]);
+          setReservationPurpose('');
+          setReservationStatus('PENDING');
+          setIsGroupCheckout(false);
+          setSelectedUsers([]);
+          setSelectedClassTime('');
+          setSubject('');
+        }}
         title="Checkout"
+        fullScreen
+        radius={0}
+        transitionProps={{ transition: 'fade', duration: 200 }}
       >
-        <Checkbox
-          label="Is this a group checkout?"
-          checked={isGroupCheckout}
-          onChange={(e) => setIsGroupCheckout(e.currentTarget.checked)}
-          mb="md"
-        />
-        {isGroupCheckout && (
-          <>
-            <TagsInput
-              label="Group Members"
-              placeholder="Add users"
-              value={selectedUsers}
-              onChange={setSelectedUsers}
-              mb="md"
-            />
-            <Autocomplete
-              label="Subject"
-              placeholder="Select a subject"
-              value={subject}
-              onChange={setSubject}
-              data={['Math', 'Science', 'History']} // Example subjects, replace with actual data
-              mb="md"
-            />
-          </>
-        )}
-        <TextInput
-          label="Reservation Purpose"
-          value={reservationPurpose}
-          onChange={(e) => setReservationPurpose(e.target.value)}
-          mb="md"
-        />
-        <DateTimePicker
-          required
-          label="Reservation Start Date"
-          value={reservationDate}
-          onChange={setReservationDate}
-          mb="md"
-        />
-        <DateTimePicker
-          required
-          label="Reservation End Date"
-          value={reservationEndDate}
-          onChange={setReservationEndDate}
-          mb="md"
-        />
-        <Autocomplete
-          label="Subject"
-          placeholder="Select a subject"
-          value={subject}
-          onChange={setSubject}
-          data={['Math', 'Science', 'History']} // Example subjects, replace with actual data
-          mb="md"
-        />
-        <Group mt="md">
-          <Button variant="filled" color="green" onClick={confirmCheckout}>
-            Confirm Checkout
-          </Button>
-          <Button variant="light" color="gray" onClick={() => setCheckoutModalOpen(false)}>
-            Cancel
-          </Button>
-        </Group>
+        <Paper shadow="xl" radius="lg" withBorder p="md">
+          <Grid>
+            <Grid.Col span={{ base: 12, md: 12, lg: 12 }}>
+              <Paper shadow="xl" radius="lg" withBorder p="xl">
+                <Stack justify="center" align="center">
+                  <Title order={1} size="h1">
+                    Checkout Page
+                  </Title>
+                  <Text size="sm" color="dimmed">
+                    {dayjs().format('MMMM D, YYYY h:mm A')}
+                  </Text>
+                </Stack>
+              </Paper>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 12, lg: 'auto' }}>
+              <Flex
+                direction={{ base: 'column', sm: 'row' }}
+                gap={{ base: 'sm', sm: 'lg' }}
+                justify={{ sm: 'center' }}
+              >
+                <Paper shadow="xl" radius="lg" withBorder p="xl">
+                  <Stack>
+                    <Title order={1}>Products</Title>
+                    <Table.ScrollContainer minWidth={500}>
+                      <Table striped highlightOnHover withTableBorder withColumnBorders>
+                        <Table.Thead>
+                          <Table.Tr>
+                            <Table.Th>Product Name</Table.Th>
+                            <Table.Th>Product Image</Table.Th>
+                            <Table.Th>Quantity</Table.Th>
+                          </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                          {selectedItems.map((productId) => {
+                            const item = data.cart_items.find(
+                              (item) => item.product.productId === productId
+                            );
+                            return (
+                              <Table.Tr key={productId}>
+                                <Table.Td>{item?.product.name}</Table.Td>
+                                <Table.Td>
+                                  <Image
+                                    src={`http://localhost:8000${item?.product.image}`}
+                                    alt={item?.product.name}
+                                    width={50}
+                                    height={50}
+                                    radius="md"
+                                  />
+                                </Table.Td>
+                                <Table.Td>{item?.quantity}</Table.Td>
+                              </Table.Tr>
+                            );
+                          })}
+                        </Table.Tbody>
+                      </Table>
+                    </Table.ScrollContainer>
+                  </Stack>
+                </Paper>
+
+                <Paper shadow="xl" radius="lg" withBorder p="xl">
+                  <Divider label="Reservation Details" p={10} />
+                  <Stack>
+                    <Checkbox
+                      label="Is this a group checkout?"
+                      checked={isGroupCheckout}
+                      onChange={(e) => setIsGroupCheckout(e.currentTarget.checked)}
+                      mb="md"
+                    />
+                    {isGroupCheckout && (
+                      <TagsInput
+                        label="Group Members"
+                        placeholder="Add users"
+                        value={selectedUsers}
+                        onChange={setSelectedUsers}
+                        mb="md"
+                      />
+                    )}
+                    <TextInput
+                      label="Reservation Purpose"
+                      value={reservationPurpose}
+                      onChange={(e) => setReservationPurpose(e.target.value)}
+                      mb="md"
+                    />
+                    <DateInput
+                      clearable
+                      minDate={selectableDates.length > 0 ? selectableDates[0] : undefined}
+                      maxDate={
+                        selectableDates.length > 0
+                          ? selectableDates[selectableDates.length - 1]
+                          : undefined
+                      }
+                      label="Date input"
+                      placeholder="Date input"
+                      value={selectedDate}
+                      onChange={setSelectedDate}
+                      excludeDate={(date) => {
+                        const selectedDay = dayjs(date).format('dddd').toUpperCase();
+                        const today = dayjs();
+                        const classTimes = classSchedules?.flatMap(
+                          (schedule) =>
+                            schedule.class_days[selectedDay]?.map((time) => time.end) || []
+                        );
+                        return (
+                          !selectableDates.some((d) => dayjs(d).isSame(date, 'day')) ||
+                          dayjs(date).isBefore(dayjs(), 'day') ||
+                          (classTimes?.some((endTime) =>
+                            today.isAfter(
+                              dayjs(date)
+                                .set('hour', parseInt(endTime.split(':')[0]))
+                                .set('minute', parseInt(endTime.split(':')[1]))
+                            )
+                          ) ??
+                            false)
+                        );
+                      }}
+                      mb="md"
+                    />
+                    <Select
+                      label="Class Schedule"
+                      placeholder="Select your class schedule"
+                      data={filteredClassTimeOptions}
+                      value={selectedClassTime}
+                      onChange={(value) => setSelectedClassTime(value || '')}
+                      disabled={!selectedDate}
+                      mb="md"
+                    />
+                    <Autocomplete
+                      label="Subject"
+                      placeholder="Select your subject"
+                      data={cthmSubjects}
+                      value={subject}
+                      onChange={(value) => setSubject(value || '')}
+                      mb="md"
+                    />
+                  </Stack>
+                </Paper>
+              </Flex>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 12, lg: 'auto' }}>
+              <Paper shadow="xl" radius="lg" withBorder p="xl">
+                <Stack>
+                  <Divider label="Total Prices" />
+                  <Title order={3} w={700}>
+                    Prices
+                  </Title>
+                  {selectedItems.map((productId) => {
+                    const item = data.cart_items.find(
+                      (item) => item.product.productId === productId
+                    );
+                    return (
+                      <Group key={productId} justify="apart">
+                        <Text>{item?.product.name}</Text>
+                        <Text>
+                          ₱
+                          {((item?.quantity ?? 0) * parseFloat(item?.product.price ?? '0')).toFixed(
+                            2
+                          )}
+                        </Text>
+                      </Group>
+                    );
+                  })}
+                  <Divider />
+                  <Group justify="apart">
+                    <Text>Total</Text>
+                    <Text>₱{totalPrice.toFixed(2)}</Text>
+                  </Group>
+                  <Text size="xs" color="dimmed">
+                    You will only be charged if items are broken. See{' '}
+                    <Anchor href="/tos">Terms of Service</Anchor> for more information.
+                  </Text>
+                  <Button
+                    variant="filled"
+                    disabled={disabledCheckoutButton}
+                    color="green"
+                    onClick={confirmCheckout}
+                  >
+                    Confirm Checkout
+                  </Button>
+                </Stack>
+              </Paper>
+            </Grid.Col>
+          </Grid>
+        </Paper>
       </Modal>
     </>
   );

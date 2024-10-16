@@ -4,7 +4,6 @@ import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react';
 import useSWR from 'swr';
 
-
 export const fetchDecodedAccessTokenRole = async () => {
   try {
     const response = await axios.get('get-access-token/');
@@ -19,12 +18,14 @@ export const fetchDecodedAccessTokenRole = async () => {
       // console.log('Token user:', decodedToken.username);
       const role = decodedToken.role;
       const usernameFetched = decodedToken.username; // Renamed
+      const class_section = decodedToken.class_section; // Renamed
 
+      console.log('Class Section:', class_section);
       // Cookies.set('Role',decodedToken.role); // Set the access token
       // Store the decoded token in local storage or cookies if needed
       // localStorage.setItem('accessToken', jwt_access_token); // Example if using local storage
 
-      return { role, username: usernameFetched };
+      return { role, username: usernameFetched, class_section };
 
       // return jwt_access_token;
     } else {
@@ -42,6 +43,7 @@ export const useAuth = () => {
   });
 
   return {
+    class_section: data?.class_section,
     role: data?.role,
     username: data?.username,
     isLoading: !error && !data,
@@ -49,28 +51,23 @@ export const useAuth = () => {
   };
 };
 
-
 //lalagyan use state
 export const fetchDecodedAccessToken = async () => {
   try {
     // const accessToken = getCookie('jwt_access_token');
     const response = await axios.get('get-access-token/');
     const { jwt_access_token } = response.data;
-    
+
     console.log('Access token:', jwt_access_token);
     if (!jwt_access_token) throw new Error('No access token found');
     const decodedToken = jwtDecode(jwt_access_token);
-    
+
     return decodedToken;
   } catch (error) {
     console.error('Error decoding token:', error);
     return null;
   }
 };
-
-
-
-
 
 export const fetchAccessToken = async () => {
   const response = await axios.get('/get-access-token/');
