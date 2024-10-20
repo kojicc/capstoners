@@ -1,9 +1,9 @@
-/* TableSort.module.css */
+TableSort.module.css
 
 /* Base table styles */
 .table-container {
   width: 100%;
-  
+
   overflow-x: auto; /* Enables horizontal scroll on small screens */
 }
 
@@ -13,7 +13,8 @@
   border-collapse: collapse;
 }
 
-.th, .td {
+.th,
+.td {
   padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #ddd;
@@ -26,23 +27,28 @@
 
 .th {
   background-color: #f3c565;
+  color: white;
+  font-weight: bold;
   cursor: pointer;
 }
 
 .tr:hover {
-  background-color: #f3c565 !important;
+  background-color: #6593f3 !important;
+  font-weight: bolder;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .th, .td {
+  .th,
+  .td {
     padding: 8px 10px;
     font-size: 0.9rem;
   }
 }
 
 @media (max-width: 576px) {
-  .th, .td {
+  .th,
+  .td {
     padding: 5px;
     font-size: 0.8rem;
   }

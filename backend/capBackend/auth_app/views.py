@@ -1,4 +1,5 @@
 # views.py
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView  # Import ng APIView mula sa rest_framework para sa Django
 from .serializers import UserSerializer  # Import ng UserSerializer na ginawa natin
 from rest_framework.response import Response  # Import para sa pag-return ng response
@@ -21,8 +22,8 @@ from rest_framework.permissions import IsAuthenticated
 import io
 import pandas as pd
 from django.http import HttpResponse
-
-
+from django.core.mail import send_mail
+from uuid import uuid4
 # Excel import export here
 class ExportImportUserView(APIView):
     # permission_classes = [IsAuthenticated]  # Uncomment if you want to enforce authentication
@@ -93,7 +94,11 @@ class ExportImportUserView(APIView):
 class adminUpdateUsersView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
-        users = User.objects.all()
+        class_section = request.query_params.get('class_section')
+        if class_section:
+            users = User.objects.filter(class_section=class_section)
+        else:
+            users = User.objects.all()
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
 
@@ -107,6 +112,7 @@ class adminUpdateUsersView(APIView):
         username = request.data.get('username')
         email = request.data.get('email')
         password = request.data.get('password')  # Get the password from the request
+        locked_account = request.data.get('locked_out')
         
         if username is None or email is None:
             return Response({'error': 'Username and email are required'}, status=400)
@@ -115,6 +121,11 @@ class adminUpdateUsersView(APIView):
             user = User.objects.get(username=username)
             if password:
                 request.data['password'] = make_password(password)
+            
+            if locked_account is not None:
+                user.locked_out = locked_account
+                print("Is user locked: ",user.locked_out)
+                
             
             serializer = UserSerializer(instance=user, data=request.data, partial=True)  
             serializer.is_valid(raise_exception=True)
@@ -169,14 +180,40 @@ class forgetPasswordView(APIView):
             return Response({'error': 'User not found'}, status=404)    
 
 # API view para sa pag-register ng user
-class RegisterView(APIView):    
+class RegisterView(APIView):
     def post(self, request):
-        serializer = UserSerializer(data=request.data)  # Gamitin ang UserSerializer para sa validation ng data
-        serializer.is_valid(raise_exception=True)  # I-validate ang data, kung may error, itaas ang exception
-        serializer.save()  # I-save ang validated na data sa database
-        return Response(serializer.data)  # I-return ang serialized na data bilang response
+        serializer = UserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        # Send verification email
+        verification_link = f"{settings.FRONTEND_URL}/verification/{user.verification_token}"
+        # verification_link = f"{settings.FRONTEND_URL}/"
+        send_mail(
+            'Verify your email',
+            f'Click the link to verify your email: {verification_link}',
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+
+        return Response({'message': 'Registration successful. Please check your email to verify your account.'}, status=status.HTTP_201_CREATED)
 
 
+class VerifyEmailView(APIView):
+    def get(self, request, token):
+        try:
+            user = get_object_or_404(User, verification_token=token)
+            user.is_active = True
+            user.verification_token = uuid4()  # Assign a random value if NULL is not allowed
+            user.save()
+            return Response({'message': 'Email verified successfully'}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    
 # API view para kunin ang details ng user gamit ang JWT token
 class UserView(APIView):
     def get(self, request):
@@ -234,6 +271,17 @@ class LogoutView(APIView):
 class MyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         try:
+            # Get the user based on the username provided in the request data
+            user = get_object_or_404(User, username=request.data['username'])
+
+            # Check if the user account is locked
+            if user.locked_out:
+                return Response({'detail': 'User account is locked'}, status=status.HTTP_403_FORBIDDEN)
+
+            # Check if the user is active
+            if not user.is_active:
+                return Response({'detail': 'User account is not active. Please verify your email.'}, status=status.HTTP_403_FORBIDDEN)
+
             # Call the parent class's post method to handle the initial token generation
             response = super().post(request, *args, **kwargs)
 
@@ -241,11 +289,6 @@ class MyTokenObtainPairView(TokenObtainPairView):
             if 'access' in response.data:
                 access_token = response.data['access']
                 refresh_token = response.data['refresh']
-
-                # Get the user based on the username provided in the request data
-                user = User.objects.get(username=request.data['username'])
-                if not user:
-                    raise AuthenticationFailed('User not found')
 
                 # Decode the access token payload to modify it
                 payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=['HS256'])
@@ -285,7 +328,6 @@ class MyTokenObtainPairView(TokenObtainPairView):
             return Response({'detail': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
             return Response({'detail': 'An error occurred', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
- 
 
 def get_access_token(request):
     

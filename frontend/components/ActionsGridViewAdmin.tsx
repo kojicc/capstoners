@@ -18,6 +18,7 @@ import {
   Image,
   NumberInput,
   ActionIcon,
+  Title,
 } from '@mantine/core';
 import * as TablerIcons from '@tabler/icons-react';
 import classes from './modules.css/ActionsGrid.module.css';
@@ -59,6 +60,7 @@ let mockdata: any[] = [];
 
 let productTypesArray: ProductType[] = [];
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+
 const ActionsGridViewAdmin = () => {
   const [productTypes, setProductTypes] = useState('');
   const [createProductName, setCreateProductName] = useState('');
@@ -269,9 +271,11 @@ const ActionsGridViewAdmin = () => {
 
   return (
     <>
-      <Card withBorder radius="md" className={classes.card}>
+      <Card withBorder radius="md" className={classes.card} mt={20}>
         <Group justify="space-between">
-          <Text className={classes.title}>Categories</Text>
+          <Title order={1} className={classes.title}>
+            Categories
+          </Title>
           <Anchor onClick={() => setOpened(true)} size="xs" c="dimmed" style={{ lineHeight: 1 }}>
             Want to add a new Category?
           </Anchor>
@@ -400,8 +404,14 @@ const ActionsGridViewAdmin = () => {
             style={{ width: '100%' }}
           />
           <TextInput
+            description={
+              <span>
+                Enter the icon name from the{' '}
+                <Anchor href="https://tabler.io/icons">Tabler Icons library</Anchor>
+              </span>
+            }
             label="Category Icon"
-            placeholder="Enter category icon"
+            placeholder="Enter category icon like IconAB2"
             required
             value={undefined}
             onChange={(event) => setCreateCategoryIcon(event.currentTarget.value)}

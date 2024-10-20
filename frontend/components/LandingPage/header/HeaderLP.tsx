@@ -51,6 +51,7 @@ import NotificationButton from '@/components/NotificationButton';
 import { CartIcon } from '@/components/cartButton';
 import useSWR from 'swr';
 import { notifications } from '@mantine/notifications';
+import { ActionToggle } from '@/components/darkorlightMode';
 
 interface Category {
   categoryId: string;
@@ -228,7 +229,7 @@ export function Header() {
             </a>
             {username ? (
               role === 'admin' ? (
-                <a href="" className={classes.link}>
+                <a href="adminDashboard" className={classes.link}>
                   Admin Dashboard
                 </a>
               ) : (
@@ -337,6 +338,8 @@ export function Header() {
                 </Button>
               </>
             )}
+
+            <ActionToggle />
           </Group>
 
           <Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="sm" />

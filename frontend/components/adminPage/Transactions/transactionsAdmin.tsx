@@ -29,6 +29,9 @@ import {
   Popover,
   Tooltip,
   Divider,
+  TableScrollContainer,
+  TagsInput,
+  Paper,
 } from '@mantine/core';
 import {
   IconSelector,
@@ -39,17 +42,25 @@ import {
   IconTrash,
   IconDownload,
   IconUpload,
+  IconX,
 } from '@tabler/icons-react';
 import classes from '@/components/modules.css/TableSort.module.css';
 import { notifications } from '@mantine/notifications';
 import moment from 'moment-timezone';
-import { DatePickerInput, DatesProvider, DateTimePicker, MonthPickerInput } from '@mantine/dates';
+import {
+  DateInput,
+  DatePickerInput,
+  DatesProvider,
+  DateTimePicker,
+  MonthPickerInput,
+} from '@mantine/dates';
 import styles from '@/components/modules.css/TableSort.module.css';
 import { Header } from '@/components/LandingPage/header/HeaderLP';
 import { useRouter } from 'next/router';
 // import { ReusableTable } from '@/components/transactionsUser';
 // import classes from '../components/modules.css/Demo.module.css';
 import useSWR from 'swr';
+import dayjs from 'dayjs';
 
 interface Product {
   image: string;
@@ -65,6 +76,9 @@ interface Users {
   role: string;
   date_joined?: string;
   fullname?: string;
+  class_section: string;
+  group_members?: string[];
+  is_group?: boolean;
 }
 
 interface ReservationItem {
@@ -78,6 +92,7 @@ interface Reservation {
   reservation_id: string;
   reservation_date: string;
   reservation_date_end: string;
+  reservation_day: string;
   status: string;
   product_ids: string;
   quantities: string;
@@ -87,6 +102,19 @@ interface Reservation {
   group_members: string[];
   subject: string;
   message: string;
+  user: string;
+  user_class_section: string;
+}
+interface ClassSchedule {
+  class_section: string;
+  class_name: string;
+  class_days: {
+    [day: string]: {
+      start: string;
+      end: string;
+    }[];
+  };
+  class_instructor: string;
 }
 
 export interface ThProps {
@@ -114,46 +142,11 @@ function Th({ children, reversed, sorted, onSort }: ThProps) {
   );
 }
 
-// function filterData(data: Reservation[] | undefined, search: string): Reservation[] {
-//   if (!Array.isArray(data)) {
-//     console.error('Data is not an array or is undefined');
-//     return [];
-//   }
-
-//   const query = search.toLowerCase().trim();
-//   return data.filter(
-//     (item) =>
-//       (item.reservation_id?.toLowerCase() || '').includes(query) ||
-//       (item.reservation_date?.toLowerCase() || '').includes(query) ||
-//       (item.status?.toLowerCase() || '').includes(query)
-//   );
-// }
-
-// function sortData(
-//   data: Reservation[],
-//   {
-//     sortBy,
-//     reversed,
-//     search,
-//   }: { sortBy: keyof Reservation | null; reversed: boolean; search: string }
-// ) {
-//   const filteredData = filterData(data, search);
-//   return filteredData.sort((a, b) => {
-//     if (!sortBy) return 0;
-
-//     const aValue = a[sortBy];
-//     const bValue = b[sortBy];
-
-//     const aString = typeof aValue === 'string' ? aValue.toLowerCase() : '';
-//     const bString = typeof bValue === 'string' ? bValue.toLowerCase() : '';
-
-//     return reversed ? bString.localeCompare(aString) : aString.localeCompare(bString);
-//   });
-// }
 // Fetcher function for SWR
 const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 
 export default function TransactionHistory() {
+  // #region useStates
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<keyof Reservation | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
@@ -176,6 +169,14 @@ export default function TransactionHistory() {
   const [value, setValue] = useState<string[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedClassTime, setSelectedClassTime] = useState('');
+  const [subject, setSubject] = useState('');
+
+  const [isGroupCheckout, setIsGroupCheckout] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [selectedReservationPurpose, setSelectedReservationPurpose] = useState('');
+
+  // #endregion
 
   const itemsPerPage = 5;
   const router = useRouter();
@@ -194,6 +195,15 @@ export default function TransactionHistory() {
     // onError(err, key, config) {
     //   console.error('Failed to fetch reservations:', err);
     // },
+  });
+
+  const { data: classSchedules } = useSWR<ClassSchedule[]>(`classScheduleCRUD/`, fetcher);
+
+  const { data: usersData, error: usersError } = useSWR<Users[]>('adminupdateUsers/', fetcher, {
+    // refreshInterval: 1000,
+    onSuccess: (data) => {
+      setUsers(data);
+    },
   });
 
   useEffect(() => {
@@ -218,9 +228,6 @@ export default function TransactionHistory() {
       console.error('Error:', error);
     }
   }, [reservationsData]);
-  // const { data: usersData, error: usersError } = useSWR<Users[]>('adminupdateUsers/', fetcher, {
-  //   refreshInterval: 1000,
-  // });
 
   // if (error) {
   //   console.log('Error:', error);
@@ -423,39 +430,48 @@ export default function TransactionHistory() {
     }
   };
 
-  const handleEdit = async () => {
+  const handleEdit = async (event: { preventDefault: () => void }) => {
+    event.preventDefault();
+
+    //#region date
     if (!selectedReservation) {
       console.error('No reservation selected');
       return;
     }
 
+    const [day] = selectedClassTime.split(' ');
+    const startTime = selectedClassTime.split(' ')[1];
+    const endTime = selectedClassTime.split(' ')[3];
+
+    const reservation_date = dayjs(selectedDate)
+      .set('hour', parseInt(startTime.split(':')[0]))
+      .set('minute', parseInt(startTime.split(':')[1]))
+      .set('second', parseInt(startTime.split(':')[2]))
+      .format();
+
+    const reservation_date_end = dayjs(selectedDate)
+      .set('hour', parseInt(endTime.split(':')[0]))
+      .set('minute', parseInt(endTime.split(':')[1]))
+      .set('second', 0)
+      .format();
+
+    //#endregion
+
     const data = {
-      // username: selectedReservation.reservation_id.split('_')[0],
-      // reservationId: selectedReservation.reservation_id,
-      // status: selectedReservation.status,
-      // reservation_date: moment(selectedReservation.reservation_date)
-      //   .tz('Asia/Manila')
-      //   .format('YYYY-MM-DD HH:mm'),
-      // reservation_date_end: moment(selectedReservation.reservation_date_end)
-      //   .tz('Asia/Manila')
-      //   .format('YYYY-MM-DD HH:mm'),
-      // reservation_purpose: selectedReservation.reservation_purpose,
-      // productIds: value.map((item) => item),
-      // quantities: quantity.map((item) => item),
       username: selectedReservation.reservation_id.split('_')[0],
       reservationId: selectedReservation.reservation_id,
       status: selectedReservation.status,
-      reservation_date: moment(selectedReservation.reservation_date)
-        .tz('Asia/Manila')
-        .format('YYYY-MM-DD HH:mm'),
-      reservation_date_end: moment(selectedReservation.reservation_date_end)
-        .tz('Asia/Manila')
-        .format('YYYY-MM-DD HH:mm'),
       reservation_purpose: selectedReservation.reservation_purpose,
-      productIds: selectedReservation.items.map((item) => item.product.productId),
-      quantities: quantity,
+      productIds: value.map((item) => item),
+      quantities: quantity.map((item) => item),
+      subject: selectedReservation.subject,
+      reservation_day: day,
+      reservation_date: reservation_date,
+      reservation_date_end: reservation_date_end,
+      is_group: selectedReservation.is_group,
+      group_members: selectedReservation.group_members ? selectedReservation.group_members : [],
     };
-
+    console.log('Data:', data);
     try {
       setLoader(true);
       await axiosInstance.post('adminUpdateReservationStatus/', data, {
@@ -474,9 +490,84 @@ export default function TransactionHistory() {
     } catch (error) {
       console.error('Error updating reservation:', error);
     } finally {
+      setIsGroupCheckout(false);
+      setSelectedUsers([]);
       setLoader(false);
     }
   };
+
+  const selectedDay = dayjs(selectedDate).format('dddd').toUpperCase();
+
+  const filteredClassTimeOptions =
+    selectedDate && selectedReservation
+      ? Array.from(
+          new Set(
+            classSchedules
+              ?.filter(
+                (schedule) => schedule.class_section === selectedReservation.user_class_section
+              ) // Filter by selected class section
+              .flatMap((schedule) =>
+                Object.entries(schedule.class_days)
+                  .filter(([day]) => day === selectedDay)
+                  .flatMap(([day, times]) =>
+                    times.map((time) => ({
+                      value: `${day} ${time.start} - ${time.end}`,
+                      label: `${schedule.class_name} (${day} ${time.start} - ${time.end})`,
+                    }))
+                  )
+              )
+          )
+        )
+      : [];
+
+  const cthmSubjects = [
+    'Hospitality Management',
+    'Tourism Management',
+    'Culinary Arts',
+    'Hotel Administration',
+    'Event Management',
+  ];
+
+  const getSelectableDates = (days: string[], weeksToConsider: number = 10) => {
+    const daysOfWeek = [
+      'SUNDAY',
+      'MONDAY',
+      'TUESDAY',
+      'WEDNESDAY',
+      'THURSDAY',
+      'FRIDAY',
+      'SATURDAY',
+    ];
+    const today = new Date();
+    const dates = [];
+
+    for (let weekOffset = 0; weekOffset < weeksToConsider; weekOffset++) {
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() + weekOffset * 7);
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + i);
+        if (days.includes(daysOfWeek[date.getDay()])) {
+          dates.push(date);
+        }
+      }
+    }
+    return dates;
+  };
+
+  const allClassDays = classSchedules
+    ? Array.from(
+        new Set(
+          classSchedules.flatMap((schedule) =>
+            Object.keys(schedule.class_days).map((day) => day.toUpperCase())
+          )
+        )
+      )
+    : [];
+
+  // Generate selectable dates for the next 10 weeks (or any number you choose)
+  const selectableDates = getSelectableDates(allClassDays, 10);
 
   const handleDateChange = (
     date: Date | null,
@@ -632,7 +723,7 @@ export default function TransactionHistory() {
                   shadow="md"
                   position="bottom"
                   trapFocus={false}
-                  closeOnClickOutside={false}
+                  // closeOnClickOutside={false}
                 >
                   <Popover.Target>
                     <Tooltip label="Export User Information">
@@ -713,7 +804,7 @@ export default function TransactionHistory() {
                   shadow="md"
                   position="bottom"
                   trapFocus={false} // Allow interaction with the file explorer
-                  closeOnClickOutside={false} // Keep the popover open when clicking outside
+                  // closeOnClickOutside={false} // Keep the popover open when clicking outside
                 >
                   <Popover.Target>
                     <Tooltip label="Import User Information">
@@ -787,160 +878,245 @@ export default function TransactionHistory() {
               </>
             ) : (
               <Container fluid>
-                <ScrollArea offsetScrollbars type="auto" className={styles.tableContainer}>
-                  <Grid>
-                    <Grid.Col span="auto">
-                      <div>
-                        <Table className={styles.table} horizontalSpacing="xl" verticalSpacing="xs">
-                          <thead>
-                            <tr className={styles.tr}>
-                              <Th
-                                sorted={sortBy === 'reservation_id'}
-                                reversed={reverseSortDirection}
-                                onSort={() => handleSort('reservation_id')}
-                              >
-                                Reservation ID
-                              </Th>
-
-                              <Th
-                                sorted={sortBy === 'reserved_date'}
-                                reversed={reverseSortDirection}
-                                onSort={() => handleSort('reserved_date')}
-                              >
-                                Reserved Date
-                              </Th>
-                              <Th
-                                sorted={sortBy === 'reservation_date'}
-                                reversed={reverseSortDirection}
-                                onSort={() => handleSort('reservation_date')}
-                              >
-                                Reservation Date Start
-                              </Th>
-                              <Th
-                                sorted={sortBy === 'reservation_date_end'}
-                                reversed={reverseSortDirection}
-                                onSort={() => handleSort('reservation_date_end')}
-                              >
-                                Reservation Date End
-                              </Th>
-                              <Th
-                                sorted={sortBy === 'is_group'}
-                                reversed={reverseSortDirection}
-                                onSort={() => handleSort('is_group')}
-                              >
-                                By group?
-                              </Th>
-
-                              <Th
-                                sorted={sortBy === 'subject'}
-                                reversed={reverseSortDirection}
-                                onSort={() => handleSort('subject')}
-                              >
-                                Subject
-                              </Th>
-                              <Th
-                                sorted={sortBy === 'reservation_purpose'}
-                                reversed={reverseSortDirection}
-                                onSort={() => handleSort('reservation_purpose')}
-                              >
-                                Reservation Purpose
-                              </Th>
-                              <Th
-                                sorted={sortBy === 'product_ids'}
-                                reversed={reverseSortDirection}
-                                onSort={() => handleSort('product_ids')}
-                              >
-                                Product IDs
-                              </Th>
-                              <Th
-                                sorted={sortBy === 'quantities'}
-                                reversed={reverseSortDirection}
-                                onSort={() => handleSort('quantities')}
-                              >
-                                Quantities
-                              </Th>
-                              <Th
-                                sorted={sortBy === 'status'}
-                                reversed={reverseSortDirection}
-                                onSort={() => handleSort('status')}
-                              >
-                                Status
-                              </Th>
-                              <Th>Actions</Th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {paginatedData.map((reservation) => {
-                              const products = reservation.items
-                                .map((item: { product: any }) => item.product.productId)
-                                .join(', ');
-                              const quantities = reservation.items
-                                .map((item: { quantity: any }) => item.quantity)
-                                .join(', ');
-
-                              return (
-                                <tr
-                                  key={reservation.reservation_id}
-                                  className={styles.tr}
-                                  id={`reservation-${reservation.reservation_id}`}
+                {/* <ScrollArea offsetScrollbars type="auto" className={styles.tableContainer}> */}
+                <Grid>
+                  <Grid.Col span="auto">
+                    <div>
+                      <Paper shadow="xl" p="sm" radius="md" withBorder>
+                        <TableScrollContainer minWidth={500}>
+                          <Table
+                            striped
+                            highlightOnHover
+                            withTableBorder
+                            withColumnBorders
+                            // className={styles.table}
+                            horizontalSpacing="xl"
+                            verticalSpacing="xs"
+                          >
+                            <Table.Thead>
+                              <Table.Tr>
+                                <Th
+                                  sorted={sortBy === 'reservation_id'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('reservation_id')}
                                 >
-                                  <td className={styles.td}>{reservation.reservation_id}</td>
-                                  <td className={styles.td}>
-                                    {moment(new Date(reservation.reserved_date))
-                                      .tz('Asia/Manila')
-                                      .format('YYYY-MM-DD HH:mm')}
-                                  </td>
-                                  <td className={styles.td}>
-                                    {moment(new Date(reservation.reservation_date))
-                                      .tz('Asia/Manila')
-                                      .format('YYYY-MM-DD HH:mm')}
-                                  </td>
-                                  <td className={styles.td}>
-                                    {moment(new Date(reservation.reservation_date_end))
-                                      .tz('Asia/Manila')
-                                      .format('YYYY-MM-DD HH:mm')}
-                                  </td>
-                                  <td className={styles.td}>
-                                    {' '}
-                                    {reservation.is_group
-                                      ? `Yes - ${reservation.group_members}`
-                                      : 'No'}
-                                  </td>
-                                  <td className={styles.td}>{reservation.subject}</td>
-                                  <td className={styles.td}>{reservation.reservation_purpose}</td>
-                                  <td className={styles.td}>{products}</td>
-                                  <td className={styles.td}>{quantities}</td>
-                                  <td className={styles.td}>{reservation.status}</td>
-                                  <td className={styles.td}>
-                                    <Group gap="xs">
-                                      <ActionIcon
-                                        onClick={() => {
-                                          setSelectedReservation(reservation);
-                                          setEditModalOpened(true);
-                                        }}
-                                      >
-                                        <IconEdit />
-                                      </ActionIcon>
-                                      <ActionIcon
-                                        color="red"
-                                        onClick={() => {
-                                          setSelectedReservation(reservation);
-                                          setDeleteModalOpened(true);
-                                        }}
-                                      >
-                                        <IconTrash />
-                                      </ActionIcon>
-                                    </Group>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </Table>
-                      </div>
-                    </Grid.Col>
-                  </Grid>
-                </ScrollArea>
+                                  Reservation ID
+                                </Th>
+
+                                <Th
+                                  sorted={sortBy === 'user'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('user')}
+                                >
+                                  Username
+                                </Th>
+
+                                <Th
+                                  sorted={sortBy === 'user_class_section'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('user_class_section')}
+                                >
+                                  User Class Section
+                                </Th>
+                                <Th
+                                  sorted={sortBy === 'reservation_day'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('reservation_day')}
+                                >
+                                  Reservation Day
+                                </Th>
+
+                                <Th
+                                  sorted={sortBy === 'reserved_date'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('reserved_date')}
+                                >
+                                  Reserved Date
+                                </Th>
+                                <Th
+                                  sorted={sortBy === 'reservation_date'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('reservation_date')}
+                                >
+                                  Reservation Date Start
+                                </Th>
+                                <Th
+                                  sorted={sortBy === 'reservation_date_end'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('reservation_date_end')}
+                                >
+                                  Reservation Date End
+                                </Th>
+                                <Th
+                                  sorted={sortBy === 'is_group'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('is_group')}
+                                >
+                                  By group?
+                                </Th>
+
+                                <Th
+                                  sorted={sortBy === 'subject'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('subject')}
+                                >
+                                  Subject
+                                </Th>
+                                <Th
+                                  sorted={sortBy === 'reservation_purpose'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('reservation_purpose')}
+                                >
+                                  Reservation Purpose
+                                </Th>
+                                <Th
+                                  sorted={sortBy === 'product_ids'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('product_ids')}
+                                >
+                                  Product IDs
+                                </Th>
+                                <Th
+                                  sorted={sortBy === 'quantities'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('quantities')}
+                                >
+                                  Quantities
+                                </Th>
+                                <Th
+                                  sorted={sortBy === 'status'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('status')}
+                                >
+                                  Status
+                                </Th>
+                                <Th>Actions</Th>
+                              </Table.Tr>
+                            </Table.Thead>
+
+                            <Table.Tbody>
+                              {paginatedData.map((reservation) => {
+                                const products = reservation.items
+                                  .map((item: { product: any }) => item.product.productId)
+                                  .join(', ');
+                                const quantities = reservation.items
+                                  .map((item: { quantity: any }) => item.quantity)
+                                  .join(', ');
+
+                                return (
+                                  <Table.Tr
+                                    key={reservation.reservation_id}
+                                    id={`reservation-${reservation.reservation_id}`}
+                                  >
+                                    <Table.Td className={styles.td}>
+                                      {reservation.reservation_id}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>{reservation.user}</Table.Td>
+                                    <Table.Td className={styles.td}>
+                                      {reservation.user_class_section}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>
+                                      {reservation.reservation_day}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>
+                                      {moment(new Date(reservation.reserved_date))
+                                        .tz('Asia/Manila')
+                                        .format('YYYY-MM-DD HH:mm')}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>
+                                      {moment(new Date(reservation.reservation_date))
+                                        .tz('Asia/Manila')
+                                        .format('YYYY-MM-DD HH:mm')}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>
+                                      {moment(new Date(reservation.reservation_date_end))
+                                        .tz('Asia/Manila')
+                                        .format('YYYY-MM-DD HH:mm')}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>
+                                      {' '}
+                                      {reservation.is_group
+                                        ? `Yes - ${reservation.group_members}`
+                                        : 'No'}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>{reservation.subject}</Table.Td>
+                                    <Table.Td className={styles.td}>
+                                      {reservation.reservation_purpose}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>{products}</Table.Td>
+                                    <Table.Td className={styles.td}>{quantities}</Table.Td>
+                                    <Table.Td className={styles.td}>{reservation.status}</Table.Td>
+                                    <Table.Td className={styles.td}>
+                                      <Group gap="xs">
+                                        <Tooltip label="Edit Reservation">
+                                          <ActionIcon
+                                            onClick={() => {
+                                              setSelectedReservation(reservation);
+                                              setEditModalOpened(true);
+
+                                              // Set the class time based on the selected date
+                                              if (reservation.reservation_date) {
+                                                const selectedDate = new Date(
+                                                  reservation.reservation_date
+                                                );
+                                                setSelectedDate(selectedDate);
+
+                                                const selectedDay = dayjs(selectedDate)
+                                                  .format('dddd')
+                                                  .toUpperCase();
+                                                const selectedStartTime =
+                                                  dayjs(selectedDate).format('HH:mm:ss');
+
+                                                // Find the matching class time based on the selected day and exact start time
+                                                const classTime = classSchedules?.flatMap(
+                                                  (schedule) =>
+                                                    Object.entries(schedule.class_days)
+                                                      .filter(([day]) => day === selectedDay)
+                                                      .flatMap(([day, times]) =>
+                                                        times
+                                                          .filter(
+                                                            (time) =>
+                                                              selectedStartTime === time.start // Only return times where the start time matches exactly
+                                                          )
+                                                          .map((time) => ({
+                                                            value: `${day} ${time.start} - ${time.end}`,
+                                                            label: `${schedule.class_name} (${day} ${time.start} - ${time.end})`,
+                                                          }))
+                                                      )
+                                                )[0];
+
+                                                console.log('Class Time:', selectedDate);
+                                                setSelectedClassTime(classTime?.value || '');
+                                              }
+                                            }}
+                                          >
+                                            <IconEdit />
+                                          </ActionIcon>
+                                        </Tooltip>
+                                        <Tooltip label="Delete Reservation">
+                                          <ActionIcon
+                                            color="red"
+                                            onClick={() => {
+                                              setSelectedReservation(reservation);
+                                              setDeleteModalOpened(true);
+                                            }}
+                                          >
+                                            <IconTrash />
+                                          </ActionIcon>
+                                        </Tooltip>
+                                      </Group>
+                                    </Table.Td>
+                                  </Table.Tr>
+                                );
+                              })}
+                            </Table.Tbody>
+                          </Table>
+                        </TableScrollContainer>
+                      </Paper>
+                    </div>
+                  </Grid.Col>
+                </Grid>
+                {/* </ScrollArea> */}
                 <Flex justify="center">
                   <Pagination
                     value={activePage}
@@ -954,147 +1130,290 @@ export default function TransactionHistory() {
             )}
 
             {/* Edit Modal */}
-            <Modal opened={editModalOpened} onClose={handleCloseModal} title="Edit Reservation">
-              <LoadingOverlay
-                visible={loader}
-                zIndex={1000}
-                overlayProps={{ radius: 'sm', blur: 2 }}
-              />
-
-              <Stack>
-                <TextInput
-                  disabled
-                  label="Reservation ID"
-                  value={selectedReservation?.reservation_id || ''}
-                  onChange={(event) =>
-                    setSelectedReservation(
-                      (prev) =>
-                        ({ ...prev, reservation_id: event.currentTarget.value }) as Reservation
-                    )
-                  }
+            <Modal
+              opened={editModalOpened}
+              onClose={handleCloseModal}
+              title="Edit Reservation"
+              size="auto"
+            >
+              <div style={{ position: 'relative' }}>
+                <LoadingOverlay
+                  visible={loader}
+                  zIndex={1000}
+                  overlayProps={{ radius: 'sm', blur: 2 }}
                 />
+                <form onSubmit={handleEdit}>
+                  <Stack>
+                    <TextInput
+                      disabled
+                      label="Reservation ID"
+                      value={selectedReservation?.reservation_id || ''}
+                      onChange={(event) =>
+                        setSelectedReservation(
+                          (prev) =>
+                            ({ ...prev, reservation_id: event.currentTarget.value }) as Reservation
+                        )
+                      }
+                      required
+                    />
 
-                <TextInput
-                  label="Reservation Purpose"
-                  value={selectedReservation?.reservation_purpose || ''}
-                  onChange={(event) =>
-                    setSelectedReservation(
-                      (prev) =>
-                        ({ ...prev, reservation_purpose: event.currentTarget.value }) as Reservation
-                    )
-                  }
-                />
+                    <TextInput
+                      disabled
+                      label="User"
+                      value={selectedReservation?.user || ''}
+                      onChange={(event) =>
+                        setSelectedReservation(
+                          (prev) => ({ ...prev, user: event.currentTarget.value }) as Reservation
+                        )
+                      }
+                      required
+                    />
 
-                <Select
-                  label="Status"
-                  description="Select the status of the reservation"
-                  defaultSearchValue={selectedReservation?.status || ''}
-                  onChange={(value) =>
-                    setSelectedReservation((prev) => ({ ...prev, status: value! }) as Reservation)
-                  }
-                  data={[
-                    'APPROVED',
-                    'REJECTED',
-                    'CANCELLED',
-                    'COMPLETED',
-                    'AWAITING RETURN',
-                    'DAMAGED/LOST/PARTIALLY_COMPLETED',
-                    'AWAITING PAYMENT',
-                  ]}
-                  placeholder="Select status"
-                />
-                <DatesProvider settings={{ locale: 'en', firstDayOfWeek: 1, weekendDays: [1, 5] }}>
-                  <DateTimePicker
-                    clearable
-                    hideOutsideDates
-                    valueFormat="YYYY-MM-DD HH:mm"
-                    value={
-                      selectedReservation?.reservation_date
-                        ? moment(selectedReservation.reservation_date).toDate()
-                        : null
-                    }
-                    onChange={(date) => handleDateChange(date, 'reservation_date')}
-                    label="Reservation Date"
-                    placeholder="Pick date and time"
-                    locale="en"
-                  />
-                  <DateTimePicker
-                    clearable
-                    hideOutsideDates
-                    valueFormat="YYYY-MM-DD HH:mm"
-                    value={
-                      selectedReservation?.reservation_date_end
-                        ? moment(selectedReservation.reservation_date_end).toDate()
-                        : null
-                    }
-                    onChange={(date) => handleDateChange(date, 'reservation_date_end')}
-                    label="Reservation Date End"
-                    placeholder="Pick date and time"
-                    locale="en"
-                  />
-                </DatesProvider>
-
-                <Checkbox.Group
-                  value={value}
-                  onChange={handleCheckboxChange}
-                  label="Pick the items you want to reserve/update."
-                  description="Choose all items that you will need."
-                >
-                  <Stack pt="md" gap="xs">
-                    {selectedReservation?.items.map((item, index) => {
-                      const fullImageUrl = `http://localhost:8000${item.product.image}`;
-
-                      return (
-                        <div key={item.product.productId}>
-                          <Checkbox.Card
-                            className={classes.root}
-                            radius="md"
-                            value={item.product.productId}
-                          >
-                            <Group wrap="nowrap" align="flex-start">
-                              <Checkbox.Indicator />
-                              <div>
-                                <Text className={classes.label}>
-                                  Product ID: {item.product.productId}
-                                </Text>
-                                <Text className={classes.description}>
-                                  Quantity: {item.quantity}
-                                </Text>
-                                <img
-                                  src={fullImageUrl}
-                                  alt={`Product ${item.product.productId}`}
-                                  className={classes.image}
-                                  style={{ width: '100px', height: '100px' }}
-                                />
-                              </div>
-                            </Group>
-                          </Checkbox.Card>
-
-                          <NumberInput
-                            label={`Quantity for ${item.product.productId}`}
-                            defaultValue={item.quantity}
-                            disabled={disabled[index]} // Toggle based on the checkbox
-                            value={quantity[index]}
-                            onChange={(value) => {
-                              setQuantity((prev) => {
-                                const newQuantities = [...prev];
-                                newQuantities[index] = Number(value);
-                                return newQuantities;
+                    <TextInput
+                      disabled
+                      label="User Class Section"
+                      value={selectedReservation?.user_class_section || ''}
+                      onChange={(event) =>
+                        setSelectedReservation(
+                          (prev) =>
+                            ({
+                              ...prev,
+                              user_class_section: event.currentTarget.value,
+                            }) as Reservation
+                        )
+                      }
+                      required
+                    />
+                    <Checkbox
+                      label="Is this a group checkout?"
+                      checked={selectedReservation?.is_group || false}
+                      onChange={(e) =>
+                        setSelectedReservation((prev) =>
+                          prev ? { ...prev, is_group: e.currentTarget.checked } : null
+                        )
+                      }
+                      mb="md"
+                    />
+                    {selectedReservation?.is_group && (
+                      <TagsInput
+                        label="Group Members"
+                        placeholder="Add users"
+                        value={selectedReservation?.group_members || []}
+                        onChange={(value) =>
+                          setSelectedReservation(
+                            (prev) => ({ ...prev, group_members: value }) as Reservation
+                          )
+                        }
+                        mb="md"
+                        data={Object.entries(
+                          users.reduce(
+                            (acc, user) => {
+                              if (!acc[user.class_section]) {
+                                acc[user.class_section] = [];
+                              }
+                              acc[user.class_section].push({
+                                value: user.username,
+                                label: user.username,
                               });
-                            }}
-                            description="Enter the quantity of the product you want to reserve/update."
-                            min={1}
-                            stepHoldDelay={500}
-                            stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
-                          />
-                        </div>
-                      );
-                    })}
-                  </Stack>
-                </Checkbox.Group>
+                              return acc;
+                            },
+                            {} as Record<string, { value: string; label: string }[]>
+                          )
+                        ).map(([classSection, items]) => ({
+                          group: classSection || 'Unknown Section',
+                          items,
+                        }))}
+                        required
+                      />
+                    )}
 
-                <Button onClick={handleEdit}>Save Changes</Button>
-              </Stack>
+                    <TextInput
+                      label="Reservation Purpose"
+                      value={selectedReservation?.reservation_purpose || ''}
+                      onChange={(event) => {
+                        const { value } = event.currentTarget;
+                        setSelectedReservation((prev) => {
+                          if (prev) {
+                            return { ...prev, reservation_purpose: value };
+                          }
+                          return prev;
+                        });
+                      }}
+                      required
+                    />
+
+                    <Select
+                      label="Status"
+                      description="Select the status of the reservation"
+                      defaultSearchValue={selectedReservation?.status || ''}
+                      onChange={(value) =>
+                        setSelectedReservation(
+                          (prev) => ({ ...prev, status: value! }) as Reservation
+                        )
+                      }
+                      data={[
+                        'APPROVED',
+                        'REJECTED',
+                        'CANCELLED',
+                        'COMPLETED',
+                        'AWAITING RETURN',
+                        'DAMAGED/LOST/PARTIALLY_COMPLETED',
+                        'AWAITING PAYMENT',
+                      ]}
+                      placeholder="Select status"
+                      required
+                    />
+
+                    <DateInput
+                      hideOutsideDates
+                      clearable
+                      minDate={selectableDates.length > 0 ? selectableDates[0] : undefined}
+                      maxDate={
+                        selectableDates.length > 0
+                          ? selectableDates[selectableDates.length - 1]
+                          : undefined
+                      }
+                      label="Date input"
+                      placeholder="Date input"
+                      value={selectedDate}
+                      onChange={setSelectedDate}
+                      excludeDate={(date) => {
+                        const selectedDay = dayjs(date).format('dddd').toUpperCase();
+                        const today = dayjs();
+                        const classTimes = classSchedules?.flatMap(
+                          (schedule) =>
+                            schedule.class_days[selectedDay]?.map((time) => time.end) || []
+                        );
+
+                        const isCurrentWeek = selectableDates.some((d) =>
+                          dayjs(d).isSame(date, 'day')
+                        );
+                        const isNextWeek = selectableDates.some((d) =>
+                          dayjs(d).isSame(dayjs(date).add(7, 'day'), 'day')
+                        );
+
+                        return (
+                          (!isCurrentWeek && !isNextWeek) || // Exclude if not in current or next week
+                          today.isAfter(date, 'day') || // Exclude past dates
+                          (classTimes?.some((endTime) =>
+                            today.isAfter(
+                              dayjs(date)
+                                .set('hour', parseInt(endTime.split(':')[0]))
+                                .set('minute', parseInt(endTime.split(':')[1]))
+                            )
+                          ) ??
+                            false)
+                        );
+                      }}
+                      mb="md"
+                    />
+                    <Select
+                      label="Class Schedule"
+                      placeholder="Select your class schedule"
+                      data={filteredClassTimeOptions}
+                      value={selectedDate ? selectedClassTime : null}
+                      onChange={(value) => setSelectedClassTime(value || '')}
+                      disabled={!selectedDate}
+                      mb="md"
+                      required
+                    />
+                    <Autocomplete
+                      rightSection={
+                        <ActionIcon
+                          onClick={() => {
+                            setSelectedReservation((prev) => {
+                              if (prev) {
+                                return { ...prev, subject: '' };
+                              }
+                              return prev;
+                            });
+                          }}
+                          color="red"
+                        >
+                          <IconX />
+                        </ActionIcon>
+                      }
+                      label="Subject"
+                      placeholder="Select your subject"
+                      data={cthmSubjects}
+                      value={selectedReservation?.subject || ''}
+                      onChange={(value) => {
+                        setSelectedReservation((prev) => {
+                          if (prev) {
+                            return { ...prev, subject: value || '' };
+                          }
+                          return prev;
+                        });
+                      }}
+                      mb="md"
+                      required
+                    />
+
+                    <Checkbox.Group
+                      value={value}
+                      onChange={handleCheckboxChange}
+                      label="Pick the items you want to reserve/update."
+                      description="Choose all items that you will need."
+                      required
+                    >
+                      <Stack pt="md" gap="xs">
+                        {selectedReservation?.items.map((item, index) => {
+                          const fullImageUrl = `http://localhost:8000${item.product.image}`;
+
+                          return (
+                            <div key={item.product.productId}>
+                              <Checkbox.Card
+                                className={classes.root}
+                                radius="md"
+                                value={item.product.productId}
+                              >
+                                <Group wrap="nowrap" align="flex-start">
+                                  <Checkbox.Indicator />
+                                  <div>
+                                    <Text className={classes.label}>
+                                      Product ID: {item.product.productId}
+                                    </Text>
+                                    <Text className={classes.description}>
+                                      Quantity: {item.quantity}
+                                    </Text>
+                                    <img
+                                      src={fullImageUrl}
+                                      alt={`Product ${item.product.productId}`}
+                                      className={classes.image}
+                                      style={{ width: '100px', height: '100px' }}
+                                    />
+                                  </div>
+                                </Group>
+                              </Checkbox.Card>
+
+                              <NumberInput
+                                label={`Quantity for ${item.product.productId}`}
+                                defaultValue={item.quantity}
+                                disabled={disabled[index]} // Toggle based on the checkbox
+                                value={quantity[index]}
+                                onChange={(value) => {
+                                  setQuantity((prev) => {
+                                    const newQuantities = [...prev];
+                                    newQuantities[index] = Number(value);
+                                    return newQuantities;
+                                  });
+                                }}
+                                description="Enter the quantity of the product you want to reserve/update."
+                                min={1}
+                                stepHoldDelay={500}
+                                stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
+                              />
+                            </div>
+                          );
+                        })}
+                      </Stack>
+                    </Checkbox.Group>
+
+                    <Button type="submit">Save Changes</Button>
+                    {/* <Button onClick={handleEdit}>Save Changes</Button> */}
+                  </Stack>
+                </form>
+              </div>
             </Modal>
 
             <Modal

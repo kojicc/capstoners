@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from reservations.models import ClassSchedule
+import uuid
 
 # Custom User model extending AbstractUser
 class User(AbstractUser):
@@ -12,6 +13,9 @@ class User(AbstractUser):
     password = models.CharField(max_length=255)   # Password ng user
     role = models.CharField(max_length=50, choices=[('admin', 'Admin'), ('guest', 'Guest'), ('student', 'Student')], default='guest')  # Role ng user, base role is student
     class_section = models.ForeignKey(ClassSchedule, on_delete=models.CASCADE, to_field='class_section', blank=True, null=True)  # Section ng user, pwedeng wala
+    locked_out = models.BooleanField(default=False)  # Boolean field para malaman kung locked
+    is_active = models.BooleanField(default=False, null=False)  # Boolean field para malaman kung active
+    verification_token = models.UUIDField(default=uuid.uuid4, editable=False, null=True, blank=True)  # Add verification token
 
    
 

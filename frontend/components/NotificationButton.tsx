@@ -133,7 +133,7 @@ const NotificationButton = () => {
     <Menu opened={opened} shadow="md" width={300}>
       <Menu.Target>
         <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-          <ActionIcon variant="outline" onClick={toggleMenu}>
+          <ActionIcon variant="outline" size={'lg'} onClick={toggleMenu}>
             <IconBell size={24} />
           </ActionIcon>
           {unreadCount > 0 && (

@@ -369,21 +369,35 @@ class ClassScheduleCRUDAPIView(APIView):
 
     def delete(self, request):
         class_section = request.data.get('class_section')
-        class_start = request.data.get('class_start')
-        class_end = request.data.get('class_end')
+        class_days = request.data.get('class_days')
 
-        # Ensure all required fields are provided
-        if not class_section or not class_start or not class_end:
-            return Response({'message': 'class_section, class_start, and class_end are required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not class_section:
+            return Response({'message': 'class_section is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Fetch the class schedule based on class_section, class_start, and class_end
-        class_schedule = get_object_or_404(ClassSchedule, class_section=class_section, class_start=class_start, class_end=class_end)
+        # Fetch the class schedule based on class_section
+        class_schedule = get_object_or_404(ClassSchedule, class_section=class_section)
 
-        # Delete the class schedule
-        class_schedule.delete()
+        if not class_days:
+            # Delete the entire class section if no class days are provided
+            class_schedule.delete()
+            return Response({'message': 'Class section deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
-        return Response({'message': 'Class schedule deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        # Update class_days to remove the specific time entry
+        for day, times in class_days.items():
+            if day in class_schedule.class_days:
+                class_schedule.class_days[day] = [
+                    time for time in class_schedule.class_days[day]
+                    if time not in times
+                ]
+                if not class_schedule.class_days[day]:
+                    del class_schedule.class_days[day]
 
+        # Save the updated class schedule
+        class_schedule.save()
+
+        return Response({'message': 'Class schedule updated successfully'}, status=status.HTTP_204_NO_CONTENT)   
+
+        
 
 
 
@@ -638,14 +652,15 @@ class ReservationCreateUpdateAPIView(APIView):
 
                     reservation = Reservation(
                         user=user,
+                        user_class_section=user.class_section,
                         reservation_id=reservation_id,
                         reservation_date=reservation_date,
                         reservation_date_end=reservation_date_end,
                         reservation_purpose=reservation_purpose,
+                        is_group=is_group,
                         group_members=group_members,
                         subject=subject,
                         status=reservation_status or 'PENDING',
-                        is_group=is_group,
                         reservation_day=reservation_day
                         
                     )
@@ -754,32 +769,57 @@ class AdminUpdateReservationStatusAPIView(APIView):
                 }, status=status.HTTP_401_UNAUTHORIZED)
 
             username = request.data.get('username')
+            reservation_id = request.data.get('reservationId')
+            reservation_status = request.data.get('status')
+            reservation_purpose = request.data.get('reservation_purpose')
             product_ids = request.data.get('productIds')
             quantities = request.data.get('quantities')
+            reservation_day = request.data.get('reservation_day')
             reservation_date = request.data.get('reservation_date')
             reservation_date_end = request.data.get('reservation_date_end')
-            reservation_purpose = request.data.get('reservation_purpose')
-            reservation_status = request.data.get('status')
-            reservation_id = request.data.get('reservationId')
-            reservation_day = request.data.get('reservation_day')
+            is_group = request.data.get('is_group', False)
+            group_members = request.data.get('group_members', [])
 
             print(f"Reservation data received: Product IDs: {product_ids}, Quantities: {quantities}")
 
+            if not isinstance(group_members, list):
+                group_members = [group_members]
+
             if reservation_id:
+
+                 # Ensure group_members is a list
+            
+
+
+
+
+
                 reservation = get_object_or_404(Reservation, reservation_id=reservation_id)
                 notification_message = ""
                 if reservation_status:
                     reservation.status = reservation_status
                     notification_message = f'Your reservation`s status for {reservation_id} has been updated by {usernameAdmin}.'
+                
                 if reservation_purpose:
                     reservation.reservation_purpose = reservation_purpose
                     notification_message = f'Your reservation`s purpose for {reservation_id} has been updated by {usernameAdmin}.'
+                
                 if reservation_day or reservation_date or reservation_date_end:
-                    reservation.reservation_day = reservation_day
-                    reservation.reservation_date = reservation_date
-                    reservation.reservation_date_end = reservation_date_end
+                    if reservation_day is not None:
+                        reservation.reservation_day = reservation_day
+                    if reservation_date is not None:
+                        reservation.reservation_date = reservation_date
+                    if reservation_date_end is not None:
+                        reservation.reservation_date_end = reservation_date_end
                     notification_message = f'Your reservation`s schedule for {reservation_id} has been updated by {usernameAdmin}.'
-                    reservation.save()
+
+                if is_group:
+                    reservation.is_group = is_group
+
+                if group_members:
+                    reservation.group_members = group_members
+
+                reservation.save()
 
                 if product_ids and quantities:
                     if len(product_ids) != len(quantities):
@@ -885,7 +925,6 @@ class AdminUpdateReservationStatusAPIView(APIView):
                 'message': 'An error occurred',
                 'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
-
 
 #pangshow ng lahat ng reservations for admin table
 class AdminReservationDetailAPIView(APIView):

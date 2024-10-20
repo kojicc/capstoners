@@ -44,7 +44,7 @@ export default function LoginPage() {
         </AppShell.Header>
 
         <AppShell.Main style={{ height: '100vh' }}>
-          <Center style={{ height: '80vh' }}>
+          <Center style={{ height: '90vh' }}>
             <Container>
               <AuthenticationForm />
             </Container>

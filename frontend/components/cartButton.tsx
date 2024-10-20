@@ -69,21 +69,25 @@ interface ClassSchedule {
   class_instructor: string;
 }
 
+interface Users {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  username: string;
+  role: string;
+  date_joined?: string;
+  fullname?: string;
+  class_section: string;
+}
+
 // Fetcher function using Axios
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 export function CartIcon() {
+  // #region useStates
   const [opened, setOpened] = useState(false);
   const { username, class_section } = useAuth();
-
-  const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher, {
-    refreshInterval: 1000,
-  });
-
-  const { data: classSchedules } = useSWR<ClassSchedule[]>(
-    `classScheduleCRUD/?class_section=${class_section}`,
-    fetcher
-  );
 
   const router = useRouter();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -101,6 +105,28 @@ export function CartIcon() {
   const [subject, setSubject] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [disabledCheckoutButton, setDisabledCheckoutButton] = useState(true);
+  const [users, setUsers] = useState<Users[]>([]);
+
+  const { data: usersData, error: usersError } = useSWR<Users[]>(
+    `adminupdateUsers/?class_section=${class_section}`,
+    fetcher,
+    {
+      // refreshInterval: 1000,
+      onSuccess: (data) => {
+        setUsers(data);
+      },
+    }
+  );
+  //#endregion
+
+  const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher, {
+    refreshInterval: 1000,
+  });
+
+  const { data: classSchedules } = useSWR<ClassSchedule[]>(
+    `classScheduleCRUD/?class_section=${class_section}`,
+    fetcher
+  );
 
   useEffect(() => {
     const isFormValid =
@@ -175,6 +201,7 @@ export function CartIcon() {
 
   const confirmCheckout = async () => {
     try {
+      //#region Checkout
       let productIds = selectedItems;
       let quantities = selectedItems.map(
         (productId) =>
@@ -196,6 +223,8 @@ export function CartIcon() {
         .set('minute', parseInt(endTime.split(':')[1]))
         .set('second', 0)
         .format();
+
+      //#endregion
 
       const response = await axios.post('reservationsCreateUpdate/', {
         username,
@@ -276,7 +305,7 @@ export function CartIcon() {
     'Event Management',
   ];
 
-  const getDatesForCurrentWeek = (days: string[]) => {
+  const getSelectableDates = (days: string[], weeksToConsider: number = 10) => {
     const daysOfWeek = [
       'SUNDAY',
       'MONDAY',
@@ -287,16 +316,18 @@ export function CartIcon() {
       'SATURDAY',
     ];
     const today = new Date();
-    const currentDayIndex = today.getDay();
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - currentDayIndex);
-
     const dates = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i);
-      if (days.includes(daysOfWeek[date.getDay()])) {
-        dates.push(date);
+
+    for (let weekOffset = 0; weekOffset < weeksToConsider; weekOffset++) {
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() + weekOffset * 7);
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + i);
+        if (days.includes(daysOfWeek[date.getDay()])) {
+          dates.push(date);
+        }
       }
     }
     return dates;
@@ -312,7 +343,8 @@ export function CartIcon() {
       )
     : [];
 
-  const selectableDates = getDatesForCurrentWeek(allClassDays);
+  // Generate selectable dates for the next 10 weeks (or any number you choose)
+  const selectableDates = getSelectableDates(allClassDays, 10);
 
   return (
     <>
@@ -399,6 +431,7 @@ export function CartIcon() {
         </Group>
       </Drawer>
 
+      {/* updatecartItemModal */}
       <Modal opened={modalOpen} onClose={() => setModalOpen(false)} title="Update Cart Item">
         {selectedItem && (
           <>
@@ -425,6 +458,7 @@ export function CartIcon() {
         )}
       </Modal>
 
+      {/* deleteConfirmationModal */}
       <Modal
         opened={confirmationModalOpen}
         onClose={() => setConfirmationModalOpen(false)}
@@ -443,6 +477,7 @@ export function CartIcon() {
         </Group>
       </Modal>
 
+      {/* checkoutModal */}
       <Modal
         opened={checkoutModalOpen}
         onClose={() => {
@@ -536,6 +571,25 @@ export function CartIcon() {
                         value={selectedUsers}
                         onChange={setSelectedUsers}
                         mb="md"
+                        data={Object.entries(
+                          users.reduce(
+                            (acc, user) => {
+                              if (!acc[user.class_section]) {
+                                acc[user.class_section] = [];
+                              }
+                              acc[user.class_section].push({
+                                value: user.username,
+                                label: user.username,
+                              });
+                              return acc;
+                            },
+                            {} as Record<string, { value: string; label: string }[]>
+                          )
+                        ).map(([classSection, items]) => ({
+                          group: classSection || 'Unknown Section',
+                          items,
+                        }))}
+                        required
                       />
                     )}
                     <TextInput
@@ -545,6 +599,7 @@ export function CartIcon() {
                       mb="md"
                     />
                     <DateInput
+                      hideOutsideDates
                       clearable
                       minDate={selectableDates.length > 0 ? selectableDates[0] : undefined}
                       maxDate={
@@ -563,9 +618,17 @@ export function CartIcon() {
                           (schedule) =>
                             schedule.class_days[selectedDay]?.map((time) => time.end) || []
                         );
+
+                        const isCurrentWeek = selectableDates.some((d) =>
+                          dayjs(d).isSame(date, 'day')
+                        );
+                        const isNextWeek = selectableDates.some((d) =>
+                          dayjs(d).isSame(dayjs(date).add(7, 'day'), 'day')
+                        );
+
                         return (
-                          !selectableDates.some((d) => dayjs(d).isSame(date, 'day')) ||
-                          dayjs(date).isBefore(dayjs(), 'day') ||
+                          (!isCurrentWeek && !isNextWeek) || // Exclude if not in current or next week
+                          today.isAfter(date, 'day') || // Exclude past dates
                           (classTimes?.some((endTime) =>
                             today.isAfter(
                               dayjs(date)
@@ -578,11 +641,12 @@ export function CartIcon() {
                       }}
                       mb="md"
                     />
+
                     <Select
                       label="Class Schedule"
                       placeholder="Select your class schedule"
                       data={filteredClassTimeOptions}
-                      value={selectedClassTime}
+                      value={selectedDate ? selectedClassTime : null}
                       onChange={(value) => setSelectedClassTime(value || '')}
                       disabled={!selectedDate}
                       mb="md"

@@ -27,6 +27,8 @@ import {
   Popover,
   Grid,
   ScrollArea,
+  TableScrollContainer,
+  Paper,
 } from '@mantine/core';
 import {
   IconSelector,
@@ -132,176 +134,10 @@ function sortData(
     return reversed ? bString.localeCompare(aString) : aString.localeCompare(bString);
   });
 }
+const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 
 const UpdateCrudProductsAdmin = () => {
-  // const [products, setProducts] = useState<Product[]>([]);
-  // const [categoryID, setCategoryID] = useState('');
-  // const [categories, setCategories] = useState<Category[]>([]);
-  // const [searchQuery, setSearchQuery] = useState('');
-  // const [loading, setLoading] = useState(false);
-  // const [error, setError] = useState('');
-  // const [sortedData, setSortedData] = useState<Product[]>([]);
-  // const [sortBy, setSortBy] = useState<keyof Product | null>(null);
-  // const [reverseSortDirection, setReverseSortDirection] = useState(false);
-  // const [editModalOpened, setEditModalOpened] = useState(false);
-  // const [deleteModalOpened, setDeleteModalOpened] = useState(false);
-  // // const [selectedProducts, setSelectedProducts] = useState<Product | null>(null);
-  // const [selectedProducts, setSelectedProducts] = useState<Product | null>(null);
-  // const [activePage, setPage] = useState(1);
-  // const [quantity, setQuantity] = useState<number>();
-  // const [disabled, setDisabled] = useState<boolean[]>([]);
-  // const itemsPerPage = 5;
-  // const router = useRouter();
-  // const [files, setFiles] = useState<FileWithPath[]>([]);
-
-  // const previews = files.map((file, index) => {
-  //   const imageUrl = URL.createObjectURL(file);
-  //   return <img key={index} src={imageUrl} onLoad={() => URL.revokeObjectURL(imageUrl)} />;
-  // });
-
-  // //pampakita ng data sa table na sinosort muna thru sortData function
-  // useEffect(() => {
-  //   setSortedData(
-  //     sortData(products, { sortBy, reversed: reverseSortDirection, search: searchQuery })
-  //   );
-  // }, [products, sortBy, reverseSortDirection, searchQuery]);
-
-  // const fetchProducts = async () => {
-  //   try {
-  //     const response = await axiosInstance.get('getadminProductDetail/');
-  //     if (response.status === 200) {
-  //       if (categoryID) {
-  //         const filteredProducts = response.data.products.filter(
-  //           (product: { categoryId: string }) => product.categoryId === categoryID
-  //         );
-  //         setProducts(filteredProducts);
-  //       } else {
-  //         setProducts(response.data.products);
-  //       }
-  //     } else {
-  //       setError('No products found');
-  //     }
-  //   } catch (error) {
-  //     setError('Failed to fetch products');
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchProducts();
-  // }, []);
-
-  // const handleSort = (field: keyof Product) => {
-  //   const reversed = field === sortBy ? !reverseSortDirection : false;
-  //   setReverseSortDirection(reversed);
-  //   setSortBy(field);
-  // };
-
-  // const handleDelete = async () => {
-  //   const productId = selectedProducts?.productId || '';
-  //   setLoading(true);
-
-  //   try {
-  //     const response = await axiosInstance.delete(`deleteProduct/`, { data: { productId } });
-
-  //     if (response.status === 200) {
-  //       fetchProducts();
-  //       setError('');
-  //       notifications.show({
-  //         title: 'Success',
-  //         message: 'Product deleted successfully.',
-  //         color: 'green',
-  //       });
-  //       setDeleteModalOpened(false);
-  //     } else {
-  //       setError('Failed to delete product');
-  //       notifications.show({
-  //         title: 'Error',
-  //         message: 'Failed to delete product.',
-  //         color: 'red',
-  //       });
-  //     }
-  //   } catch (error) {
-  //     setError('Delete failed');
-  //     notifications.show({
-  //       title: 'Error',
-  //       message: 'Failed to delete product.',
-  //       color: 'red',
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // const handleEdit = async () => {
-  //   const formData = new FormData();
-  //   formData.append('productId', selectedProducts?.productId || '');
-  //   formData.append('name', selectedProducts?.name || '');
-  //   formData.append('description', selectedProducts?.description || '');
-  //   formData.append('price', selectedProducts?.price.toString() || '');
-  //   formData.append('quantity', selectedProducts?.quantity.toString() || '');
-  //   formData.append('image', files[0] || '');
-  //   console.log('formData:', formData.get('image'));
-
-  //   setLoading(true);
-
-  //   try {
-  //     const response = await axiosInstance.put('updateProduct/', formData);
-
-  //     handleCloseModal();
-  //     fetchProducts();
-  //     notifications.show({
-  //       title: 'Success',
-  //       message: 'Product updated successfully.',
-  //       color: 'green',
-  //     });
-  //   } catch (error) {
-  //     console.error('Error updating products:', error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // const [value, setValue] = useState<string[]>([]);
-
-  // const handleCloseModal = () => {
-  //   setEditModalOpened(false);
-  //   setSelectedProducts(null);
-  //   setQuantity(0);
-  //   setDisabled([]);
-  //   setValue([]);
-  //   setFiles([]);
-  // };
-
-  // const paginatedData = sortedData.slice(
-  //   (activePage - 1) * itemsPerPage,
-  //   activePage * itemsPerPage
-  // );
-
-  // // const predefinedStatuses = [
-  // // 'PENDING', 'APPROVED', 'REJECTED', 'CANCELLED', 'COMPLETED',
-  // // 'AWAITING RETURN', 'DAMAGED/LOST/PARTIALLY_COMPLETED', 'AWAITING PAYMENT'
-  // // ];
-
-  // // const combinedStatuses = [
-  // //   ...new Set([
-  // //     ...reservations.map(products => products.productId),
-  // //     ...predefinedStatuses
-  // //   ])
-  // // ];
-  // useEffect(() => {
-  //   const test = products.map((product) => product.category);
-  //   console.log('test:', categories);
-  // }, [products]);
-
-  // const getCategories = async () => {
-  //   const response = await axiosInstance.get('getCategories/');
-  //   setCategories(response.data.categories);
-  // };
-
-  // useEffect(() => {
-  //   getCategories();
-  // }, []);
-  const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
+  // #region use states
 
   const [categoryID, setCategoryID] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -313,8 +149,12 @@ const UpdateCrudProductsAdmin = () => {
   const [activePage, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fileExportImport, setFileExportImport] = useState<File | null>(null);
+  const [openedExportImport, setOpenedExportImport] = useState(false);
 
   const [files, setFiles] = useState<FileWithPath[]>([]);
+
+  // #endregion
 
   const previews = files.map((file, index) => {
     const imageUrl = URL.createObjectURL(file);
@@ -443,8 +283,6 @@ const UpdateCrudProductsAdmin = () => {
       console.error('Error exporting products:', error);
     }
   };
-  const [fileExportImport, setFileExportImport] = useState<File | null>(null);
-  const [openedExportImport, setOpenedExportImport] = useState(false);
 
   const handleImport = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
@@ -503,7 +341,7 @@ const UpdateCrudProductsAdmin = () => {
               withArrow
               shadow="md"
               trapFocus={false} // Allow interaction with the file explorer
-              closeOnClickOutside={false} // Keep the popover open when clicking outside
+              // closeOnClickOutside={false} // Keep the popover open when clicking outside
             >
               <Popover.Target>
                 <Tooltip label="Import Products">
@@ -581,130 +419,142 @@ const UpdateCrudProductsAdmin = () => {
             <Text color="red">{error}</Text>
           ) : (
             <Container fluid>
-              <ScrollArea offsetScrollbars type="auto" className={styles.tableContainer}>
-                <Grid>
-                  <Grid.Col span="auto">
-                    <Table className={styles.table} horizontalSpacing="xl" verticalSpacing="xs">
-                      <thead>
-                        <tr>
-                          <Th
-                            sorted={sortBy === 'productId'}
-                            reversed={reverseSortDirection}
-                            onSort={() => handleSort('productId')}
-                          >
-                            Product ID
-                          </Th>
-
-                          <Th
-                            sorted={sortBy === 'type'}
-                            reversed={reverseSortDirection}
-                            onSort={() => handleSort('type')}
-                          >
-                            Product Type
-                          </Th>
-
-                          <Th
-                            sorted={sortBy === 'name'}
-                            reversed={reverseSortDirection}
-                            onSort={() => handleSort('name')}
-                          >
-                            Product Name
-                          </Th>
-
-                          <Th
-                            sorted={sortBy === 'description'}
-                            reversed={reverseSortDirection}
-                            onSort={() => handleSort('description')}
-                          >
-                            Product Description
-                          </Th>
-
-                          <Th
-                            sorted={sortBy === 'price'}
-                            reversed={reverseSortDirection}
-                            onSort={() => handleSort('price')}
-                          >
-                            Product Price
-                          </Th>
-
-                          <Th
-                            sorted={sortBy === 'quantity'}
-                            reversed={reverseSortDirection}
-                            onSort={() => handleSort('quantity')}
-                          >
-                            Product Quantity
-                          </Th>
-
-                          <Th
-                            sorted={sortBy === 'image'}
-                            reversed={reverseSortDirection}
-                            onSort={() => handleSort('image')}
-                          >
-                            Product Image
-                          </Th>
-
-                          <Th>Actions</Th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {paginatedData.map((products) => {
-                          // const products = products.items.map((item: { product: any; }) => item.product.productId).join(', ');
-                          // const quantities = products.items.map((item: { quantity: any; }) => item.quantity).join(', ');
-
-                          return (
-                            <tr
-                              key={products.productId}
-                              className={styles.tr}
-                              id={products.productId}
+              {/* <ScrollArea offsetScrollbars type="auto" className={styles.tableContainer}> */}
+              <Grid>
+                <Grid.Col span="auto">
+                  <Paper shadow="xl" p="sm" radius="md" withBorder>
+                    <TableScrollContainer minWidth={500}>
+                      <Table
+                        striped
+                        highlightOnHover
+                        withTableBorder
+                        withColumnBorders
+                        // className={styles.table}
+                        horizontalSpacing="xl"
+                        verticalSpacing="xs"
+                      >
+                        <Table.Thead>
+                          <Table.Tr>
+                            <Th
+                              sorted={sortBy === 'productId'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('productId')}
                             >
-                              <td className={styles.td}>{products.productId}</td>
-                              <td className={styles.td}>{products.type}</td>
-                              <td className={styles.td}>{products.name}</td>
-                              <td className={styles.td}>{products.description}</td>
-                              <td className={styles.td}>{products.price}</td>
-                              <td className={styles.td}>{products.quantity}</td>
-                              <td className={styles.td}>
-                                {' '}
-                                <img
-                                  style={{
-                                    margin: 'auto',
-                                    borderRadius: 'md',
-                                    height: 100,
-                                    width: 100,
-                                  }}
-                                  src={`http://localhost:8000${products.image}`}
-                                  alt={products.name}
-                                />
-                              </td>
-                              <td className={styles.td}>
-                                <Group gap="xs">
-                                  <ActionIcon
-                                    onClick={() => {
-                                      setSelectedProducts(products);
-                                      setEditModalOpened(true);
+                              Product ID
+                            </Th>
+
+                            <Th
+                              sorted={sortBy === 'type'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('type')}
+                            >
+                              Product Type
+                            </Th>
+
+                            <Th
+                              sorted={sortBy === 'name'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('name')}
+                            >
+                              Product Name
+                            </Th>
+
+                            <Th
+                              sorted={sortBy === 'description'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('description')}
+                            >
+                              Product Description
+                            </Th>
+
+                            <Th
+                              sorted={sortBy === 'price'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('price')}
+                            >
+                              Product Price
+                            </Th>
+
+                            <Th
+                              sorted={sortBy === 'quantity'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('quantity')}
+                            >
+                              Product Quantity
+                            </Th>
+
+                            <Th
+                              sorted={sortBy === 'image'}
+                              reversed={reverseSortDirection}
+                              onSort={() => handleSort('image')}
+                            >
+                              Product Image
+                            </Th>
+
+                            <Th>Actions</Th>
+                          </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                          {paginatedData.map((products) => {
+                            // const products = products.items.map((item: { product: any; }) => item.product.productId).join(', ');
+                            // const quantities = products.items.map((item: { quantity: any; }) => item.quantity).join(', ');
+
+                            return (
+                              <Table.Tr
+                                key={products.productId}
+                                // className={styles.tr}
+                                id={products.productId}
+                              >
+                                <Table.Td className={styles.td}>{products.productId}</Table.Td>
+                                <Table.Td className={styles.td}>{products.type}</Table.Td>
+                                <Table.Td className={styles.td}>{products.name}</Table.Td>
+                                <Table.Td className={styles.td}>{products.description}</Table.Td>
+                                <Table.Td className={styles.td}>{products.price}</Table.Td>
+                                <Table.Td className={styles.td}>{products.quantity}</Table.Td>
+                                <Table.Td className={styles.td}>
+                                  {' '}
+                                  <img
+                                    style={{
+                                      margin: 'auto',
+                                      borderRadius: 'md',
+                                      height: 100,
+                                      width: 100,
                                     }}
-                                  >
-                                    <IconEdit />
-                                  </ActionIcon>
-                                  <ActionIcon
-                                    color="red"
-                                    onClick={() => {
-                                      setSelectedProducts(products);
-                                      setDeleteModalOpened(true);
-                                    }}
-                                  >
-                                    <IconTrash />
-                                  </ActionIcon>
-                                </Group>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </Table>
-                  </Grid.Col>
-                </Grid>
-              </ScrollArea>
+                                    src={`http://localhost:8000${products.image}`}
+                                    alt={products.name}
+                                  />
+                                </Table.Td>
+                                <Table.Td className={styles.td}>
+                                  <Group gap="xs">
+                                    <ActionIcon
+                                      onClick={() => {
+                                        setSelectedProducts(products);
+                                        setEditModalOpened(true);
+                                      }}
+                                    >
+                                      <IconEdit />
+                                    </ActionIcon>
+                                    <ActionIcon
+                                      color="red"
+                                      onClick={() => {
+                                        setSelectedProducts(products);
+                                        setDeleteModalOpened(true);
+                                      }}
+                                    >
+                                      <IconTrash />
+                                    </ActionIcon>
+                                  </Group>
+                                </Table.Td>
+                              </Table.Tr>
+                            );
+                          })}
+                        </Table.Tbody>
+                      </Table>
+                    </TableScrollContainer>
+                  </Paper>
+                </Grid.Col>
+              </Grid>
+              {/* </ScrollArea> */}
               <Flex justify="center">
                 <Pagination
                   value={activePage}

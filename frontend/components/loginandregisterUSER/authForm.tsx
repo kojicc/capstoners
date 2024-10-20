@@ -26,16 +26,21 @@ import {
   Group,
   Center,
   Autocomplete,
+  Popover,
+  Progress,
 } from '@mantine/core';
 import axios from '../../utils/axiosInstance';
 import { useRouter } from 'next/router';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import cx from 'clsx';
 import classes from './DropdownOptionsAnimation.module.css';
 import { fetchDecodedAccessTokenRole, useAuth } from '@/utils/auth';
 import { AuthContext } from '@/utils/authContext';
 import useSWR, { mutate } from 'swr';
 import { Header } from '../LandingPage/header/HeaderLP';
+import { notifications } from '@mantine/notifications';
+import { IconCheck, IconX } from '@tabler/icons-react';
+import { AxiosError } from 'axios';
 
 interface ClassSchedule {
   class_section: string;
@@ -50,6 +55,49 @@ interface ClassSchedule {
 }
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+
+const requirements = [
+  { re: /[0-9]/, label: 'Includes number' },
+  { re: /[a-z]/, label: 'Includes lowercase letter' },
+  { re: /[A-Z]/, label: 'Includes uppercase letter' },
+  { re: /[$&+,:;=?@#|'<>.^*()%!-]/, label: 'Includes special symbol' },
+];
+
+function getStrength(password: string) {
+  let multiplier = 1;
+
+  // Check if the password length is greater than 5
+  if (password.length > 5) {
+    multiplier = 0;
+  }
+
+  // Check each requirement and adjust the multiplier
+  requirements.forEach((requirement) => {
+    if (!requirement.re.test(password)) {
+      multiplier += 1;
+    }
+  });
+
+  return Math.max(100 - (100 / (requirements.length + 1)) * multiplier, 10);
+}
+
+function PasswordRequirement({ meets, label }: { meets: boolean; label: string }) {
+  return (
+    <Text
+      color={meets ? 'teal' : 'red'}
+      style={{ display: 'flex', alignItems: 'center' }}
+      mt={7}
+      size="sm"
+    >
+      {meets ? (
+        <IconCheck style={{ width: 14, height: 14 }} />
+      ) : (
+        <IconX style={{ width: 14, height: 14 }} />
+      )}
+      <Box ml={10}>{label}</Box>
+    </Text>
+  );
+}
 
 export function AuthenticationForm(props: PaperProps) {
   const removeEmojis = (text: string): string => {
@@ -69,9 +117,28 @@ export function AuthenticationForm(props: PaperProps) {
     onDropdownOpen: () => setAnimating(true),
   });
 
+  // #region useStates
   const [animating, setAnimating] = useState(false);
   const [value, setValue] = useState<string | null>('👥 Guest');
   const groceries = ['📚 Student', '👥 Guest'];
+  const [username, setUsernameAuth] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [first_name, setFirstname] = useState('');
+  const [last_name, setLastname] = useState('');
+  const [role, setRoleAuth] = useState('');
+  const [email, setEmail] = useState('');
+  const [classSection, setClassSection] = useState(''); // Initialize as an empty string
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [type, toggle1] = useToggle(['login', 'register']);
+  const [opened, { toggle }] = useDisclosure();
+  const [popoverOpened, setPopoverOpened] = useState(false);
+
+  // #endregion
+
+  const router = useRouter();
+
   const options = groceries.map((item, index) => (
     <Combobox.Option
       value={item}
@@ -83,7 +150,6 @@ export function AuthenticationForm(props: PaperProps) {
     </Combobox.Option>
   ));
 
-  const [type, toggle1] = useToggle(['login', 'register']);
   const form = useForm({
     initialValues: {
       username: '',
@@ -97,28 +163,40 @@ export function AuthenticationForm(props: PaperProps) {
     },
   });
 
-  const [username, setUsernameAuth] = useState('');
-  const [password, setPassword] = useState('');
-  const [first_name, setFirstname] = useState('');
-  const [last_name, setLastname] = useState('');
-  const [role, setRoleAuth] = useState('');
-  const [email, setEmail] = useState('');
-  const [classSection, setClassSection] = useState(''); // Initialize as an empty string
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
   const { data: classSchedules, error: classSchedError } = useSWR<ClassSchedule[]>(
     'classScheduleCRUD/',
     fetcher
   );
 
+  const strength = getStrength(password);
+  const meetsRequirements =
+    password.length > 5 && requirements.every((requirement) => requirement.re.test(password));
+  const passwordsMatch = password === confirmPassword;
+
   const handleLogin = async () => {
     setLoading(true);
     try {
       const response = await axios.post('login/', { username, password });
-      if (response.status !== 200) {
-        throw new Error('Invalid email or password');
+
+      // Handle specific error messages
+      if (response.status === 403) {
+        if (response.data.detail === 'User account is locked') {
+          notifications.show({
+            title: 'Account Locked',
+            message: 'Your account is locked. Please contact support.',
+            color: 'red',
+          });
+          return;
+        }
+
+        if (response.data.detail === 'User account is not active. Please verify your email.') {
+          notifications.show({
+            title: 'Account Not Active',
+            message: 'Your account is not active. Please verify your email.',
+            color: 'red',
+          });
+          return;
+        }
       }
 
       const { role, username: fetchedUsername } = (await fetchDecodedAccessTokenRole()) as {
@@ -137,8 +215,47 @@ export function AuthenticationForm(props: PaperProps) {
       }
     } catch (err) {
       console.error('Login error:', err);
-      form.setFieldError('username', 'Invalid email or password!');
-      form.setFieldError('password', 'Invalid email or password!');
+
+      // Ensure 'err' is typed as AxiosError
+      if (err instanceof AxiosError && err.response) {
+        const { data } = err.response;
+
+        // Check if the error response has a specific detail message
+        if (data && data.detail) {
+          const detail = data.detail;
+
+          if (detail === 'User account is locked') {
+            notifications.show({
+              title: 'Account Locked',
+              message: 'Your account is locked. Please contact support.',
+              color: 'red',
+            });
+          } else if (detail === 'User account is not active. Please verify your email.') {
+            notifications.show({
+              title: 'Account Not Active',
+              message: 'Your account is not active. Please verify your email.',
+              color: 'red',
+            });
+          } else {
+            notifications.show({
+              title: 'Login Error',
+              message: detail,
+              color: 'red',
+            });
+          }
+        } else {
+          // Generic error handling
+          form.setFieldError('username', 'Invalid email or password!');
+          form.setFieldError('password', 'Invalid email or password!');
+        }
+      } else {
+        // Handle unexpected error type
+        notifications.show({
+          title: 'Error',
+          message: 'An unexpected error occurred. Please try again.',
+          color: 'red',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -154,17 +271,18 @@ export function AuthenticationForm(props: PaperProps) {
         last_name,
         email,
         role: 'student',
-        class_section: classSection, // Add this line
+        class_section: classSection,
       });
       console.log('Register response:', response.data);
 
-      if (role === 'admin') {
-        router.push('/adminDashboard');
-      } else if (role === 'student') {
-        router.push('/');
-      } else {
-        router.push('/');
-      }
+      notifications.show({
+        title: 'Registration Successful',
+        message: 'Please check your email to verify your account.',
+        color: 'teal',
+      });
+
+      resetForm();
+      toggle1(); // Switch to login form
     } catch (err) {
       console.error('Register error:', err);
       setError('Invalid username or password');
@@ -173,7 +291,7 @@ export function AuthenticationForm(props: PaperProps) {
       form.setFieldError('password', 'Invalid email or password!');
       form.setFieldError('firstName', 'Invalid email or password!');
       form.setFieldError('lastName', 'Invalid email or password!');
-      form.setFieldError('classSection', 'Invalid class section!'); // Add this line
+      form.setFieldError('classSection', 'Invalid class section!');
     } finally {
       setLoading(false);
     }
@@ -183,6 +301,7 @@ export function AuthenticationForm(props: PaperProps) {
     form.reset();
     setUsernameAuth('');
     setPassword('');
+    setConfirmPassword('');
     setFirstname('');
     setLastname('');
     setRoleAuth('');
@@ -194,8 +313,6 @@ export function AuthenticationForm(props: PaperProps) {
     toggle1();
     resetForm();
   };
-
-  const [opened, { toggle }] = useDisclosure();
 
   return (
     <Paper
@@ -229,33 +346,6 @@ export function AuthenticationForm(props: PaperProps) {
         <Stack>
           {type === 'register' && (
             <>
-              {/* <Combobox
-                store={combobox}
-                withinPortal={false}
-                onOptionSubmit={(val) => {
-                  setValue(val);
-                  setRoleAuth(removeEmojis(val).toLowerCase());
-                  combobox.closeDropdown();
-                }}
-              >
-                <Combobox.Target>
-                  <InputBase
-                    component="button"
-                    type="button"
-                    pointer
-                    rightSection={<Combobox.Chevron />}
-                    onClick={() => combobox.toggleDropdown()}
-                    rightSectionPointerEvents="none"
-                  >
-                    {value || <Input.Placeholder>Pick value</Input.Placeholder>}
-                  </InputBase>
-                </Combobox.Target>
-
-                <Combobox.Dropdown>
-                  <Combobox.Options>{options}</Combobox.Options>
-                </Combobox.Dropdown>
-              </Combobox> */}
-
               <TextInput
                 required
                 label="First Name"
@@ -321,25 +411,91 @@ export function AuthenticationForm(props: PaperProps) {
             radius="md"
           />
 
-          <PasswordInput
-            required
-            label="Password"
-            placeholder="Your password"
-            value={form.values.password}
-            onChange={(event) => {
-              form.setFieldValue('password', event.currentTarget.value);
-              setPassword(event.currentTarget.value);
-            }}
-            error={form.errors.password}
-            radius="md"
-          />
+          {type === 'register' ? (
+            <Popover
+              opened={popoverOpened}
+              position="bottom"
+              width="target"
+              transitionProps={{ transition: 'pop' }}
+            >
+              <Popover.Target>
+                <div
+                  onFocusCapture={() => setPopoverOpened(true)}
+                  onBlurCapture={() => setPopoverOpened(false)}
+                >
+                  <PasswordInput
+                    required
+                    label="Password"
+                    placeholder="Your password"
+                    value={password}
+                    onChange={(event) => {
+                      form.setFieldValue('password', event.currentTarget.value);
+                      setPassword(event.currentTarget.value);
+                    }}
+                    autoComplete="new-password" // Disable browser autocomplete
+                    error={form.errors.password}
+                    radius="md"
+                  />
+                </div>
+              </Popover.Target>
+              <Popover.Dropdown>
+                <Progress
+                  color={strength === 100 ? 'teal' : 'red'}
+                  value={strength}
+                  size={5}
+                  mb="xs"
+                />
+                <PasswordRequirement
+                  label="Includes at least 6 characters"
+                  meets={password.length > 5}
+                />
+                {requirements.map((requirement, index) => (
+                  <PasswordRequirement
+                    key={index}
+                    label={requirement.label}
+                    meets={requirement.re.test(password)}
+                  />
+                ))}
+              </Popover.Dropdown>
+            </Popover>
+          ) : (
+            <PasswordInput
+              required
+              label="Password"
+              placeholder="Your password"
+              value={password}
+              onChange={(event) => {
+                form.setFieldValue('password', event.currentTarget.value);
+                setPassword(event.currentTarget.value);
+              }}
+              autoComplete="current-password" // Disable browser autocomplete
+              error={form.errors.password}
+              radius="md"
+            />
+          )}
 
           {type === 'register' && (
-            <Checkbox
-              label="I accept terms and conditions"
-              checked={form.values.terms}
-              onChange={(event) => form.setFieldValue('terms', event.currentTarget.checked)}
-            />
+            <>
+              <PasswordInput
+                required
+                label="Confirm password"
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.currentTarget.value)}
+                autoComplete="new-password" // Disable browser autocomplete
+              />
+              {!passwordsMatch && confirmPassword.length > 0 && (
+                <Text color="red" size="sm">
+                  Passwords do not match
+                </Text>
+              )}
+
+              <Checkbox
+                label="I accept terms and conditions"
+                checked={form.values.terms}
+                onChange={(event) => form.setFieldValue('terms', event.currentTarget.checked)}
+              />
+            </>
           )}
         </Stack>
 
@@ -354,6 +510,7 @@ export function AuthenticationForm(props: PaperProps) {
             radius="xl"
             onClick={type === 'login' ? handleLogin : handleRegister}
             style={{ backgroundColor: '#592f55', color: '#fff' }}
+            disabled={type === 'register' && (!meetsRequirements || !passwordsMatch)}
           >
             {upperFirst(type)}
           </Button>

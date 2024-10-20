@@ -211,6 +211,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'dektorsu@gmail.com'
 EMAIL_HOST_PASSWORD = 'qovf dpgs lytx kloo'
+FRONTEND_URL = 'http://localhost:3000'
 
 # Outlook settings (if you want to use Outlook)
 # Uncomment this if you're using Outlook

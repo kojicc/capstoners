@@ -22,6 +22,7 @@ class ClassSchedule(models.Model):
 
 class Reservation(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field='username')
+    user_class_section = models.ForeignKey(ClassSchedule, on_delete=models.CASCADE, to_field='class_section', null=True, blank=True)
     reservation_id = models.CharField(primary_key=True, max_length=100, unique=True, editable=False)
     reserved_date = models.DateTimeField(default=timezone.now)
     reservation_day = models.CharField(max_length=100)

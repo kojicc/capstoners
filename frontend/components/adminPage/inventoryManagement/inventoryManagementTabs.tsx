@@ -80,10 +80,18 @@ interface ProductType {
 //   console.log('Fetching URL:', `${url}${query}`); // Check the URL here
 //   return axiosInstance.get(`${url}${query}`).then((res) => res.data);
 // };
+// ganto mag fetch ng data from backend with query
+
+//  const { data: products, error: productsError } = useSWR(
+//    ['getImages/', state.categoryID || ''], // Pass an empty string when categoryID is falsy to fetch all products
+//    fetcher,
+//    { refreshInterval: 1000 }
+//  );
 
 const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 
 const ProductAddPage = () => {
+  // #region usestates
   const [images, setImages] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { state } = useCategoryID();
@@ -113,13 +121,7 @@ const ProductAddPage = () => {
   let categoryData = [];
   const [categories, setCategories] = useState<Category[]>([]);
 
-  // ganto mag fetch ng data from backend with query
-
-  //  const { data: products, error: productsError } = useSWR(
-  //    ['getImages/', state.categoryID || ''], // Pass an empty string when categoryID is falsy to fetch all products
-  //    fetcher,
-  //    { refreshInterval: 1000 }
-  //  );
+  // #endregion
 
   const { data: allProducts, error: productsError } = useSWR('getImages/', fetcher, {
     refreshInterval: 1000,
@@ -138,6 +140,14 @@ const ProductAddPage = () => {
   useEffect(() => {
     if (productsList) {
       let filtered = productsList;
+      if (searchInput) {
+        filtered = filtered.filter(
+          (product) =>
+            product.productId.toLowerCase().includes(searchInput) ||
+            product.category.toLowerCase().includes(searchInput) ||
+            product.name.toLowerCase().includes(searchInput)
+        );
+      }
 
       // Filter by category ID if set
       if (state.categoryID) {
@@ -233,7 +243,7 @@ const ProductAddPage = () => {
           </Tabs.List>
 
           <Tabs.Panel value="Create">
-            <Stack gap="xl">
+            <Paper shadow="xl" radius={'md'} withBorder p={'xl'} mt={20}>
               <ActionsGridViewAdmin />
 
               <Autocomplete
@@ -335,7 +345,7 @@ const ProductAddPage = () => {
                   </div>
                 )}
               </Card>
-            </Stack>
+            </Paper>
           </Tabs.Panel>
 
           <Tabs.Panel color="yellow" value="Update/Delete">

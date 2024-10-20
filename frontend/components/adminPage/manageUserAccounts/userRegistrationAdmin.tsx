@@ -15,6 +15,9 @@ import {
   Autocomplete,
   Input,
   useCombobox,
+  Progress,
+  Box,
+  Popover,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useRouter } from 'next/router';
@@ -22,12 +25,59 @@ import { useState, useRef } from 'react';
 import cx from 'clsx';
 import axios from '@/utils/axiosInstance';
 import classes from './DropdownOptionsAnimation.module.css';
+import { IconCheck, IconX } from '@tabler/icons-react';
+
+const requirements = [
+  { re: /[0-9]/, label: 'Includes number' },
+  { re: /[a-z]/, label: 'Includes lowercase letter' },
+  { re: /[A-Z]/, label: 'Includes uppercase letter' },
+  { re: /[$&+,:;=?@#|'<>.^*()%!-]/, label: 'Includes special symbol' },
+];
+
+function getStrength(password: string) {
+  let multiplier = 1;
+
+  // Check if the password length is greater than 5
+  if (password.length > 5) {
+    multiplier = 0;
+  }
+
+  // Check each requirement and adjust the multiplier
+  requirements.forEach((requirement) => {
+    if (!requirement.re.test(password)) {
+      multiplier += 1;
+    }
+  });
+
+  return Math.max(100 - (100 / (requirements.length + 1)) * multiplier, 10);
+}
+
+function PasswordRequirement({ meets, label }: { meets: boolean; label: string }) {
+  return (
+    <Text
+      color={meets ? 'teal' : 'red'}
+      style={{ display: 'flex', alignItems: 'center' }}
+      mt={7}
+      size="sm"
+    >
+      {meets ? (
+        <IconCheck style={{ width: 14, height: 14 }} />
+      ) : (
+        <IconX style={{ width: 14, height: 14 }} />
+      )}
+      <Box ml={10}>{label}</Box>
+    </Text>
+  );
+}
 
 export function UserRegAdmin() {
   // State and utility hooks
   const [loading, setLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<string | null>('👥 Guest');
+  const [selectedRole, setSelectedRole] = useState<string | null>('📚 Student');
   const [animating, setAnimating] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [popoverOpened, setPopoverOpened] = useState(false);
 
   // Form handling
   const form = useForm({
@@ -50,7 +100,7 @@ export function UserRegAdmin() {
     onDropdownOpen: () => setAnimating(true),
   });
 
-  const groceries = ['🔐 Admin', '📚 Student', '👥 Guest'];
+  const groceries = ['🔐 Admin', '📚 Student'];
   const options = groceries.map((item, index) => (
     <Combobox.Option
       value={item}
@@ -103,6 +153,11 @@ export function UserRegAdmin() {
     form.setFieldValue('email', val);
   };
 
+  const strength = getStrength(newPassword);
+  const meetsRequirements =
+    newPassword.length > 5 && requirements.every((requirement) => requirement.re.test(newPassword));
+  const passwordsMatch = newPassword === confirmPassword;
+
   return (
     <Paper radius="md" p="xl" withBorder pos="relative">
       <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
@@ -140,6 +195,7 @@ export function UserRegAdmin() {
           </Combobox>
 
           <TextInput
+            data-autofocus
             required
             label="First Name"
             placeholder="Your first name"
@@ -172,27 +228,78 @@ export function UserRegAdmin() {
             radius="md"
           />
 
+          <Popover
+            opened={popoverOpened}
+            position="bottom"
+            width="target"
+            transitionProps={{ transition: 'pop' }}
+          >
+            <Popover.Target>
+              <div
+                onFocusCapture={() => setPopoverOpened(true)}
+                onBlurCapture={() => setPopoverOpened(false)}
+              >
+                <PasswordInput
+                  required
+                  withAsterisk
+                  label="Password"
+                  placeholder="Your password"
+                  value={newPassword}
+                  onChange={(event) => {
+                    setNewPassword(event.currentTarget.value);
+                    form.setFieldValue('password', event.currentTarget.value);
+                  }}
+                  autoComplete="new-password" // Disable browser autocomplete
+                  error={form.errors.password}
+                  radius="md"
+                />
+              </div>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <Progress
+                color={strength === 100 ? 'teal' : 'red'}
+                value={strength}
+                size={5}
+                mb="xs"
+              />
+              <PasswordRequirement
+                label="Includes at least 6 characters"
+                meets={newPassword.length > 5}
+              />
+              {requirements.map((requirement, index) => (
+                <PasswordRequirement
+                  key={index}
+                  label={requirement.label}
+                  meets={requirement.re.test(newPassword)}
+                />
+              ))}
+            </Popover.Dropdown>
+          </Popover>
+
           <PasswordInput
-            autoComplete="new-password"
             required
-            label="Password"
-            placeholder="Your password"
-            value={form.values.password}
-            onChange={(event) => form.setFieldValue('password', event.currentTarget.value)}
-            error={form.errors.password}
-            radius="md"
+            withAsterisk
+            label="Confirm password"
+            placeholder="Confirm password"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.currentTarget.value)}
+            autoComplete="new-password" // Disable browser autocomplete
           />
+          {!passwordsMatch && confirmPassword.length > 0 && (
+            <Text color="red" size="sm">
+              Passwords do not match
+            </Text>
+          )}
 
-          <Checkbox
-            label="I accept terms and conditions"
-            checked={form.values.terms}
-            onChange={(event) => form.setFieldValue('terms', event.currentTarget.checked)}
-          />
+          <Button
+            type="submit"
+            radius="xl"
+            mt="xl"
+            disabled={!meetsRequirements || !passwordsMatch}
+          >
+            Register
+          </Button>
         </Stack>
-
-        <Button type="submit" radius="xl" mt="xl">
-          Register
-        </Button>
       </form>
     </Paper>
   );

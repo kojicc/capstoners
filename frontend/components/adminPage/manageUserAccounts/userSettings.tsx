@@ -43,6 +43,7 @@ import {
   IconKeyFilled,
   IconDownload,
   IconUpload,
+  IconLock,
 } from '@tabler/icons-react';
 import classes from '@/components/modules.css/TableSort.module.css';
 import { notifications } from '@mantine/notifications';
@@ -51,8 +52,6 @@ import { useRouter } from 'next/router';
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import useSWR, { useSWRConfig } from 'swr';
 import { modals } from '@mantine/modals';
-// import { ReusableTable } from '@/components/transactionsUser';
-// import classes from '../components/modules.css/Demo.module.css';
 
 interface Users {
   category: string;
@@ -80,6 +79,7 @@ interface Users {
   role: string;
   date_joined?: string;
   fullname?: string;
+  locked_out?: boolean;
 }
 
 export interface ThProps {
@@ -121,8 +121,7 @@ function filterData(data: Users[] | undefined, search: string): Users[] {
       (item.last_name?.toLowerCase() || '').includes(query) ||
       (item.username?.toLowerCase() || '').includes(query) ||
       (item.role?.toLowerCase() || '').includes(query) ||
-      (item.date_joined?.toLowerCase() || '').includes(query) ||
-      (item.id?.toLowerCase() || '').includes(query)
+      (item.date_joined?.toLowerCase() || '').includes(query)
   );
 }
 
@@ -148,7 +147,7 @@ function sortData(
 function PasswordRequirement({ meets, label }: { meets: boolean; label: string }) {
   return (
     <Text
-      c={meets ? 'teal' : 'red'}
+      color={meets ? 'teal' : 'red'}
       style={{ display: 'flex', alignItems: 'center' }}
       mt={7}
       size="sm"
@@ -157,7 +156,7 @@ function PasswordRequirement({ meets, label }: { meets: boolean; label: string }
         <IconCheck style={{ width: rem(14), height: rem(14) }} />
       ) : (
         <IconX style={{ width: rem(14), height: rem(14) }} />
-      )}{' '}
+      )}
       <Box ml={10}>{label}</Box>
     </Text>
   );
@@ -171,8 +170,14 @@ const requirements = [
 ];
 
 function getStrength(password: string) {
-  let multiplier = password.length > 5 ? 0 : 1;
+  let multiplier = 1;
 
+  // Check if the password length is greater than 5
+  if (password.length > 5) {
+    multiplier = 0;
+  }
+
+  // Check each requirement and adjust the multiplier
   requirements.forEach((requirement) => {
     if (!requirement.re.test(password)) {
       multiplier += 1;
@@ -183,6 +188,7 @@ function getStrength(password: string) {
 }
 
 const UpdateUser = () => {
+  // #region useState
   const [openedImportExport, setOpenedImportExport] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [loadingImportExport, setLoadingImportExport] = useState(false);
@@ -198,31 +204,37 @@ const UpdateUser = () => {
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
   const [updatePasswordModalOpened, setUpdatePasswordModalOpened] = useState(false);
-  // const [selectedUsers, setSelectedUsers] = useState<Users | null>(null);
   const [selectedUsers, setSelectedUsers] = useState<Users | null>(null);
   const [activePage, setPage] = useState(1);
-  //   const [quantity, setQuantity] = useState<number>();
-  //   const [disabled, setDisabled] = useState<boolean[]>([]);
+  const [lockAccountModalOpened, setLockAccountModalOpened] = useState(false);
+  const [popoverOpened, setPopoverOpened] = useState(false);
+  const [value, setValue] = useState('');
+  const [newpassword, setNewPassword] = useState('');
+  const [lockAccount, setLockAccount] = useState<boolean>();
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const strength = getStrength(newpassword);
+  const meetsRequirements =
+    newpassword.length > 5 && requirements.every((requirement) => requirement.re.test(newpassword));
+  const passwordsMatch = newpassword === confirmPassword;
+
+  //#endregion
+
   const itemsPerPage = 5;
   const router = useRouter();
   // Fetch data using SWR
   const fetchers = (url: string) => axiosInstance.get(url).then((res) => res.data);
+
   const { data: usersData, error: usersError } = useSWR<Users[]>('adminupdateUsers/', fetchers, {
-    refreshInterval: 1000,
+    // refreshInterval: 1000,
   });
+
   if (usersError) return <Text color="red">Failed to load users</Text>;
   const { mutate } = useSWRConfig();
 
-  const [popoverOpened, setPopoverOpened] = useState(false);
-  const [value, setValue] = useState('');
-  const [newpassword, setNewPassword] = useState('');
-
-  const checks = requirements.map((requirement, index) => (
-    <PasswordRequirement key={index} label={requirement.label} meets={requirement.re.test(value)} />
-  ));
-
-  const strength = getStrength(value);
-  const color = strength === 100 ? 'teal' : strength > 50 ? 'yellow' : 'red';
+  // const checks = requirements.map((requirement, index) => (
+  //   <PasswordRequirement key={index} label={requirement.label} meets={requirement.re.test(value)} />
+  // ));
 
   const handleExport = async () => {
     try {
@@ -284,9 +296,6 @@ const UpdateUser = () => {
 
   if (usersError)
     return <LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />;
-
-  // if (!usersData)
-  //   return <LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />;
 
   if (!usersData)
     return (
@@ -397,11 +406,6 @@ const UpdateUser = () => {
         </Group>
       </Group>
     );
-
-  // const allUserData = usersData;
-  // setUsers(allUserData);
-  // setUsers(allUserData);
-  // console.log("allUserData",allUserData);
 
   const handleSort = (field: keyof Users) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
@@ -541,8 +545,27 @@ const UpdateUser = () => {
       },
     });
 
+  const handleLockAccount = async (newLockState: boolean) => {
+    try {
+      const response = await axiosInstance.put('adminupdateUsers/', {
+        username: selectedUsers?.username,
+        email: selectedUsers?.email,
+        locked_out: newLockState,
+      });
+      console.log('response:', response);
+      setLockAccountModalOpened(false);
+      mutate('adminupdateUsers/');
+      notifications.show({
+        message: newLockState ? 'Account locked successfully' : 'Account unlocked successfully',
+        color: 'green',
+      });
+    } catch (error) {
+      console.error('Error locking account:', error);
+    }
+  };
+
   return (
-    <Container fluid>
+    <Container fluid p={50}>
       <Flex
         gap="md"
         justify="center"
@@ -553,7 +576,7 @@ const UpdateUser = () => {
       >
         <Container fluid>
           <Group justify="center" gap="md" flex="column">
-            <Title my={20} c={'black'} order={2}>
+            <Title my={20} c={'white'} order={2}>
               User History - Admin
             </Title>
 
@@ -696,110 +719,134 @@ const UpdateUser = () => {
                 <Grid>
                   <Grid.Col span="auto">
                     <div>
-                      <Table className={styles.table} horizontalSpacing="xl" verticalSpacing="xs">
-                        <thead>
-                          <tr className={styles.tr}>
-                            <Th
-                              sorted={sortBy === 'id'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('id')}
-                            >
-                              User ID
-                            </Th>
+                      <Paper p={'lg'} shadow="xl" radius="md">
+                        <Table.ScrollContainer minWidth={500}>
+                          <Table
+                            striped
+                            highlightOnHover
+                            withTableBorder
+                            withColumnBorders
+                            horizontalSpacing="xl"
+                            verticalSpacing="xs"
+                          >
+                            <Table.Thead>
+                              <Table.Tr>
+                                <Th
+                                  sorted={sortBy === 'id'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('id')}
+                                >
+                                  User ID
+                                </Th>
 
-                            <Th
-                              sorted={sortBy === 'username'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('username')}
-                            >
-                              User Name
-                            </Th>
+                                <Th
+                                  sorted={sortBy === 'username'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('username')}
+                                >
+                                  User Name
+                                </Th>
 
-                            <Th
-                              sorted={sortBy === 'email'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('email')}
-                            >
-                              Email
-                            </Th>
+                                <Th
+                                  sorted={sortBy === 'email'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('email')}
+                                >
+                                  Email
+                                </Th>
 
-                            <Th
-                              sorted={sortBy === 'fullname'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('fullname')}
-                            >
-                              Full Name
-                            </Th>
+                                <Th
+                                  sorted={sortBy === 'fullname'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('fullname')}
+                                >
+                                  Full Name
+                                </Th>
 
-                            <Th
-                              sorted={sortBy === 'role'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('role')}
-                            >
-                              Role
-                            </Th>
+                                <Th
+                                  sorted={sortBy === 'role'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('role')}
+                                >
+                                  Role
+                                </Th>
 
-                            <Th
-                              sorted={sortBy === 'date_joined'}
-                              reversed={reverseSortDirection}
-                              onSort={() => handleSort('date_joined')}
-                            >
-                              Date Joined
-                            </Th>
+                                <Th
+                                  sorted={sortBy === 'date_joined'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('date_joined')}
+                                >
+                                  Date Joined
+                                </Th>
+                                <Th>Locked</Th>
 
-                            <Th>Actions</Th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {paginatedData.map((users) => {
-                            // const users = users.items.map((item: { product: any; }) => item.product.productId).join(', ');
-                            // const quantities = users.items.map((item: { quantity: any; }) => item.quantity).join(', ');
+                                <Th>Actions</Th>
+                              </Table.Tr>
+                            </Table.Thead>
+                            <Table.Tbody>
+                              {paginatedData.map((users) => {
+                                // const users = users.items.map((item: { product: any; }) => item.product.productId).join(', ');
+                                // const quantities = users.items.map((item: { quantity: any; }) => item.quantity).join(', ');
 
-                            return (
-                              <tr key={users.id} className={styles.tr} id={users.id}>
-                                <td className={styles.td}>{users.id}</td>
-                                <td className={styles.td}>{users.username}</td>
-                                <td className={styles.td}>{users.email}</td>
-                                <td
-                                  className={styles.td}
-                                >{`${users.first_name} ${users.last_name}`}</td>
-                                <td className={styles.td}>{users.role}</td>
-                                <td className={styles.td}>{users.date_joined}</td>
-                                <td className={styles.td}>
-                                  <Group gap="xs">
-                                    <ActionIcon
-                                      onClick={() => {
-                                        setSelectedUsers(users);
-                                        setEditModalOpened(true);
-                                      }}
-                                    >
-                                      <IconEdit />
-                                    </ActionIcon>
-                                    <ActionIcon
-                                      color="yellow"
-                                      onClick={() => {
-                                        setSelectedUsers(users);
-                                        setUpdatePasswordModalOpened(true);
-                                      }}
-                                    >
-                                      <IconKeyFilled />
-                                    </ActionIcon>
-                                    <ActionIcon
-                                      color="red"
-                                      onClick={() => {
-                                        setSelectedUsers(users);
-                                        setDeleteModalOpened(true);
-                                      }}
-                                    >
-                                      <IconTrash />
-                                    </ActionIcon>
-                                  </Group>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </Table>
+                                return (
+                                  <Table.Tr key={users.id} id={users.id}>
+                                    <Table.Td className={styles.td}>{users.id}</Table.Td>
+                                    <Table.Td className={styles.td}>{users.username}</Table.Td>
+                                    <Table.Td className={styles.td}>{users.email}</Table.Td>
+                                    <Table.Td
+                                      className={styles.td}
+                                    >{`${users.first_name} ${users.last_name}`}</Table.Td>
+                                    <Table.Td className={styles.td}>{users.role}</Table.Td>
+                                    <Table.Td className={styles.td}>{users.date_joined}</Table.Td>
+                                    <Table.Td className={styles.td}>
+                                      {users.locked_out ? 'Yes' : 'No'}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>
+                                      <Group gap="xs">
+                                        <ActionIcon
+                                          onClick={() => {
+                                            setSelectedUsers(users);
+                                            setEditModalOpened(true);
+                                          }}
+                                        >
+                                          <IconEdit />
+                                        </ActionIcon>
+                                        <ActionIcon
+                                          color="orange"
+                                          onClick={() => {
+                                            setSelectedUsers(users);
+                                            setUpdatePasswordModalOpened(true);
+                                          }}
+                                        >
+                                          <IconKeyFilled />
+                                        </ActionIcon>
+                                        <ActionIcon
+                                          color="red"
+                                          onClick={() => {
+                                            setSelectedUsers(users);
+                                            setDeleteModalOpened(true);
+                                          }}
+                                        >
+                                          <IconTrash />
+                                        </ActionIcon>
+                                        <ActionIcon
+                                          color="yellow"
+                                          onClick={() => {
+                                            setSelectedUsers(users);
+                                            setLockAccountModalOpened(true);
+                                          }}
+                                        >
+                                          <IconLock />
+                                        </ActionIcon>
+                                      </Group>
+                                    </Table.Td>
+                                  </Table.Tr>
+                                );
+                              })}
+                            </Table.Tbody>
+                          </Table>
+                        </Table.ScrollContainer>
+                      </Paper>
                     </div>
                   </Grid.Col>
                 </Grid>
@@ -817,10 +864,40 @@ const UpdateUser = () => {
           )}
 
           <Modal
+            opened={lockAccountModalOpened}
+            onClose={() => {
+              setLockAccountModalOpened(false);
+            }}
+            title={selectedUsers?.locked_out ? 'Unlock Account' : 'Lock Account'}
+          >
+            <Text>
+              Are you sure you want to {selectedUsers?.locked_out ? 'unlock' : 'lock'} this account?
+            </Text>
+            <Text>Locked ba? {lockAccount ? 'locked' : 'nope'}</Text>
+            <Group justify="right" mt="md">
+              <Button variant="outline" onClick={() => setLockAccountModalOpened(false)}>
+                Cancel
+              </Button>
+              <Button
+                color="orange"
+                onClick={() => {
+                  const newLockState = !selectedUsers?.locked_out;
+                  setLockAccount(newLockState);
+                  handleLockAccount(newLockState);
+                }}
+              >
+                {selectedUsers?.locked_out ? 'Unlock Account' : 'Lock Account'}
+              </Button>
+            </Group>
+          </Modal>
+
+          {/* Edit password Modal */}
+          <Modal
             opened={updatePasswordModalOpened}
             onClose={() => {
               setUpdatePasswordModalOpened(false);
               setNewPassword('');
+              setConfirmPassword('');
             }}
             title="Update Password"
           >
@@ -858,21 +935,49 @@ const UpdateUser = () => {
                       placeholder="New password"
                       value={newpassword}
                       onChange={(event) => setNewPassword(event.currentTarget.value)}
-                      autoComplete="new-password"
+                      autoComplete="new-password" // Disable browser autocomplete
                     />
                   </div>
                 </Popover.Target>
                 <Popover.Dropdown>
-                  <Progress color={color} value={strength} size={5} mb="xs" />
+                  <Progress
+                    color={strength === 100 ? 'teal' : 'red'}
+                    value={strength}
+                    size={5}
+                    mb="xs"
+                  />
                   <PasswordRequirement
                     label="Includes at least 6 characters"
-                    meets={value.length > 5}
+                    meets={newpassword.length > 5}
                   />
-                  {checks}
+                  {requirements.map((requirement, index) => (
+                    <PasswordRequirement
+                      key={index}
+                      label={requirement.label}
+                      meets={requirement.re.test(newpassword)}
+                    />
+                  ))}
                 </Popover.Dropdown>
               </Popover>
 
-              <Button onClick={openDeleteModal}>Save Changes</Button>
+              <PasswordInput
+                autoComplete="new-password"
+                required
+                withAsterisk
+                label="Confirm password"
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.currentTarget.value)}
+              />
+              {!passwordsMatch && confirmPassword.length > 0 && (
+                <Text color="red" size="sm">
+                  Passwords do not match
+                </Text>
+              )}
+
+              <Button onClick={openDeleteModal} disabled={!meetsRequirements || !passwordsMatch}>
+                Save Changes
+              </Button>
             </Stack>
           </Modal>
 

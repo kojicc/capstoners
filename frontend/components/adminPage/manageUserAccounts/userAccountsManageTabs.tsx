@@ -409,7 +409,7 @@ const UserAccountsManage = () => {
     <Paper pl={0} bg={'#ffff'}>
       {/* <Header /> */}
 
-      <Container fluid>
+      <Paper shadow="xl" radius={'md'} p={'xl'}>
         <LoadingOverlay
           visible={isLoading}
           zIndex={1000}
@@ -432,217 +432,19 @@ const UserAccountsManage = () => {
 
           <Tabs.Panel value="Create">
             <>
-              {/* <AuthenticationForm /> */}
-              <UserRegAdmin />
+              <Paper shadow="xl" radius={'md'} withBorder p={'xl'} bg={'#417A46'} mt={10}>
+                <UserRegAdmin />
+              </Paper>
             </>
-            {/* <Stack gap="xl">
-                <Card shadow="sm" padding="lg">
-                  <Text size="lg" fw={500}>
-                    Product Details
-                  </Text>
-
-                  <TextInput
-                    label="Product ID"
-                    placeholder="Choose category to create new productID"
-                    leftSection={focused ? <IconIdBadge2 style={iconStyle} /> : null}
-                    required
-                    value={nextProductId}
-                    onChange={(event) => setprodID(event.currentTarget.value)}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
-                    mt="md"
-                    disabled
-                    autoComplete="nope"
-                    data-floating={floating}
-                    labelProps={{ 'data-floating': floating }}
-                  />
-
-                  <TextInput
-                    label="Product Name"
-                    placeholder="Enter product name"
-                    leftSection={focused ? <IconBadgeTmFilled style={iconStyle} /> : null}
-                    required
-                    aria-required
-                    value={prodName}
-                    onChange={(event) => setprodName(event.currentTarget.value)}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
-                    mt="md"
-                    autoComplete="nope"
-                    data-floating={floating}
-                    labelProps={{ 'data-floating': floating }}
-                  />
-                  <TextInput
-                    label="Product Description"
-                    placeholder="Enter product description"
-                    leftSection={focused ? <IconFileDescription style={iconStyle} /> : null}
-                    required
-                    value={prodDesc}
-                    onChange={(event) => setprodDesc(event.currentTarget.value)}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
-                    mt="md"
-                    autoComplete="nope"
-                    data-floating={floating}
-                    labelProps={{ 'data-floating': floating }}
-                  />
-                  <NumberInput
-                    leftSection={focused ? '₱' : null}
-                    label="Product Price"
-                    placeholder="Enter product price"
-                    required
-                    value={prodPrice !== 0 ? prodPrice.toString() : ''}
-                    allowDecimal={false}
-                    onChange={(value) => setprodPrice(Number(value))}
-                    onClick={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
-                    mt="md"
-                    autoComplete="nope"
-                    data-floating={floating}
-                    labelProps={{ 'data-floating': floating }}
-                  />
-
-                  <NumberInput
-                    label="Product Quantity"
-                    placeholder="Enter product quantity"
-                    required
-                    leftSection={focused ? <IconBuildingWarehouse style={iconStyle} /> : null}
-                    value={prodQuantity !== 0 ? prodQuantity.toString() : ''}
-                    onChange={(value) => setprodQuantity(Number(value))}
-                    onClick={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
-                    data-floating={floating}
-                    labelProps={{ 'data-floating': floating }}
-                    mt="md"
-                  />
-
-                  <Select
-                    mt="md"
-                    leftSection={focused ? <IconCategoryFilled style={iconStyle} /> : null}
-                    defaultSearchValue={prodCategory}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
-                    data={categories.map((category: { name: any }) => category.name)}
-                    placeholder="Pick a category"
-                    label="Product Category"
-                    labelProps={{ 'data-floating': floating }}
-                    clearable
-                    onChange={(value: string | null) => setprodCategory(value ?? '')}
-                  />
-                  <Dropzone my={20} accept={IMAGE_MIME_TYPE} onDrop={setprodImage}>
-                    <Text ta="center">Drop images here</Text>
-                  </Dropzone>
-                  <SimpleGrid
-                    type="container"
-                    cols={{ base: 1, sm: 2, lg: 5 }}
-                    spacing={{ base: 10, sm: 'xl' }}
-                    verticalSpacing={{ base: 'md', sm: 'xl' }}
-                    mt={previews.length > 0 ? 'xl' : 0}
-                  >
-                    {previews.slice(0, 5)}
-                  </SimpleGrid>
-                  <Group justify="center" mt="xl">
-                    <Button onClick={handleUpload}>Upload</Button>
-                  </Group>
-                </Card>
-                <ActionsGridViewAdmin />
-
-                <Autocomplete
-                  placeholder="Search products using Product IDs or Category IDs"
-                  mt={20}
-                  leftSection={
-                    <IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                  }
-                  mb="md"
-                  data={[
-                    {
-                      group: 'Category IDs',
-                      items: categories.map(
-                        (category: { categoryId: any; name: any }) =>
-                          `${category.categoryId} - ${category.name}`
-                      ),
-                    },
-                    {
-                      group: 'Product IDs',
-                      items: searchProduct.map((product: { productId: any }) => product.productId),
-                    },
-                  ]}
-                  limit={5}
-                  comboboxProps={{
-                    transitionProps: { transition: 'pop', duration: 200 },
-                    dropdownPadding: 10,
-                    shadow: 'xl',
-                  }}
-                  value={searchInput}
-                  onChange={handleSearch}
-                />
-                <Card shadow="sm" padding="lg">
-                  <Text size="lg" fw={500}>
-                    Recently Uploaded Products
-                  </Text>
-                  {isLoading ? (
-                    <p>Loading images...</p>
-                  ) : (
-                    <div>
-                      {filteredProducts && filteredProducts.length > 0 ? (
-                        filteredProducts.slice(0, 5).map((product) => (
-                          <Card key={product.id} shadow="sm" padding="lg" mt="md">
-                            <Flex
-                              direction={{ base: 'column', sm: 'row' }}
-                              gap={{ base: 'sm', sm: 'lg' }}
-                              justify={{ sm: 'center' }}
-                              align="center"
-                              wrap="nowrap"
-                            >
-                              <Stack>
-                                <Text>
-                                  <b>Product ID: </b>
-                                  {product.productId}
-                                </Text>
-                                <Text>
-                                  <b>Product Category:</b> {product.category}
-                                </Text>
-                                <Text>
-                                  <b>Product Name:</b> {product.name}
-                                </Text>
-                                <Text lineClamp={4}>
-                                  <b>Product Description:</b> {product.description}
-                                </Text>
-                                <Text>
-                                  <b>Product Price (₱): </b>
-                                  {product.price}
-                                </Text>
-                                <Text>
-                                  <b>Quantity:</b> {product.quantity}
-                                </Text>
-                              </Stack>
-                              <Image
-                                mx={'auto'}
-                                src={`http://localhost:8000${product.image}`}
-                                alt={product.name}
-                                radius="md"
-                                h={200}
-                                w={500}
-                              />
-                            </Flex>
-                          </Card>
-                        ))
-                      ) : (
-                        <p>No images found.</p>
-                      )}
-                    </div>
-                  )}
-                </Card>
-              </Stack>  */}
           </Tabs.Panel>
 
           <Tabs.Panel color="yellow" value="Update/Delete">
-            <Container fluid bg={'#417A46'}>
+            <Paper shadow="xl" radius={'md'} withBorder p={'xl'} bg={'#417A46'}>
               <UpdateUser />
-            </Container>
+            </Paper>
           </Tabs.Panel>
         </Tabs>
-      </Container>
+      </Paper>
     </Paper>
   );
 };
