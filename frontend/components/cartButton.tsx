@@ -106,6 +106,7 @@ export function CartIcon() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [disabledCheckoutButton, setDisabledCheckoutButton] = useState(true);
   const [users, setUsers] = useState<Users[]>([]);
+  const [cthmSubjects, setCthmSubjects] = useState<string[]>([]);
 
   const { data: usersData, error: usersError } = useSWR<Users[]>(
     `adminupdateUsers/?class_section=${class_section}`,
@@ -117,15 +118,24 @@ export function CartIcon() {
       },
     }
   );
+
   //#endregion
 
   const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher, {
     refreshInterval: 1000,
   });
 
+  // Filter items with 0 stock
+  const outOfStockItems = data?.cart_items.filter((item) => item.product.quantity === 0);
+
   const { data: classSchedules } = useSWR<ClassSchedule[]>(
     `classScheduleCRUD/?class_section=${class_section}`,
-    fetcher
+    fetcher,
+    {
+      onSuccess: (data) => {
+        setCthmSubjects(data.map((user) => user.class_name));
+      },
+    }
   );
 
   useEffect(() => {
@@ -139,7 +149,7 @@ export function CartIcon() {
     const isTimeValid = () => {
       if (!selectedDate || !classSchedules) return false;
 
-      const selectedDay = dayjs(selectedDate).format('dddd').toUpperCase();
+      const selectedDay = selectedDate ? dayjs(selectedDate).format('dddd').toUpperCase() : '';
       const today = dayjs();
 
       const classTimes = classSchedules.flatMap(
@@ -283,27 +293,31 @@ export function CartIcon() {
       setModalOpen(false);
     }
   };
+  const selectedDay = selectedDate ? dayjs(selectedDate).format('dddd').toUpperCase() : '';
 
-  const filteredClassTimeOptions = selectedDate
-    ? classSchedules?.flatMap((schedule) =>
-        Object.entries(schedule.class_days)
-          .filter(([day]) => dayjs(selectedDate).format('dddd').toUpperCase() === day)
-          .flatMap(([day, times]) =>
-            times.map((time) => ({
-              value: `${day} ${time.start} - ${time.end}`,
-              label: `${schedule.class_name} (${day} ${time.start} - ${time.end})`,
-            }))
+  const filteredClassTimeOptions =
+    selectedDate && classSchedules
+      ? classSchedules
+          .filter((schedule) => schedule.class_section === class_section) // Filter by class section
+          .flatMap((schedule) =>
+            Object.entries(schedule.class_days)
+              .filter(([day]) => day.toUpperCase() === selectedDay)
+              .flatMap(([day, times]) =>
+                times.map((time) => ({
+                  value: `${day} ${time.start} - ${time.end}`,
+                  label: `${schedule.class_name} (${day} ${time.start} - ${time.end})`,
+                }))
+              )
           )
-      )
-    : [];
+      : [];
 
-  const cthmSubjects = [
-    'Hospitality Management',
-    'Tourism Management',
-    'Culinary Arts',
-    'Hotel Administration',
-    'Event Management',
-  ];
+  // const cthmSubjects = [
+  //   'Hospitality Management',
+  //   'Tourism Management',
+  //   'Culinary Arts',
+  //   'Hotel Administration',
+  //   'Event Management',
+  // ];
 
   const getSelectableDates = (days: string[], weeksToConsider: number = 10) => {
     const daysOfWeek = [
@@ -361,51 +375,53 @@ export function CartIcon() {
         position="right"
       >
         {data.cart_items.length === 0 ? (
-          <Text>No items in cart</Text>
+          <Title>No items in cart</Title>
         ) : (
           <Stack gap="md">
-            {data.cart_items.map((item, index) => (
-              <Paper key={item.product.productId} p="md" shadow="xs" radius="md" withBorder>
-                <Group align="flex-start">
-                  <Checkbox
-                    checked={selectedItems.includes(item.product.productId)}
-                    onChange={() => handleCheckboxChange(item.product.productId)}
-                  />
-                  <img
-                    src={`http://localhost:8000${item.product.image}`}
-                    alt={item.product.name}
-                    style={{ width: 50, height: 50, objectFit: 'cover' }}
-                  />
-                  <Box>
-                    <Text w={500}>{item.product.name}</Text>
-                    <Text size="sm" color="dimmed">
-                      Qty in Cart: {item.quantity}
-                    </Text>
-                    <Text size="sm">Price: ₱{item.product.price}</Text>
-                    <Text size="xs" color="dimmed">
-                      Available Stock: {item.product.quantity}
-                    </Text>
-                  </Box>
-                  <Button
-                    variant="light"
-                    color="blue"
-                    onClick={() => {
-                      setSelectedItem(item);
-                      setModalOpen(true);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="light"
-                    color="red"
-                    onClick={() => handleDelete(item.product.productId)}
-                  >
-                    Delete
-                  </Button>
-                </Group>
-              </Paper>
-            ))}
+            {data.cart_items
+              .filter((item) => item.product.quantity > 0)
+              .map((item, index) => (
+                <Paper key={item.product.productId} p="md" shadow="xs" radius="md" withBorder>
+                  <Group align="flex-start">
+                    <Checkbox
+                      checked={selectedItems.includes(item.product.productId)}
+                      onChange={() => handleCheckboxChange(item.product.productId)}
+                    />
+                    <img
+                      src={`http://localhost:8000${item.product.image}`}
+                      alt={item.product.name}
+                      style={{ width: 50, height: 50, objectFit: 'cover' }}
+                    />
+                    <Box>
+                      <Text w={500}>{item.product.name}</Text>
+                      <Text size="sm" color="dimmed">
+                        Qty in Cart: {item.quantity}
+                      </Text>
+                      <Text size="sm">Price: ₱{item.product.price}</Text>
+                      <Text size="xs" color="dimmed">
+                        Available Stock: {item.product.quantity}
+                      </Text>
+                    </Box>
+                    <Button
+                      variant="light"
+                      color="blue"
+                      onClick={() => {
+                        setSelectedItem(item);
+                        setModalOpen(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="light"
+                      color="red"
+                      onClick={() => handleDelete(item.product.productId)}
+                    >
+                      Delete
+                    </Button>
+                  </Group>
+                </Paper>
+              ))}
           </Stack>
         )}
         <Divider my="md" />
@@ -429,6 +445,42 @@ export function CartIcon() {
             Checkout ({selectedItems.length} items)
           </Button>
         </Group>
+        <Divider my="md" />
+        {outOfStockItems && outOfStockItems.length > 0 && (
+          <>
+            <Title order={3}>Out of Stock Items</Title>
+            <Stack gap="md">
+              {outOfStockItems.map((item) => (
+                <Paper key={item.product.productId} p="md" shadow="xs" radius="md" withBorder>
+                  <Group align="flex-start">
+                    <img
+                      src={`http://localhost:8000${item.product.image}`}
+                      alt={item.product.name}
+                      style={{ width: 50, height: 50, objectFit: 'cover' }}
+                    />
+                    <Box>
+                      <Text w={500}>{item.product.name}</Text>
+                      <Text size="sm" color="dimmed">
+                        Qty in Cart: {item.quantity}
+                      </Text>
+                      <Text size="sm">Price: ₱{item.product.price}</Text>
+                      <Text size="xs" color="dimmed">
+                        No stocks available
+                      </Text>
+                    </Box>
+                    <Button
+                      variant="light"
+                      color="red"
+                      onClick={() => handleDelete(item.product.productId)}
+                    >
+                      Delete
+                    </Button>
+                  </Group>
+                </Paper>
+              ))}
+            </Stack>
+          </>
+        )}
       </Drawer>
 
       {/* updatecartItemModal */}
@@ -650,6 +702,7 @@ export function CartIcon() {
                       onChange={(value) => setSelectedClassTime(value || '')}
                       disabled={!selectedDate}
                       mb="md"
+                      required
                     />
                     <Autocomplete
                       label="Subject"

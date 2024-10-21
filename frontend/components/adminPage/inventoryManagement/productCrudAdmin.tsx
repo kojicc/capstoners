@@ -41,6 +41,7 @@ import {
   IconFileArrowRight,
   IconUpload,
   IconDownload,
+  IconX,
 } from '@tabler/icons-react';
 import classes from '@/components/modules.css/TableSort.module.css';
 import { notifications } from '@mantine/notifications';
@@ -155,6 +156,16 @@ const UpdateCrudProductsAdmin = () => {
   const [files, setFiles] = useState<FileWithPath[]>([]);
 
   // #endregion
+
+  const { data, error: ProductTypeError } = useSWR(
+    `producttypeCrud/?category_id=${selectedProducts?.category || ''}`,
+    fetcher
+  );
+  const productTypesArray =
+    data?.product_types.map((type: { id: string; name: string; description: string }) => ({
+      value: type.name, // or type.name, depending on what you want to use as value
+      label: type.name,
+    })) || [];
 
   const previews = files.map((file, index) => {
     const imageUrl = URL.createObjectURL(file);
@@ -570,6 +581,7 @@ const UpdateCrudProductsAdmin = () => {
           {/* Edit Modal */}
           <Modal opened={editModalOpened} onClose={handleCloseModal} title="Edit Product">
             <LoadingOverlay
+              pos="absolute"
               visible={loading}
               zIndex={1000}
               overlayProps={{ radius: 'sm', blur: 2 }}
@@ -587,16 +599,27 @@ const UpdateCrudProductsAdmin = () => {
                 }
               />
 
-              <TextInput
+              <Autocomplete
                 label="Product Type"
+                placeholder="Select product type"
+                data={productTypesArray}
                 value={selectedProducts?.type || ''}
-                onChange={(event) =>
-                  setSelectedProducts(
-                    (prev) => ({ ...prev, type: event.currentTarget.value }) as Product
-                  )
+                rightSection={
+                  <ActionIcon
+                    variant="transparent"
+                    onClick={() => {
+                      selectedProducts?.type &&
+                        setSelectedProducts((prev) => (prev ? { ...prev, type: '' } : null));
+                    }}
+                  >
+                    <IconX style={{ width: '70%', height: '70%' }} stroke={1.5} />
+                  </ActionIcon>
                 }
+                onChange={(value) =>
+                  setSelectedProducts((prev) => ({ ...prev, type: value }) as Product)
+                }
+                style={{ width: '100%' }}
               />
-
               <TextInput
                 label="Product Name"
                 value={selectedProducts?.name || ''}

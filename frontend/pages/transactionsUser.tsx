@@ -126,6 +126,7 @@ function sortData(
 const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 
 export default function TransactionHistoryUser() {
+  // #region useStates
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -139,6 +140,7 @@ export default function TransactionHistoryUser() {
   const [activeTab, setActiveTab] = useState<string>('PENDING');
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  //#endregion
 
   const handleCancelClick = (reservation: Reservation) => {
     setSelectedReservation(reservation);
@@ -203,11 +205,10 @@ export default function TransactionHistoryUser() {
           const status = getStatusFromQuery(query);
           setActiveTab(status);
         }
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
     }
   }, [userReservationData, userDataError, router.query.searchQuery]);
 
@@ -300,7 +301,7 @@ export default function TransactionHistoryUser() {
         header={{ height: 60 }}
         navbar={{ width: 300, breakpoint: 'sm', collapsed: { desktop: true } }}
         padding="md"
-        style={{ backgroundColor: '#2F5933' }}
+        style={{ backgroundColor: '#2F4059' }}
       >
         <AppShell.Header bg={'#592f55'}>
           <Header />
@@ -348,7 +349,7 @@ export default function TransactionHistoryUser() {
               />
 
               {loading ? (
-                <Text>Loading...</Text>
+                <Title order={1}>You have no reservations yet!</Title>
               ) : error ? (
                 <Text color="red">{error}</Text>
               ) : (

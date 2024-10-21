@@ -496,29 +496,25 @@ export default function TransactionHistory() {
     }
   };
 
-  const selectedDay = dayjs(selectedDate).format('dddd').toUpperCase();
+  const selectedDay = selectedDate ? dayjs(selectedDate).format('dddd').toUpperCase() : '';
 
   const filteredClassTimeOptions =
     selectedDate && selectedReservation
-      ? Array.from(
-          new Set(
-            classSchedules
-              ?.filter(
-                (schedule) => schedule.class_section === selectedReservation.user_class_section
-              ) // Filter by selected class section
-              .flatMap((schedule) =>
-                Object.entries(schedule.class_days)
-                  .filter(([day]) => day === selectedDay)
-                  .flatMap(([day, times]) =>
-                    times.map((time) => ({
-                      value: `${day} ${time.start} - ${time.end}`,
-                      label: `${schedule.class_name} (${day} ${time.start} - ${time.end})`,
-                    }))
-                  )
+      ? classSchedules
+          ?.filter((schedule) => schedule.class_section === selectedReservation.user_class_section) // Filter by selected class section
+          .flatMap((schedule) =>
+            Object.entries(schedule.class_days)
+              .filter(([day]) => day.toUpperCase() === selectedDay)
+              .flatMap(([day, times]) =>
+                times.map((time) => ({
+                  value: `${day} ${time.start} - ${time.end}`,
+                  label: `${schedule.class_name} (${day} ${time.start} - ${time.end})`,
+                }))
               )
           )
-        )
       : [];
+
+  console.log('Selected Date:', selectedDay);
 
   const cthmSubjects = [
     'Hospitality Management',
@@ -1071,13 +1067,15 @@ export default function TransactionHistory() {
                                                 const classTime = classSchedules?.flatMap(
                                                   (schedule) =>
                                                     Object.entries(schedule.class_days)
-                                                      .filter(([day]) => day === selectedDay)
+                                                      .filter(
+                                                        ([day]) => day.toUpperCase() === selectedDay
+                                                      )
                                                       .flatMap(([day, times]) =>
                                                         times
                                                           .filter(
                                                             (time) =>
-                                                              selectedStartTime === time.start // Only return times where the start time matches exactly
-                                                          )
+                                                              selectedStartTime === time.start
+                                                          ) // Only return times where the start time matches exactly
                                                           .map((time) => ({
                                                             value: `${day} ${time.start} - ${time.end}`,
                                                             label: `${schedule.class_name} (${day} ${time.start} - ${time.end})`,
@@ -1085,7 +1083,7 @@ export default function TransactionHistory() {
                                                       )
                                                 )[0];
 
-                                                console.log('Class Time:', selectedDate);
+                                                console.log('Class Time:', classTime);
                                                 setSelectedClassTime(classTime?.value || '');
                                               }
                                             }}

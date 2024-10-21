@@ -228,7 +228,7 @@ export function NavbarSection() {
           />
         </AppShell.Section>
       </AppShell.Navbar>
-      <AppShell.Main style={{ backgroundColor: '#2F5933' }}>{getComponent()}</AppShell.Main>
+      <AppShell.Main style={{ backgroundColor: '#2F4059' }}>{getComponent()}</AppShell.Main>
     </AppShell>
   );
 }

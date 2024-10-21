@@ -19,32 +19,18 @@ import {
   Menu,
   Modal,
   PasswordInput,
+  Popover,
+  Progress,
 } from '@mantine/core';
 import { useDisclosure, useHeadroom, useLocalStorage } from '@mantine/hooks';
-import {
-  IconNotification,
-  IconCode,
-  IconBook,
-  IconChartPie3,
-  IconFingerprint,
-  IconCoin,
-  IconChevronDown,
-  IconArmchair2,
-  IconGlass,
-  IconGlassFullFilled,
-  IconTemplate,
-  IconHanger2,
-  IconToolsKitchen2,
-  IconSettings,
-  IconLock,
-  IconCalendar,
-} from '@tabler/icons-react';
+import { IconChevronDown, IconHanger2, IconSettings, IconCalendar } from '@tabler/icons-react';
+import * as Icons from '@tabler/icons-react'; // Import all icons
 import classes from './HeaderMegaMenu.module.css';
 import { useWindowScroll } from '@mantine/hooks';
 import axios from '@/utils/axiosInstance';
 import { useRouter } from 'next/router';
 import axiosInstance from '@/utils/axiosInstance';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { isLoggedIn, useAuth } from '@/utils/auth';
 import Cookies from 'js-cookie';
 import NotificationButton from '@/components/NotificationButton';
@@ -52,7 +38,50 @@ import { CartIcon } from '@/components/cartButton';
 import useSWR from 'swr';
 import { notifications } from '@mantine/notifications';
 import { ActionToggle } from '@/components/darkorlightMode';
+import { IconCheck, IconX } from '@tabler/icons-react';
 
+const requirements = [
+  { re: /[0-9]/, label: 'Includes number' },
+  { re: /[a-z]/, label: 'Includes lowercase letter' },
+  { re: /[A-Z]/, label: 'Includes uppercase letter' },
+  { re: /[$&+,:;=?@#|'<>.^*()%!-]/, label: 'Includes special symbol' },
+];
+
+function getStrength(password: string) {
+  let multiplier = 1;
+
+  // Check if the password length is greater than 5
+  if (password.length > 5) {
+    multiplier = 0;
+  }
+
+  // Check each requirement and adjust the multiplier
+  requirements.forEach((requirement) => {
+    if (!requirement.re.test(password)) {
+      multiplier += 1;
+    }
+  });
+
+  return Math.max(100 - (100 / (requirements.length + 1)) * multiplier, 10);
+}
+
+function PasswordRequirement({ meets, label }: { meets: boolean; label: string }) {
+  return (
+    <Text
+      color={meets ? 'teal' : 'red'}
+      style={{ display: 'flex', alignItems: 'center' }}
+      mt={7}
+      size="sm"
+    >
+      {meets ? (
+        <IconCheck style={{ width: 14, height: 14 }} />
+      ) : (
+        <IconX style={{ width: 14, height: 14 }} />
+      )}
+      <Box ml={10}>{label}</Box>
+    </Text>
+  );
+}
 interface Category {
   categoryId: string;
   icon: any;
@@ -63,16 +92,37 @@ interface Category {
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 export function Header() {
+  // #region useStates
   const { username, role } = useAuth();
   const [isModalOpen, setModalOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+  const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
+  const [linksOpened, { toggle: toggleLinks }] = useDisclosure(false);
+  const [popoverOpened, setPopoverOpened] = useState(false);
+
+  const theme = useMantineTheme();
 
   const { data, error, isLoading } = useSWR('getCategories/', fetcher);
   const router = useRouter();
   const [mockdata, setMockdata] = useState<any[]>([]);
+  const [strength, setStrength] = useState(0);
+  const [meetsRequirements, setMeetsRequirements] = useState(false);
+  const [passwordsMatch, setPasswordsMatch] = useState(false);
+
+  //#endregion
+
+  useEffect(() => {
+    const strength = getStrength(newPassword);
+    setStrength(strength);
+    setMeetsRequirements(
+      newPassword.length > 5 &&
+        requirements.every((requirement) => requirement.re.test(newPassword))
+    );
+    setPasswordsMatch(newPassword === confirmPassword);
+  }, [newPassword, confirmPassword]);
 
   const handleNavigation = (name: string, categoryId: string) => {
     router
@@ -93,14 +143,19 @@ export function Header() {
       console.error('Error fetching categories:', error);
     }
     if (data) {
-      const updatedMockdata = data.categories.slice(0, 6).map((category: any) => ({
-        icon: IconGlass,
-        title: category.name,
-        description: category.description,
-        categoryId: category.categoryId,
-      }));
+      const updatedMockdata = data.categories.slice(0, 6).map(async (category: any) => {
+        const IconComponent = (await import(`@tabler/icons-react`))[
+          category.icon as keyof typeof Icons
+        ];
+        return {
+          icon: IconComponent,
+          title: category.name,
+          description: category.description,
+          categoryId: category.categoryId,
+        };
+      });
 
-      setMockdata(updatedMockdata);
+      Promise.all(updatedMockdata).then(setMockdata);
     }
   }, [data, error]);
 
@@ -161,12 +216,6 @@ export function Header() {
       handleLogout();
     }
   };
-
-  const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
-  const [linksOpened, { toggle: toggleLinks }] = useDisclosure(false);
-
-  const theme = useMantineTheme();
-  IconHanger2;
 
   const links = mockdata.map((item) => (
     <UnstyledButton
@@ -289,13 +338,15 @@ export function Header() {
                   <Group justify="space-between">
                     <div>
                       <Text fw={500} fz="sm">
-                        Get started
+                        Explore Equipment
                       </Text>
                       <Text size="xs" c="dimmed">
-                        Their food sources have decreased, and their numbers
+                        Discover a wide range of equipment available for your needs
                       </Text>
                     </div>
-                    <Button variant="default">Get started</Button>
+                    <Button variant="default" component="a" href="reservationLandingPage">
+                      Get started
+                    </Button>
                   </Group>
                 </div>
               </HoverCard.Dropdown>
@@ -398,14 +449,43 @@ export function Header() {
         title="Change Password"
         centered
       >
-        <PasswordInput
-          label="New Password"
-          placeholder="Enter your new password"
-          autoComplete="new-password"
-          value={newPassword}
-          onChange={(event) => setNewPassword(event.currentTarget.value)}
-          required
-        />
+        <Popover
+          opened={popoverOpened}
+          position="bottom"
+          width="target"
+          transitionProps={{ transition: 'pop' }}
+        >
+          <Popover.Target>
+            <div
+              onFocusCapture={() => setPopoverOpened(true)}
+              onBlurCapture={() => setPopoverOpened(false)}
+            >
+              <PasswordInput
+                data-autofocus
+                label="New Password"
+                placeholder="Enter your new password"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.currentTarget.value)}
+                required
+              />
+            </div>
+          </Popover.Target>
+          <Popover.Dropdown>
+            <Progress color={strength === 100 ? 'teal' : 'red'} value={strength} size={5} mb="xs" />
+            <PasswordRequirement
+              label="Includes at least 6 characters"
+              meets={newPassword.length > 5}
+            />
+            {requirements.map((requirement, index) => (
+              <PasswordRequirement
+                key={index}
+                label={requirement.label}
+                meets={requirement.re.test(newPassword)}
+              />
+            ))}
+          </Popover.Dropdown>
+        </Popover>
         <PasswordInput
           label="Confirm New Password"
           autoComplete="new-password"
@@ -415,8 +495,17 @@ export function Header() {
           required
           error={passwordError}
         />
+        {!passwordsMatch && confirmPassword.length > 0 && (
+          <Text color="red" size="sm">
+            Passwords do not match
+          </Text>
+        )}
         <Group justify="right" mt="md">
-          <Button onClick={handlePasswordChange} loading={loading}>
+          <Button
+            onClick={handlePasswordChange}
+            loading={loading}
+            disabled={!meetsRequirements || !passwordsMatch}
+          >
             Change Password
           </Button>
         </Group>
