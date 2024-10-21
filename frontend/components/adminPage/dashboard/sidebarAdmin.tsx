@@ -12,9 +12,16 @@ import {
   Title,
 } from '@mantine/core';
 import { useDisclosure, useLocalStorage } from '@mantine/hooks';
-import { IconGauge, IconHistory, IconEdit, IconTablePlus, IconUsers } from '@tabler/icons-react';
+import {
+  IconGauge,
+  IconHistory,
+  IconEdit,
+  IconTablePlus,
+  IconUsers,
+  IconHomeFilled,
+} from '@tabler/icons-react';
 import TransactionHistory from '@/components/adminPage/Transactions/transactionsAdmin'; // Ensure this path is correct
-import { Dashboard } from './dashboardMain';
+import { Dashboard } from './dashboardAnalytics';
 import ProductAddPage from '@/components/adminPage/inventoryManagement/inventoryManagementTabs';
 import { Header } from '../../LandingPage/header/HeaderLP';
 import UserAccountsManage from '../manageUserAccounts/userAccountsManageTabs';
@@ -157,56 +164,47 @@ export function NavbarSection() {
       }}
       padding="md"
       withBorder={true}
-      layout="alt"
     >
       <AppShell.Header bg={'#592f55'}>
-        <Grid h="100%">
-          <Grid.Col span={6}>
-            {' '}
-            <Burger
-              pl={10}
-              pt={25}
-              opened={mobileOpened}
-              onClick={toggleMobile}
-              hiddenFrom="sm"
-              size="md"
-              color="white"
-            />
-            <Burger
-              pl={10}
-              pt={25}
-              opened={desktopOpened}
-              onClick={toggleDesktop}
-              visibleFrom="sm"
-              size="md"
-              color="white"
-            />
-          </Grid.Col>
-
+        {' '}
+        <Group pt={10} justify="flex-end" mr={30}>
+          <Burger
+            pl={10}
+            opened={mobileOpened}
+            onClick={toggleMobile}
+            hiddenFrom="sm"
+            size="md"
+            color="white"
+            mr={'auto'}
+          />
+          <Burger
+            pl={10}
+            opened={desktopOpened}
+            onClick={toggleDesktop}
+            visibleFrom="sm"
+            size="md"
+            color="white"
+            mr={'auto'}
+          />
           {/* <Header /> */}
+          <Title order={1} size="xl" c="white">
+            Welcome {username}!
+          </Title>
+          <Button
+            component="a"
+            onClick={handleLogout}
+            variant="outline"
+            color="white"
+            fw={700}
+            // className={classes.btn}
+          >
+            Logout
+          </Button>
+          <NotificationButton />
 
-          <Grid.Col span={6}>
-            <Group justify="flex-end" pt={10} mr={30}>
-              <Title order={1} size="xl" c="white">
-                Welcome {username}!
-              </Title>
-              <Button
-                component="a"
-                onClick={handleLogout}
-                variant="outline"
-                color="white"
-                fw={700}
-                // className={classes.btn}
-              >
-                Logout
-              </Button>
-              <NotificationButton />
-
-              <CartIcon />
-              <ActionToggle />
-            </Group>
-          </Grid.Col>
-        </Grid>
+          <CartIcon />
+          <ActionToggle />
+        </Group>
       </AppShell.Header>
 
       <AppShell.Navbar p="md" m={'auto'}>
@@ -224,10 +222,26 @@ export function NavbarSection() {
             w={'100%'}
             href="/"
             label="Go to Landing Page"
-            leftSection={<IconGauge size="1rem" stroke={1.5} />}
+            leftSection={<IconHomeFilled size="1rem" stroke={1.5} />}
           />
         </AppShell.Section>
+        <AppShell.Section hiddenFrom="sm">
+          <Divider my="md" />
+          <Group justify="flex-end">
+            <Title order={1} size="xl" mr={'auto'}>
+              Welcome {username}!
+            </Title>
+
+            <Button component="a" onClick={handleLogout} variant="outline" color="dark" fw={700}>
+              Logout
+            </Button>
+            <NotificationButton />
+            <CartIcon />
+            <ActionToggle />
+          </Group>
+        </AppShell.Section>
       </AppShell.Navbar>
+
       <AppShell.Main style={{ backgroundColor: '#2F4059' }}>{getComponent()}</AppShell.Main>
     </AppShell>
   );

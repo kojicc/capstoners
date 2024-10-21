@@ -123,7 +123,7 @@ class RecordPageView(APIView):
 class getCompletedOrdersEachMonth(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
-        completed_orders = Reservation.objects.filter(status='APPROVED')
+        completed_orders = Reservation.objects.filter(status='COMPLETED')
         completed_orders_by_month = {}
 
         # Populate the dictionary with order counts by month

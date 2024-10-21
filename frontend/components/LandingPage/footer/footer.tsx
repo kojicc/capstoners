@@ -23,7 +23,7 @@ const data = [
 export function Footer() {
   const groups = data.map((group) => {
     const links = group.links.map((link, index) => (
-      <Text<'a'>
+      <Text
         key={index}
         className={classes.link}
         component="a"
@@ -36,7 +36,9 @@ export function Footer() {
 
     return (
       <div className={classes.wrapper} key={group.title}>
-        <Text className={classes.title}>{group.title}</Text>
+        <Text c={'white'} className={classes.title}>
+          {group.title}
+        </Text>
         {links}
       </div>
     );

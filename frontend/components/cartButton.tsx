@@ -64,6 +64,7 @@ interface ClassSchedule {
     [day: string]: {
       start: string;
       end: string;
+      subject: string;
     }[];
   };
   class_instructor: string;
@@ -88,7 +89,7 @@ export function CartIcon() {
   // #region useStates
   const [opened, setOpened] = useState(false);
   const { username, class_section } = useAuth();
-
+  const [selectedSubject, setSelectedSubject] = useState('');
   const router = useRouter();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -128,12 +129,27 @@ export function CartIcon() {
   // Filter items with 0 stock
   const outOfStockItems = data?.cart_items.filter((item) => item.product.quantity === 0);
 
+  // const { data: classSchedules } = useSWR<ClassSchedule[]>(
+  //   `classScheduleCRUD/?class_section=${class_section}`,
+  //   fetcher,
+  //   {
+  //     onSuccess: (data) => {
+  //       setCthmSubjects(data.map((user) => user.class_name));
+  //     },
+  //   }
+  // );
+
   const { data: classSchedules } = useSWR<ClassSchedule[]>(
     `classScheduleCRUD/?class_section=${class_section}`,
     fetcher,
     {
       onSuccess: (data) => {
-        setCthmSubjects(data.map((user) => user.class_name));
+        const subjects = data.flatMap((schedule) =>
+          Object.values(schedule.class_days)
+            .flat()
+            .map((day) => day.subject)
+        );
+        setCthmSubjects(subjects); // Store subjects
       },
     }
   );
@@ -143,7 +159,7 @@ export function CartIcon() {
       reservationPurpose.trim() !== '' &&
       selectedDate !== null &&
       selectedClassTime.trim() !== '' &&
-      subject.trim() !== '' &&
+      selectedSubject.trim() !== '' &&
       (!isGroupCheckout || selectedUsers.length > 0);
 
     const isTimeValid = () => {
@@ -170,7 +186,7 @@ export function CartIcon() {
     reservationPurpose,
     selectedDate,
     selectedClassTime,
-    subject,
+    selectedSubject,
     isGroupCheckout,
     selectedUsers,
     classSchedules,
@@ -243,7 +259,7 @@ export function CartIcon() {
         reservation_purpose: reservationPurpose,
         is_group: isGroupCheckout,
         group_members: isGroupCheckout ? selectedUsers : [],
-        subject: subject,
+        subject: selectedSubject,
         reservation_day: day,
         reservation_date: reservation_date,
         reservation_date_end: reservation_date_end,
@@ -305,7 +321,8 @@ export function CartIcon() {
               .flatMap(([day, times]) =>
                 times.map((time) => ({
                   value: `${day} ${time.start} - ${time.end}`,
-                  label: `${schedule.class_name} (${day} ${time.start} - ${time.end})`,
+                  label: `${time.subject} (${day} ${time.start} - ${time.end})`,
+                  subject: time.subject, // Include the subject in the option
                 }))
               )
           )
@@ -699,17 +716,22 @@ export function CartIcon() {
                       placeholder="Select your class schedule"
                       data={filteredClassTimeOptions}
                       value={selectedDate ? selectedClassTime : null}
-                      onChange={(value) => setSelectedClassTime(value || '')}
+                      onChange={(value) => {
+                        setSelectedClassTime(value || '');
+                        const selectedOption = filteredClassTimeOptions.find(
+                          (option) => option.value === value
+                        );
+                        setSelectedSubject(selectedOption ? selectedOption.subject : '');
+                      }}
                       disabled={!selectedDate}
                       mb="md"
                       required
                     />
-                    <Autocomplete
+                    <TextInput
                       label="Subject"
-                      placeholder="Select your subject"
-                      data={cthmSubjects}
-                      value={subject}
-                      onChange={(value) => setSubject(value || '')}
+                      placeholder="Subject will be set based on class schedule"
+                      value={selectedSubject}
+                      disabled
                       mb="md"
                     />
                   </Stack>

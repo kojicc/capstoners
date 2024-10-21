@@ -18,7 +18,7 @@ import { TimeInput } from '@mantine/dates';
 import { IconTrash, IconEdit } from '@tabler/icons-react';
 import axios from '@/utils/axiosInstance';
 import useSWR, { mutate } from 'swr';
-import { SetStateAction, useState } from 'react';
+import { SetStateAction, useEffect, useState } from 'react';
 import { notifications } from '@mantine/notifications';
 
 interface ClassSchedule {
@@ -28,6 +28,7 @@ interface ClassSchedule {
     [day: string]: {
       start: string;
       end: string;
+      subject: string; // Add subject field
     }[];
   };
   class_instructor: string;
@@ -42,9 +43,10 @@ export default function ClassroomCrud() {
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [classSection, setClassSection] = useState('');
   const [className, setClassName] = useState('');
-  const [classDays, setClassDays] = useState<{ [key: string]: { start: string; end: string }[] }>(
-    {}
-  );
+  const [classDays, setClassDays] = useState<{
+    [key: string]: { start: string; end: string; subject: string }[];
+  }>({});
+  const [subject, setSubject] = useState('');
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -76,20 +78,20 @@ export default function ClassroomCrud() {
     }
   };
 
-  const convertTimeToMinutes = (time: string) => {
-    const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + minutes; // Convert time to total minutes since 00:00
+  const convertTimeToSeconds = (time: string) => {
+    const [hours, minutes, seconds] = time.split(':').map(Number);
+    return hours * 3600 + minutes * 60 + (seconds || 0); // Convert time to total seconds since 00:00
   };
 
   const handleAddTime = () => {
-    if (selectedDay && startTime && endTime) {
-      // Convert startTime and endTime to minutes
-      const startInMinutes = convertTimeToMinutes(startTime);
-      const endInMinutes = convertTimeToMinutes(endTime);
-      const durationInMinutes = endInMinutes - startInMinutes;
+    if (selectedDay && startTime && endTime && subject) {
+      // Convert startTime and endTime to seconds
+      const startInSeconds = convertTimeToSeconds(startTime);
+      const endInSeconds = convertTimeToSeconds(endTime);
+      const durationInSeconds = endInSeconds - startInSeconds;
 
-      // Ensure the time duration is at least 1 hour (60 minutes)
-      if (durationInMinutes < 60) {
+      // Ensure the time duration is at least 1 hour (3600 seconds)
+      if (durationInSeconds < 3600) {
         notifications.show({
           title: 'Invalid Time Duration',
           message: 'The time duration must be at least 1 hour.',
@@ -103,14 +105,14 @@ export default function ClassroomCrud() {
 
         // Check for overlap (new start/end should not overlap with any existing interval)
         const isOverlapping = times.some((time) => {
-          const existingStartInMinutes = convertTimeToMinutes(time.start);
-          const existingEndInMinutes = convertTimeToMinutes(time.end);
+          const existingStartInSeconds = convertTimeToSeconds(time.start);
+          const existingEndInSeconds = convertTimeToSeconds(time.end);
 
           // Check if the new time range overlaps with an existing time range
           return (
-            (startInMinutes >= existingStartInMinutes && startInMinutes < existingEndInMinutes) || // New start falls within an existing range
-            (endInMinutes > existingStartInMinutes && endInMinutes <= existingEndInMinutes) || // New end falls within an existing range
-            (startInMinutes <= existingStartInMinutes && endInMinutes >= existingEndInMinutes) // New range fully contains an existing range
+            (startInSeconds >= existingStartInSeconds && startInSeconds < existingEndInSeconds) || // New start falls within an existing range
+            (endInSeconds > existingStartInSeconds && endInSeconds <= existingEndInSeconds) || // New end falls within an existing range
+            (startInSeconds <= existingStartInSeconds && endInSeconds >= existingEndInSeconds) // New range fully contains an existing range
           );
         });
 
@@ -118,7 +120,7 @@ export default function ClassroomCrud() {
         if (!isOverlapping) {
           return {
             ...prev,
-            [selectedDay]: [...times, { start: startTime, end: endTime }],
+            [selectedDay]: [...times, { start: startTime, end: endTime, subject }],
           };
         }
 
@@ -137,18 +139,19 @@ export default function ClassroomCrud() {
       setSelectedDay(null);
       setStartTime('');
       setEndTime('');
+      setSubject(''); // Clear subject
     }
   };
 
   const handleUpdateTime = () => {
-    if (selectedDay && startTime && endTime && selectedRow) {
+    if (selectedDay && startTime && endTime && subject && selectedRow) {
       const { day, index } = selectedRow;
-      const startInMinutes = convertTimeToMinutes(startTime);
-      const endInMinutes = convertTimeToMinutes(endTime);
-      const durationInMinutes = endInMinutes - startInMinutes;
+      const startInSeconds = convertTimeToSeconds(startTime);
+      const endInSeconds = convertTimeToSeconds(endTime);
+      const durationInSeconds = endInSeconds - startInSeconds;
 
-      // Ensure the time duration is at least 1 hour (60 minutes)
-      if (durationInMinutes < 60) {
+      // Ensure the time duration is at least 1 hour (3600 seconds)
+      if (durationInSeconds < 3600) {
         notifications.show({
           title: 'Invalid Time Duration',
           message: 'The time duration must be at least 1 hour.',
@@ -159,20 +162,20 @@ export default function ClassroomCrud() {
 
       setClassDays((prev) => {
         const times = prev[day].map((time, i) =>
-          i === index ? { start: startTime, end: endTime } : time
+          i === index ? { start: startTime, end: endTime, subject } : time
         );
 
         // Check for overlap (new start/end should not overlap with any existing interval)
         const isOverlapping = times.some((time, i) => {
           if (i === index) return false; // Skip the current time being updated
-          const existingStartInMinutes = convertTimeToMinutes(time.start);
-          const existingEndInMinutes = convertTimeToMinutes(time.end);
+          const existingStartInSeconds = convertTimeToSeconds(time.start);
+          const existingEndInSeconds = convertTimeToSeconds(time.end);
 
           // Check if the new time range overlaps with an existing time range
           return (
-            (startInMinutes >= existingStartInMinutes && startInMinutes < existingEndInMinutes) || // New start falls within an existing range
-            (endInMinutes > existingStartInMinutes && endInMinutes <= existingEndInMinutes) || // New end falls within an existing range
-            (startInMinutes <= existingStartInMinutes && endInMinutes >= existingEndInMinutes) // New range fully contains an existing range
+            (startInSeconds >= existingStartInSeconds && startInSeconds < existingEndInSeconds) || // New start falls within an existing range
+            (endInSeconds > existingStartInSeconds && endInSeconds <= existingEndInSeconds) || // New end falls within an existing range
+            (startInSeconds <= existingStartInSeconds && endInSeconds >= existingEndInSeconds) // New range fully contains an existing range
           );
         });
 
@@ -199,6 +202,7 @@ export default function ClassroomCrud() {
       setSelectedDay(null);
       setStartTime('');
       setEndTime('');
+      setSubject(''); // Clear subject
       setSelectedRow(null);
       setCheckedTimes({});
       setEnableEditTime(true);
@@ -275,6 +279,7 @@ export default function ClassroomCrud() {
     setSelectedDay(day);
     setStartTime(time.start);
     setEndTime(time.end);
+    setSubject(time.subject); // Set subject
     setSelectedRow({ day, index });
     setEnableAddTime(false);
     setEnableEditTime(true);
@@ -344,11 +349,13 @@ export default function ClassroomCrud() {
     }
   };
 
-  const { data: classScheduleData, error } = useSWR('classScheduleCRUD/', fetcher, {
-    onSuccess: (data) => {
-      setClassSchedule(data);
-    },
-  });
+  const { data: classScheduleData, error } = useSWR('classScheduleCRUD/', fetcher, {});
+
+  useEffect(() => {
+    if (classScheduleData) {
+      setClassSchedule(classScheduleData);
+    }
+  }, [classScheduleData]);
 
   const rows = classSchedule.map((element) => (
     <Table.Tr key={element.class_section}>
@@ -360,7 +367,7 @@ export default function ClassroomCrud() {
             <strong>{day}:</strong>
             {times.map((time, index) => (
               <div key={index}>
-                {time.start} - {time.end}
+                {time.start} - {time.end} ({time.subject})
               </div>
             ))}
           </div>
@@ -399,58 +406,6 @@ export default function ClassroomCrud() {
     </Table.Tr>
   ));
 
-  // const editTimesRows = Object.entries(classDays).map(([day, times]) =>
-  //   times.map((time, index) => (
-  //     <Table.Tr key={`${day}-${index}`}>
-  //       <Table.Td>
-  //         <Checkbox
-  //           checked={checkedTimes[`${day}-${index}`] || false}
-  //           onChange={(event) => {
-  //             const isChecked = event.currentTarget.checked;
-  //             setCheckedTimes((prev) => ({
-  //               ...prev,
-  //               [`${day}-${index}`]: isChecked,
-  //             }));
-  //             if (isChecked) {
-  //               setSelectedDay(day);
-  //               setStartTime(time.start);
-  //               setEndTime(time.end);
-  //               setSelectedRow({ day, index });
-  //               setEnableEditTime(false);
-  //               setEnableAddTime(true);
-  //               setEnabledClassDaySelect(true);
-  //             } else {
-  //               setSelectedDay(null);
-  //               setStartTime('');
-  //               setEndTime('');
-  //               setSelectedRow(null);
-  //               setEnableEditTime(true);
-  //               setEnabledClassDaySelect(false);
-  //             }
-  //           }}
-  //         />
-  //       </Table.Td>
-  //       <Table.Td>{day}</Table.Td>
-  //       <Table.Td>
-  //         {time.start} - {time.end}
-  //       </Table.Td>
-  //       <Table.Td>
-  //         <Tooltip label="Delete">
-  //           <ActionIcon
-  //             color="red"
-  //             onClick={() => {
-  //               setItemToDelete({ classSection, day, index });
-  //               setDeleteModalOpened(true);
-  //             }}
-  //           >
-  //             <IconTrash size={16} />
-  //           </ActionIcon>
-  //         </Tooltip>
-  //       </Table.Td>
-  //     </Table.Tr>
-  //   ))
-  // );
-
   const editTimesRows = Object.entries(classDays).map(([day, times]) =>
     times.map((time, index) => (
       <Table.Tr key={`${day}-${index}`}>
@@ -467,6 +422,7 @@ export default function ClassroomCrud() {
                 setSelectedDay(day);
                 setStartTime(time.start);
                 setEndTime(time.end);
+                setSubject(time.subject); // Set subject
                 setSelectedRow({ day, index });
                 setEnableEditTime(false);
                 setEnableAddTime(true);
@@ -475,6 +431,7 @@ export default function ClassroomCrud() {
                 setSelectedDay(null);
                 setStartTime('');
                 setEndTime('');
+                setSubject(''); // Clear subject
                 setSelectedRow(null);
                 setEnableEditTime(true);
                 setEnabledClassDaySelect(false);
@@ -486,6 +443,7 @@ export default function ClassroomCrud() {
         <Table.Td>
           {time.start} - {time.end}
         </Table.Td>
+        <Table.Td>{time.subject}</Table.Td> {/* Display subject */}
         <Table.Td>
           <Tooltip label="Delete">
             <ActionIcon color="red" onClick={() => handleRemoveTime(day, index)}>
@@ -496,6 +454,7 @@ export default function ClassroomCrud() {
       </Table.Tr>
     ))
   );
+
   return (
     <>
       <Flex
@@ -532,16 +491,6 @@ export default function ClassroomCrud() {
           opened={addModalOpened}
           onClose={() => {
             setAddModalOpened(false);
-            // setClassName('');
-            // setClassSection('');
-            // setClassInstructor('');
-            // setClassDays({});
-            // setSelectedDay('');
-            // setEndTime('');
-            // setStartTime('');
-            // setEnableAddTime(false);
-            // setEnableEditTime(false);
-            // setEnabledClassDaySelect(false);
             setSelectedRow(null);
             setClassDays({});
             setClassName('');
@@ -550,13 +499,14 @@ export default function ClassroomCrud() {
             setSelectedDay('');
             setStartTime('');
             setEndTime('');
+            setSubject(''); // Clear subject
             setCheckedTimes({});
             setEnableAddTime(false);
             setEnableEditTime(true);
             setEnabledClassDaySelect(false);
           }}
           title="Add Class Schedule"
-          size="md"
+          size="auto"
         >
           <Paper shadow="xl" radius="md" withBorder p="md">
             <form onSubmit={handleSubmit}>
@@ -596,8 +546,13 @@ export default function ClassroomCrud() {
                   clearable
                   disabled={enabledClassDaySelect}
                 />
-
+                <TextInput
+                  label="Subject"
+                  value={subject}
+                  onChange={(event) => setSubject(event.currentTarget.value)}
+                />
                 <TimeInput
+                  withSeconds
                   label="Start Time"
                   value={startTime}
                   onChange={(event) => {
@@ -606,6 +561,7 @@ export default function ClassroomCrud() {
                   }}
                 />
                 <TimeInput
+                  withSeconds
                   label="End Time"
                   value={endTime}
                   onChange={(event) => setEndTime(event.currentTarget.value)}
@@ -618,7 +574,6 @@ export default function ClassroomCrud() {
                 >
                   Add Time
                 </Button>
-
                 <Button onClick={handleUpdateTime} disabled={enableEditTime}>
                   Update Time
                 </Button>
@@ -630,6 +585,7 @@ export default function ClassroomCrud() {
                           <Table.Th>Select</Table.Th>
                           <Table.Th>Day</Table.Th>
                           <Table.Th>Times</Table.Th>
+                          <Table.Th>Subject</Table.Th>
                           <Table.Th>Actions</Table.Th>
                         </Table.Tr>
                       </Table.Thead>
@@ -659,13 +615,14 @@ export default function ClassroomCrud() {
             setSelectedDay('');
             setStartTime('');
             setEndTime('');
+            setSubject(''); // Clear subject
             setCheckedTimes({});
             setEnableAddTime(false);
             setEnableEditTime(true);
             setEnabledClassDaySelect(false);
           }}
+          size="auto"
           title="Edit Class Schedule"
-          size="md"
         >
           <Paper shadow="xl" radius="md" withBorder p="md">
             <form onSubmit={handleEditSubmit}>
@@ -705,13 +662,19 @@ export default function ClassroomCrud() {
                   clearable
                   disabled={enabledClassDaySelect}
                 />
-
+                <TextInput
+                  label="Subject"
+                  value={subject}
+                  onChange={(event) => setSubject(event.currentTarget.value)}
+                />
                 <TimeInput
+                  withSeconds
                   label="Start Time"
                   value={startTime}
                   onChange={(event) => setStartTime(event.currentTarget.value)}
                 />
                 <TimeInput
+                  withSeconds
                   label="End Time"
                   value={endTime}
                   onChange={(event) => setEndTime(event.currentTarget.value)}
@@ -740,6 +703,7 @@ export default function ClassroomCrud() {
                         <Table.Th>Select</Table.Th>
                         <Table.Th>Day</Table.Th>
                         <Table.Th>Times</Table.Th>
+                        <Table.Th>Subject</Table.Th>
                         <Table.Th>Actions</Table.Th>
                       </Table.Tr>
                     </Table.Thead>

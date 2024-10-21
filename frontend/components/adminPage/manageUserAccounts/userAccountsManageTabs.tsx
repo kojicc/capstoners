@@ -432,14 +432,14 @@ const UserAccountsManage = () => {
 
           <Tabs.Panel value="Create">
             <>
-              <Paper shadow="xl" radius={'md'} withBorder p={'xl'} bg={'#417A46'} mt={10}>
+              <Paper shadow="xl" radius={'md'} withBorder p={'xl'} mt={10}>
                 <UserRegAdmin />
               </Paper>
             </>
           </Tabs.Panel>
 
           <Tabs.Panel color="yellow" value="Update/Delete">
-            <Paper shadow="xl" radius={'md'} withBorder p={'xl'} bg={'#417A46'}>
+            <Paper shadow="xl" radius={'md'} withBorder p={'xl'} mt={10}>
               <UpdateUser />
             </Paper>
           </Tabs.Panel>

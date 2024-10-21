@@ -30,6 +30,7 @@ const chunk = <T,>(array: T[], size: number): T[][] => {
 };
 
 const NotificationButton = () => {
+  // #region useState
   const { username, role } = useAuth();
 
   const [notificationsList, setNotificationsList] = useState<Notification[]>([]);
@@ -38,6 +39,7 @@ const NotificationButton = () => {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [activePage, setPage] = useState(1);
   const ref = useClickOutside(() => setOpened(false));
+  //#endregion
 
   interface FetchedNotifications {
     notifications: Notification[];
@@ -174,7 +176,9 @@ const NotificationButton = () => {
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
+                color: notification.read ? 'inherit' : '#000',
               }}
+              mb={5}
               onClick={() => {
                 if (notification.read) {
                   modals.closeAll();

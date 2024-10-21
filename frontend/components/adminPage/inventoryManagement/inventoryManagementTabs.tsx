@@ -220,141 +220,127 @@ const ProductAddPage = () => {
   };
 
   return (
-    <Paper pl={0} bg={'#ffff'}>
-      <Container fluid>
-        <LoadingOverlay
-          visible={isLoading}
-          zIndex={1000}
-          overlayProps={{ radius: 'sm', blur: 2 }}
-        />
+    <Paper shadow="xl" radius={'md'} p={'xl'}>
+      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
 
-        <Tabs color="teal" variant="pills" defaultValue="Create" classNames={classes}>
-          <Tabs.List grow>
-            <Tabs.Tab value="Create" leftSection={<IconPhoto style={iconStyle} />}>
-              Create
-            </Tabs.Tab>
-            <Tabs.Tab
-              color="yellow"
-              value="Update/Delete"
-              leftSection={<IconMessageCircle style={iconStyle} />}
-            >
-              Update
-            </Tabs.Tab>
-          </Tabs.List>
+      <Tabs color="teal" variant="pills" defaultValue="Create" classNames={classes}>
+        <Tabs.List grow>
+          <Tabs.Tab value="Create" leftSection={<IconPhoto style={iconStyle} />}>
+            Create
+          </Tabs.Tab>
+          <Tabs.Tab
+            color="yellow"
+            value="Update/Delete"
+            leftSection={<IconMessageCircle style={iconStyle} />}
+          >
+            Update
+          </Tabs.Tab>
+        </Tabs.List>
 
-          <Tabs.Panel value="Create">
-            <Paper shadow="xl" radius={'md'} withBorder p={'xl'} mt={20}>
-              <ActionsGridViewAdmin />
+        <Tabs.Panel value="Create">
+          <Paper shadow="xl" radius={'md'} withBorder p={'xl'} mt={20}>
+            <ActionsGridViewAdmin />
 
-              <Autocomplete
-                rightSection={
-                  searchInput !== '' && (
-                    <CloseButton
-                      size="sm"
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => {
-                        setSearchInput('');
-                        handleSearch('');
-                      }}
-                      aria-label="Clear value"
-                    />
-                  )
-                }
-                placeholder="Search products using Product IDs or Category IDs"
-                mt={20}
-                leftSection={
-                  <IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                }
-                mb="md"
-                data={[
-                  {
-                    group: 'Category IDs',
-                    items: categories.map(
-                      (category: { categoryId: any; name: any }) =>
-                        `${category.categoryId} - ${category.name}`
-                    ),
-                  },
-                  {
-                    group: 'Product IDs',
-                    items: productsList.map((product: { productId: any }) => product.productId),
-                  },
-                ]}
-                limit={5}
-                comboboxProps={{
-                  transitionProps: { transition: 'pop', duration: 200 },
-                  dropdownPadding: 10,
-                  shadow: 'xl',
-                }}
-                value={searchInput}
-                onChange={handleSearch}
-              />
-              <Card shadow="sm" padding="lg">
-                <Text size="lg" fw={500}>
-                  Recently Uploaded Products
-                </Text>
-                {isLoading ? (
-                  <p>Loading images...</p>
-                ) : (
-                  <div>
-                    {filteredProducts.length > 0 ? (
-                      filteredProducts.slice(0, 5).map((product) => (
-                        <Card key={product.id} shadow="sm" padding="lg" mt="md">
-                          <Flex
-                            direction={{ base: 'column', sm: 'row' }}
-                            gap={{ base: 'sm', sm: 'lg' }}
-                            justify={{ sm: 'center' }}
-                            align="center"
-                            wrap="nowrap"
-                          >
-                            <Stack>
-                              <Text>
-                                <b>Product ID: </b>
-                                {product.productId}
-                              </Text>
-                              <Text>
-                                <b>Product Category:</b> {product.category}
-                              </Text>
-                              <Text>
-                                <b>Product Name:</b> {product.name}
-                              </Text>
-                              <Text lineClamp={4}>
-                                <b>Product Description:</b> {product.description}
-                              </Text>
-                              <Text>
-                                <b>Product Price (₱): </b>
-                                {product.price}
-                              </Text>
-                              <Text>
-                                <b>Quantity:</b> {product.quantity}
-                              </Text>
-                            </Stack>
-                            <Image
-                              mx={'auto'}
-                              src={`http://localhost:8000${product.image}`}
-                              alt={product.name}
-                              radius="md"
-                              h={200}
-                              w={500}
-                            />
-                          </Flex>
-                        </Card>
-                      ))
-                    ) : (
-                      <p>No products found</p>
-                    )}
-                  </div>
-                )}
-              </Card>
-            </Paper>
-          </Tabs.Panel>
+            <Autocomplete
+              rightSection={
+                searchInput !== '' && (
+                  <CloseButton
+                    size="sm"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => {
+                      setSearchInput('');
+                      handleSearch('');
+                    }}
+                    aria-label="Clear value"
+                  />
+                )
+              }
+              placeholder="Search products using Product IDs or Category IDs"
+              mt={20}
+              leftSection={<IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />}
+              mb="md"
+              data={[
+                {
+                  group: 'Category IDs',
+                  items: categories.map(
+                    (category: { categoryId: any; name: any }) =>
+                      `${category.categoryId} - ${category.name}`
+                  ),
+                },
+                {
+                  group: 'Product IDs',
+                  items: productsList.map((product: { productId: any }) => product.productId),
+                },
+              ]}
+              limit={5}
+              comboboxProps={{
+                transitionProps: { transition: 'pop', duration: 200 },
+                dropdownPadding: 10,
+                shadow: 'xl',
+              }}
+              value={searchInput}
+              onChange={handleSearch}
+            />
+            <Card shadow="sm" padding="lg">
+              <Text size="lg" fw={500}>
+                Recently Uploaded Products
+              </Text>
+              {isLoading ? (
+                <p>Loading images...</p>
+              ) : (
+                <div>
+                  {filteredProducts.length > 0 ? (
+                    filteredProducts.slice(0, 5).map((product) => (
+                      <Card key={product.id} shadow="xl" padding="lg" mt="md">
+                        <Group>
+                          <Stack align="stretch">
+                            <Text>
+                              <b>Product ID: </b>
+                              {product.productId}
+                            </Text>
+                            <Text>
+                              <b>Product Category:</b> {product.category}
+                            </Text>
+                            <Text>
+                              <b>Product Name:</b> {product.name}
+                            </Text>
+                            <Text lineClamp={4}>
+                              <b>Product Description:</b> {product.description}
+                            </Text>
+                            <Text>
+                              <b>Product Price (₱): </b>
+                              {product.price}
+                            </Text>
+                            <Text>
+                              <b>Quantity:</b> {product.quantity}
+                            </Text>
+                          </Stack>
+                          <Image
+                            mx={'auto'}
+                            src={`http://localhost:8000${product.image}`}
+                            alt={product.name}
+                            radius="md"
+                            h={200}
+                            w={500}
+                          />
+                        </Group>
+                      </Card>
+                    ))
+                  ) : (
+                    <p>No products found</p>
+                  )}
+                </div>
+              )}
+            </Card>
+          </Paper>
+        </Tabs.Panel>
 
-          <Tabs.Panel color="yellow" value="Update/Delete">
-            <Container fluid bg={'#417A46'}>
-              <UpdateCrudProductsAdmin />
-            </Container>
-          </Tabs.Panel>
-        </Tabs>
-      </Container>
+        <Tabs.Panel color="yellow" value="Update/Delete">
+          <Container fluid bg={'#417A46'}>
+            <UpdateCrudProductsAdmin />
+          </Container>
+        </Tabs.Panel>
+      </Tabs>
     </Paper>
   );
 };
