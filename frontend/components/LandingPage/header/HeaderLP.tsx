@@ -91,7 +91,7 @@ interface Category {
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
-export function Header() {
+export default function Header() {
   // #region useStates
   const { username, role } = useAuth();
   const [isModalOpen, setModalOpen] = useState(false);
