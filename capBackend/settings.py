@@ -15,6 +15,10 @@ from datetime import datetime, timedelta
 import django_heroku
 # from dotenv import load_dotenv
 import os
+import dj_database_url
+
+# Get the DATABASE_URL from environment variables
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -107,15 +111,19 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
     
 # }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'cthmDB',
+#         'USER': 'admin',
+#         'PASSWORD': 'admin',
+#         # 'HOST': 'localhost',
+#         # 'PORT': '5432',
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cthmDB',
-        'USER': 'admin',
-        'PASSWORD': 'admin',
-        # 'HOST': 'localhost',
-        # 'PORT': '5432',
-    }
+    'default': dj_database_url.config(default=DATABASE_URL)
 }
 
 
