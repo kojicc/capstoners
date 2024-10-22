@@ -41,7 +41,7 @@ import {
 } from '@tabler/icons-react';
 import ActionsGridViewAdmin from '@/components/ActionsGridViewAdmin';
 import UpdateCrudProductsAdmin from '@/components/adminPage/inventoryManagement/productCrudAdmin';
-import { useCategoryID } from '../../../utils/categoryIDContext';
+import { useCategoryID } from '@/utils/CategoryIDContext';
 import axiosInstance from '../../../utils/axiosInstance';
 import { notifications } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
