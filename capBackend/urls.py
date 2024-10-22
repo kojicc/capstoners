@@ -21,6 +21,8 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
 # from .views import index  # Import the index view
+from django.views.generic import RedirectView
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,6 +30,8 @@ urlpatterns = [
     path('api/', include('products.urls')),
     path('api/', include('reservations.urls')),
     path('api/', include('analytics.urls')),
+    path('', RedirectView.as_view(url='http://localhost:3000/', permanent=False)),  # Redirect to Next.js
+
     # path('', index, name='index'),  # Add the URL pattern for the root URL
 
 ]
