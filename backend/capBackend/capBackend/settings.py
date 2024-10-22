@@ -20,8 +20,6 @@ import dj_database_url
 # Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Activate Django-Heroku
-django_heroku.settings(locals())
 
 # # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,7 +34,7 @@ SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -167,8 +165,7 @@ USE_I18N = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+
 
 # STATICFILES_DIRS = [
 #     os.path.join(BASE_DIR, 'static')
@@ -234,3 +231,8 @@ FRONTEND_URL = 'http://localhost:3000'
 # EMAIL_HOST_PASSWORD = 'qovf dpgs lytx kloo'
 # DEFAULT_FROM_EMAIL = 'your-email@example.com'
 # ADMIN_EMAIL = 'admin@example.com'  # Add this line
+
+# Activate Django-Heroku
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+django_heroku.settings(locals())
