@@ -12,12 +12,13 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from datetime import datetime, timedelta
+import django_heroku
 # from dotenv import load_dotenv
 import os
-import django_heroku
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -30,8 +31,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+
 # Application definition
+
+
 INSTALLED_APPS = [
+
     'daphne',
     'channels',
     'django.contrib.admin',
@@ -48,7 +53,10 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
     'analytics',
+    
+    
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -82,15 +90,36 @@ TEMPLATES = [
 ASGI_APPLICATION = 'capBackend.asgi.application'
 WSGI_APPLICATION = 'capBackend.wsgi.application'
 
-# For testing, need Redis for production
+
+#pang testing lang need redis for production
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer"
     }
 }
 
+# CHANNELS = {
+#     'authentication_backends': (
+#         'channels.auth.AuthMiddlewareStack',
+#         'django.contrib.auth.backends.ModelBackend',
+#     ),
+# }
+
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'cthmDB',
+#         'USER': 'root',  #  MySQL username to
+#         'PASSWORD': '12345',  #  MySQL password to
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#     }
+    
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -102,8 +131,10 @@ DATABASES = {
     }
 }
 
+
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -119,8 +150,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Manila'
@@ -128,16 +161,24 @@ USE_TZ = True
 USE_L10N = True
 USE_I18N = True
 
+# USE_TZ = False
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
+
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static')
+# ]
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
@@ -157,9 +198,12 @@ SIMPLE_JWT = {
 
 AUTH_USER_MODEL = 'auth_app.User'
 
+
+
 CORS_ORIGIN_ALLOW_ALL = True
 
-# Allow frontend to access cookies for login
+
+# para maallow frontend maaccess cookies kase naglologin thru cookies
 CORS_ALLOW_CREDENTIALS = True
 
 # Gmail settings
@@ -170,6 +214,30 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'dektorsu@gmail.com'
 EMAIL_HOST_PASSWORD = 'qovf dpgs lytx kloo'
 FRONTEND_URL = 'http://localhost:3000'
+
+# Outlook settings (if you want to use Outlook)
+# Uncomment this if you're using Outlook
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.office365.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your_outlook@outlook.com'
+# EMAIL_HOST_PASSWORD = 'your_outlook_password'
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'dektorsu@gmail.com'
+# EMAIL_HOST_PASSWORD = 'qovf dpgs lytx kloo'
+# DEFAULT_FROM_EMAIL = 'your-email@example.com'
+# ADMIN_EMAIL = 'admin@example.com'  # Add this line
+
+# Static files settings
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # If you ever use static files
 
 # Activate Django-Heroku
 django_heroku.settings(locals())
