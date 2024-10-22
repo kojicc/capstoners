@@ -30,7 +30,7 @@ urlpatterns = [
     path('api/', include('products.urls')),
     path('api/', include('reservations.urls')),
     path('api/', include('analytics.urls')),
-    path('', RedirectView.as_view(url='http://localhost:3000/', permanent=False)),  # Redirect to Next.js
+    # path('', RedirectView.as_view(url='http://localhost:3000/', permanent=False)),  # Redirect to Next.js
 
     # path('', index, name='index'),  # Add the URL pattern for the root URL
 
