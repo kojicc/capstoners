@@ -223,9 +223,9 @@ FRONTEND_URL = 'http://localhost:3000'
 
 # Static files settings
 # STATIC_URL = 'static/'
-# STATIC_URL = 'static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-# STATICFILES_DIRS = (os.path.join(BASE_DIR,'static'),)  # If you ever use static files
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = (os.path.join(BASE_DIR,'static'),)  # If you ever use static files
 
-# # Activate Django-Heroku
-# django_heroku.settings(locals())
+# Activate Django-Heroku
+django_heroku.settings(locals())
