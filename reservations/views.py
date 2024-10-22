@@ -19,8 +19,6 @@ from .models import Reservation, ReservationItem
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Notification, Reservation
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 from django.db import transaction
 import pytz
 import jwt
