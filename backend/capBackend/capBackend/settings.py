@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from datetime import datetime, timedelta
-import django_heroku
 # from dotenv import load_dotenv
 import os
 
@@ -29,7 +28,7 @@ SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['capBackend.herokuapp.com']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -60,6 +59,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -106,29 +106,31 @@ CHANNEL_LAYERS = {
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'cthmDB',
+        'USER': 'root',  #  MySQL username to
+        'PASSWORD': '12345',  #  MySQL password to
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
+    
+}
+
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'd97hl5on6rahp5',
-#         'USER': 'udntsg3uhf7fi0',
-#         'PASSWORD': 'p7f1c6785ea1bd9de771be195f29283b5d6e0c6c1f2f342503b431f060cc4fd64',
-#         'HOST': 'cfls9h51f4i86c.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',
-#         'PORT': '5432',
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'cthmDB',
+#         'USER': 'admin',
+#         'PASSWORD': 'admin',
+#         # 'HOST': 'localhost',
+#         # 'PORT': '5432',
 #     }
 # }
 
 
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cthmDB',
-        'USER': 'admin',
-        'PASSWORD': 'admin',
-        # 'HOST': 'localhost',
-        # 'PORT': '5432',
-    }
-}
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -154,19 +156,17 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Manila'
-
+USE_TZ = True
 USE_L10N = True
 USE_I18N = True
 
-USE_TZ = False
+# USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-django_heroku.settings(locals())
 
 # STATICFILES_DIRS = [
 #     os.path.join(BASE_DIR, 'static')
@@ -212,6 +212,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'dektorsu@gmail.com'
 EMAIL_HOST_PASSWORD = 'qovf dpgs lytx kloo'
+FRONTEND_URL = 'http://localhost:3000'
 
 # Outlook settings (if you want to use Outlook)
 # Uncomment this if you're using Outlook
