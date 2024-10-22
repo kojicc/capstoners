@@ -73,7 +73,7 @@ ROOT_URLCONF = 'capBackend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'frontend', 'out')],  # Update this line
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -85,6 +85,7 @@ TEMPLATES = [
         },
     },
 ]
+
 ASGI_APPLICATION = 'capBackend.asgi.application'
 WSGI_APPLICATION = 'capBackend.wsgi.application'
 
