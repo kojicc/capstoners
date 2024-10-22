@@ -17,7 +17,7 @@ import { AutocompleteClearable } from '@/components/reservationLandingPage/secti
 import { useState, useEffect, useRef } from 'react';
 import useSWR from 'swr';
 import axios from '@/utils/axiosInstance';
-import { Header } from '@/components/LandingPage/header/HeaderLP';
+import Header from '@/components/LandingPage/header/HeaderLP';
 import { Text } from '@mantine/core';
 import { useDisclosure, useScrollIntoView } from '@mantine/hooks';
 import { Tooltip } from '@mantine/core';

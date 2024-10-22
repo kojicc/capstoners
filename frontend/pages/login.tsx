@@ -1,5 +1,5 @@
 import { Footer } from '@/components/LandingPage/footer/footer';
-import { Header } from '@/components/LandingPage/header/HeaderLP';
+import Header from '@/components/LandingPage/header/HeaderLP';
 import { AuthenticationForm } from '@/components/loginandregisterUSER/authForm';
 import {
   Anchor,

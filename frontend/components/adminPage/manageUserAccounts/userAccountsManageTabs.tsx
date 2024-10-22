@@ -44,7 +44,6 @@ import ActionsGridViewAdmin from '@/components/ActionsGridViewAdmin';
 import { useCategoryID } from '@/utils/CategoryIDContext';
 import axiosInstance from '@/utils/axiosInstance';
 import { notifications } from '@mantine/notifications';
-import { Header } from '@/components/LandingPage/header/HeaderLP';
 import { useForm } from '@mantine/form';
 import { readLocalStorageValue, useLocalStorage } from '@mantine/hooks';
 import UpdateUser from './userSettings';

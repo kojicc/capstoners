@@ -52,7 +52,7 @@ import { notifications } from '@mantine/notifications';
 import moment from 'moment-timezone';
 import { DatesProvider, DateTimePicker } from '@mantine/dates';
 import styles from '../components/modules.css/TableSort.module.css';
-import { Header } from '@/components/LandingPage/header/HeaderLP';
+import Header from '@/components/LandingPage/header/HeaderLP';
 import useSWR from 'swr';
 import { Footer } from '@/components/LandingPage/footer/footer';
 import { useRouter } from 'next/router';

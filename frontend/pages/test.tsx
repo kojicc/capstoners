@@ -16,7 +16,7 @@ import {
   useMantineTheme,
 } from '@mantine/core';
 import { IconCheck, IconTrash, IconBellRinging } from '@tabler/icons-react';
-import { Header } from '@/components/LandingPage/header/HeaderLP';
+import Header from '@/components/LandingPage/header/HeaderLP';
 
 const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 
