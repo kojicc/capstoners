@@ -73,7 +73,7 @@ ROOT_URLCONF = 'capBackend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'frontend', 'out')],  # Update this line
+        'DIRS': [],  # Update this line
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -223,9 +223,8 @@ FRONTEND_URL = 'http://localhost:3000'
 
 # Static files settings
 # STATIC_URL = 'static/'
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = (os.path.join(BASE_DIR,'static'),)  # If you ever use static files
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATICFILES_DIRS = (os.path.join(BASE_DIR,'static'),)  # If you ever use static files
 
 # Activate Django-Heroku
 django_heroku.settings(locals())
