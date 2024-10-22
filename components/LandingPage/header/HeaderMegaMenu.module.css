@@ -1,0 +1,67 @@
+.header {
+  height: rem(60px);
+  padding-left: var(--mantine-spacing-md);
+  padding-right: var(--mantine-spacing-md);
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-left: var(--mantine-spacing-md);
+  padding-right: var(--mantine-spacing-md);
+  text-decoration: none;
+  color: white; /* Text color outside the drawer */
+  font-weight: 500;
+  font-size: var(--mantine-font-size-sm);
+
+  @media (max-width: $mantine-breakpoint-sm) {
+    height: rem(42px);
+    width: 100%;
+  }
+
+  @mixin hover {
+    background-color: #592f55; /* Updated hover background color */
+    transition: background-color 0.3s ease;
+  }
+}
+
+.subLink {
+  width: 100%;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  border-radius: var(--mantine-radius-md);
+
+  @mixin hover {
+    background-color: light-dark(
+      var(--mantine-color-gray-0),
+      var(--mantine-color-dark-7)
+    ); /* Same hover background */
+  }
+}
+
+.dropdownFooter {
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
+  margin: calc(var(--mantine-spacing-md) * -1);
+  margin-top: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-md) calc(var(--mantine-spacing-md) * 2);
+  padding-bottom: var(--mantine-spacing-xl); /* Adds padding-bottom */
+  border-top: rem(1px) solid light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+}
+
+.box {
+  width: 100%;
+  z-index: 100;
+  position: fixed;
+  color: white;
+}
+
+.drawer .link {
+  color: black !important; /* Ensure text color inside the drawer is dark */
+}
+
+.btn:hover {
+  background-color: white;
+  color: #592f55 !important;
+  transition: ease-in 0.3s;
+  font-weight: bold !important;
+}
