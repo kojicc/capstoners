@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,7 +37,6 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
 
-    'daphne',
     'channels',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -91,19 +90,7 @@ ASGI_APPLICATION = 'capBackend.asgi.application'
 WSGI_APPLICATION = 'capBackend.wsgi.application'
 
 
-#pang testing lang need redis for production
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
-}
 
-# CHANNELS = {
-#     'authentication_backends': (
-#         'channels.auth.AuthMiddlewareStack',
-#         'django.contrib.auth.backends.ModelBackend',
-#     ),
-# }
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -235,7 +222,7 @@ FRONTEND_URL = 'http://localhost:3000'
 # ADMIN_EMAIL = 'admin@example.com'  # Add this line
 
 # Static files settings
-STATIC_URL = 'static/'
+# STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # If you ever use static files
 
