@@ -107,28 +107,28 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'cthmDB',
-        'USER': 'root',  #  MySQL username to
-        'PASSWORD': '12345',  #  MySQL password to
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-    
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
+#         'ENGINE': 'django.db.backends.mysql',
 #         'NAME': 'cthmDB',
-#         'USER': 'admin',
-#         'PASSWORD': 'admin',
-#         # 'HOST': 'localhost',
-#         # 'PORT': '5432',
+#         'USER': 'root',  #  MySQL username to
+#         'PASSWORD': '12345',  #  MySQL password to
+#         'HOST': 'localhost',
+#         'PORT': '3306',
 #     }
+    
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'cthmDB',
+        'USER': 'admin',
+        'PASSWORD': 'admin',
+        # 'HOST': 'localhost',
+        # 'PORT': '5432',
+    }
+}
 
 
 # Password validation
