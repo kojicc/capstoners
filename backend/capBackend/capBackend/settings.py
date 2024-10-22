@@ -17,9 +17,11 @@ import os
 import django_heroku
 import dj_database_url
 
+# Define BASE_DIR
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 # Activate Django-Heroku
 django_heroku.settings(locals())
-
 
 # # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
@@ -95,13 +97,6 @@ ASGI_APPLICATION = 'capBackend.asgi.application'
 WSGI_APPLICATION = 'capBackend.wsgi.application'
 
 
-#pang testing lang need redis for production
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
-}
-
 # CHANNELS = {
 #     'authentication_backends': (
 #         'channels.auth.AuthMiddlewareStack',
@@ -112,28 +107,28 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'cthmDB',
-        'USER': 'root',  #  MySQL username to
-        'PASSWORD': '12345',  #  MySQL password to
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-    
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
+#         'ENGINE': 'django.db.backends.mysql',
 #         'NAME': 'cthmDB',
-#         'USER': 'admin',
-#         'PASSWORD': 'admin',
-#         # 'HOST': 'localhost',
-#         # 'PORT': '5432',
+#         'USER': 'root',  #  MySQL username to
+#         'PASSWORD': '12345',  #  MySQL password to
+#         'HOST': 'localhost',
+#         'PORT': '3306',
 #     }
+    
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'cthmDB',
+        'USER': 'admin',
+        'PASSWORD': 'admin',
+        # 'HOST': 'localhost',
+        # 'PORT': '5432',
+    }
+}
 
 
 # Password validation
@@ -172,6 +167,8 @@ USE_I18N = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 # STATICFILES_DIRS = [
 #     os.path.join(BASE_DIR, 'static')
