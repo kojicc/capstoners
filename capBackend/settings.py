@@ -12,14 +12,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from datetime import datetime, timedelta
+import django_heroku
 # from dotenv import load_dotenv
 import os
-import django_heroku
-import dj_database_url
-
-# Activate Django-Heroku
-django_heroku.settings(locals())
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -34,7 +29,7 @@ SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -42,7 +37,6 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
 
-    'daphne',
     'channels',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -65,6 +59,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -95,45 +90,33 @@ ASGI_APPLICATION = 'capBackend.asgi.application'
 WSGI_APPLICATION = 'capBackend.wsgi.application'
 
 
-#pang testing lang need redis for production
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
-}
 
-# CHANNELS = {
-#     'authentication_backends': (
-#         'channels.auth.AuthMiddlewareStack',
-#         'django.contrib.auth.backends.ModelBackend',
-#     ),
-# }
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'cthmDB',
-        'USER': 'root',  #  MySQL username to
-        'PASSWORD': '12345',  #  MySQL password to
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-    
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
+#         'ENGINE': 'django.db.backends.mysql',
 #         'NAME': 'cthmDB',
-#         'USER': 'admin',
-#         'PASSWORD': 'admin',
-#         # 'HOST': 'localhost',
-#         # 'PORT': '5432',
+#         'USER': 'root',  #  MySQL username to
+#         'PASSWORD': '12345',  #  MySQL password to
+#         'HOST': 'localhost',
+#         'PORT': '3306',
 #     }
+    
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'cthmDB',
+        'USER': 'admin',
+        'PASSWORD': 'admin',
+        # 'HOST': 'localhost',
+        # 'PORT': '5432',
+    }
+}
 
 
 # Password validation
@@ -171,7 +154,7 @@ USE_I18N = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+
 
 # STATICFILES_DIRS = [
 #     os.path.join(BASE_DIR, 'static')
@@ -237,3 +220,12 @@ FRONTEND_URL = 'http://localhost:3000'
 # EMAIL_HOST_PASSWORD = 'qovf dpgs lytx kloo'
 # DEFAULT_FROM_EMAIL = 'your-email@example.com'
 # ADMIN_EMAIL = 'admin@example.com'  # Add this line
+
+# Static files settings
+# STATIC_URL = 'static/'
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = (os.path.join(BASE_DIR,'static'),)  # If you ever use static files
+
+# Activate Django-Heroku
+django_heroku.settings(locals())
