@@ -37,7 +37,7 @@ import classes from './DropdownOptionsAnimation.module.css';
 import { fetchDecodedAccessTokenRole, useAuth } from '@/utils/auth';
 import { AuthContext } from '@/utils/authContext';
 import useSWR, { mutate } from 'swr';
-import { Header } from '../LandingPage/header/HeaderLP';
+import Header from '../LandingPage/header/HeaderLP';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AxiosError } from 'axios';

@@ -1,6 +1,6 @@
 import { ContactUs } from '@/components/LandingPage/contact/ContactUs';
 
-import { Header } from '../components/LandingPage/header/HeaderLP';
+import Header from '../components/LandingPage/header/HeaderLP';
 import { Hero } from '../components/LandingPage/hero/Hero';
 import { About } from '@/components/LandingPage/abouts/About';
 import { Products } from '@/components/LandingPage/products/Products';

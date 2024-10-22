@@ -1,7 +1,7 @@
 import { ContactUs } from '@/components/LandingPage/contact/ContactUs';
 import { NavbarSection } from '../components/adminPage/dashboard/sidebarAdmin';
 
-import { Header } from '../components/LandingPage/header/HeaderLP';
+import Header from '../components/LandingPage/header/HeaderLP';
 import { Hero } from '../components/LandingPage/hero/Hero';
 import { About } from '@/components/LandingPage/abouts/About';
 import { Products } from '@/components/LandingPage/products/Products';
@@ -13,11 +13,9 @@ import useProtectedRoute from '@/utils/protectedRoute';
 import { modals } from '@mantine/modals';
 import router from 'next/router';
 // import { TransactionsAdmin } from '@/components/adminPage/TransactionsAdmin';
-import {withRoleProtection} from '@/utils/withRoleProtection';
+import { withRoleProtection } from '@/utils/withRoleProtection';
 
 const HomePage = () => {
-
-  
   return (
     <>
       {/* <Button component='a'href='/productsCRUDAdmin'>Crud Test</Button> */}
@@ -26,6 +24,5 @@ const HomePage = () => {
       <NavbarSection />
     </>
   );
-}
+};
 export default withRoleProtection(HomePage, ['admin']);
-
