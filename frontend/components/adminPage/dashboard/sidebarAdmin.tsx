@@ -23,7 +23,6 @@ import {
 import TransactionHistory from '@/components/adminPage/Transactions/transactionsAdmin'; // Ensure this path is correct
 import { Dashboard } from './dashboardAnalytics';
 import ProductAddPage from '@/components/adminPage/inventoryManagement/inventoryManagementTabs';
-import { Header } from '../../LandingPage/header/HeaderLP';
 import UserAccountsManage from '../manageUserAccounts/userAccountsManageTabs';
 import { useRouter } from 'next/router';
 import ClassroomCrud from '../classManagement/classCrud';
