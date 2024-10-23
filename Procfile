@@ -1,2 +1,2 @@
 release: python manage.py migrate
-web: gunicorn backend.capBackend:myapp
+web: gunicorn backend.capBackend:capBackend
