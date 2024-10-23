@@ -1,2 +1,1 @@
-
-web: cd capBackend gunicorn capBackend.wsgi:application --log-file -
+web: gunicorn capBackend.myapp:capBackend
