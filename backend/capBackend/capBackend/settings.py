@@ -14,7 +14,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 # from dotenv import load_dotenv
 import os
-import django_heroku # type: ignore
+import django_on_heroku
 import dj_database_url
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -233,4 +233,4 @@ FRONTEND_URL = 'http://localhost:3000'
 # ADMIN_EMAIL = 'admin@example.com'  # Add this line
 
 
-django_heroku.settings(locals())
+django_on_heroku.settings(locals())
