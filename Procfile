@@ -1,1 +1,1 @@
-web:cd capBackend && gunicorn capBackend.wsgi
+web: gunicorn --pythonpath capBackend capBackend.wsgi
