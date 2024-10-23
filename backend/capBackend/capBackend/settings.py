@@ -17,6 +17,8 @@ import os
 import django_heroku
 import dj_database_url
 
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -96,6 +98,10 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+
+DATABASES = {
+    'default': dj_database_url.config(default=DATABASE_URL)
+}
 
 # DATABASES = {
 #     'default': {
