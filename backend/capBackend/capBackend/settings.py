@@ -14,7 +14,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 # from dotenv import load_dotenv
 import os
-import django_heroku
+import django_heroku # type: ignore
 import dj_database_url
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
