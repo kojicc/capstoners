@@ -36,8 +36,8 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
 
-    'daphne',
-    'channels',
+    
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'auth_app',
     'products',
     'reservations',
-    'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
     'analytics',
     
@@ -198,8 +197,11 @@ AUTH_USER_MODEL = 'auth_app.User'
 
 
 
-CORS_ORIGIN_ALLOW_ALL = True
-
+# CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOWED_ORIGINS = [
+    'https://capstoners.vercel.app/',  # Replace with your frontend domain
+    'http://localhost:3000',  # Add this for local development
+]
 
 # para maallow frontend maaccess cookies kase naglologin thru cookies
 CORS_ALLOW_CREDENTIALS = True

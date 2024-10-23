@@ -94,6 +94,7 @@ const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 export default function Header() {
   // #region useStates
   const { username, role } = useAuth();
+  console.log('role:', role);
   const [isModalOpen, setModalOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

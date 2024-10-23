@@ -1,2 +1,2 @@
-web: gunicorn backend.capBackend.wsgi --log-file -
-# next: npm run build --prefix frontend && npm start --prefix frontend
+release: python manage.py migrate
+web: gunicorn backend.capBackend:myapp
