@@ -1,1 +1,1 @@
-web:gunicorn capBackend.capBackend.wsgi
+web: sh ./app/run.sh
