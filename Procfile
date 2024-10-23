@@ -1,1 +1,1 @@
-web:cd <capBackend> && gunicorn capBackend.wsgi
+web:gunicorn capBackend.capBackend.wsgi
