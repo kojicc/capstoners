@@ -1,2 +1,2 @@
-release: cd backend && python3 manage.py migrate
+release:python manage.py migrate
 web: cd backend && gunicorn capBackend.wsgi:application --log-file -
