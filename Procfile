@@ -1,1 +1,1 @@
-web: gunicorn capBackend.capBackend:capBackend
+web: gunicorn capBackend.myapp:capBackend
