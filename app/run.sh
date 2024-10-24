@@ -4,7 +4,7 @@
 cd backend/capBackend
 
 # Run database migrations
-python3 capBackend/manage.py migrate
+python3 backend/capBackend/manage.py migrate
 
 # Start the Gunicorn server
 gunicorn capBackend.wsgi:application --log-file -
