@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Navigate to the backend/capBackend directory
-cd capBackend
+cd backend/capBackend
 
 # Run database migrations
 python3 capBackend/manage.py migrate
