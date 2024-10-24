@@ -44,7 +44,7 @@ class ReservationImportExportView(APIView):
     # parser_classes = [MultiPartParser]
 
     def get(self, request):
-    # Extract the username and reserved_date from query parameters
+        # Extract the username and reserved_date from query parameters
         username = request.query_params.get('username', None)
         date_str = request.query_params.get('reserved_date', None)  # Date in YYYY-MM-DD or YYYY-MM format from frontend
 
@@ -104,13 +104,29 @@ class ReservationImportExportView(APIView):
         file = request.FILES['file']
         df = pd.read_excel(file)
 
+        # Define the required columns
+        required_columns = [
+            'user', 'reservation_id', 'reservation_day', 'reservation_date',
+            'reservation_date_end', 'reservation_purpose', 'status'
+        ]
+
+        # Check if all required columns are present
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            return JsonResponse({'error': f'Missing columns in the uploaded file: {", ".join(missing_columns)}'}, status=400)
+
         # Iterate through the DataFrame and create reservations
         for _, row in df.iterrows():
             user = User.objects.filter(username=row['user']).first()
             if user:
+                # Fetch the user_class_section if it exists
+                user_class_section = None
+                if 'user_class_section' in row and row['user_class_section']:
+                    user_class_section = ClassSchedule.objects.filter(class_section=row['user_class_section']).first()
+
                 reservation_data = {
                     'user': user,
-                    'user_class_section': row['user_class_section'],
+                    'user_class_section': user_class_section,
                     'reservation_id': row['reservation_id'],
                     'reserved_date': row.get('reserved_date', timezone.now()),  # Use current time if not provided
                     'reservation_day': row['reservation_day'],
@@ -122,11 +138,14 @@ class ReservationImportExportView(APIView):
                     'group_members': row.get('group_members', []),  # Default to empty list if not provided
                     'subject': row.get('subject', None)  # Default to None if not provided
                 }
+
+                # Create or update the reservation
                 Reservation.objects.update_or_create(
-                    reservation_id=row['reservation_id'], defaults=reservation_data)
+                    reservation_id=row['reservation_id'],
+                    defaults=reservation_data
+                )
 
         return JsonResponse({'message': 'Reservations imported successfully'})
-
 class ReservationCartAPIView(APIView):
     # permission_classes = [IsAuthenticated]
 
