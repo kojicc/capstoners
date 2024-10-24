@@ -312,24 +312,9 @@ class MyTokenObtainPairView(TokenObtainPairView):
                 # Encode a new access token with the updated payload
                 new_access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
                 print(f"Encoded JWT: {new_access_token}") 
-                
-                # Set the new token in the response cookies for the correct domain
-                response.set_cookie(
-                    key='jwt_access_token',
-                    value=new_access_token,
-                    httponly=True,
-                    samesite='None',
-                    secure=True,
-                    domain='https://capstoners.vercel.app'  # Set domain to capstoners.vercel.app
-                )
-                response.set_cookie(
-                    key='jwt_refresh_token',
-                    value=refresh_token,
-                    httponly=True,
-                    samesite='None',
-                    secure=True,
-                    domain='https://capstoners.vercel.app'  # Set domain to capstoners.vercel.app
-                )
+                # Set the new token in the response cookies
+                response.set_cookie(key='jwt_access_token', value=new_access_token, httponly=True, samesite='None', secure=True)
+                response.set_cookie(key='jwt_refresh_token', value=refresh_token, httponly=True, samesite='None', secure=True)
 
             return response
 
