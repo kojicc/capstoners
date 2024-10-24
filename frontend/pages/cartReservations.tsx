@@ -211,7 +211,7 @@ export default function CartItems() {
           <Card key={index} shadow="sm" padding="lg" radius="md" withBorder>
             <Card.Section>
               <Image
-                src={`http://localhost:8000${item.product.image}`}
+                src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${item.product.image}`}
                 alt={item.product.name}
                 height={160}
               />

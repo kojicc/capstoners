@@ -325,7 +325,7 @@ export default function TransactionHistoryUser() {
                                 key={item.product.productId} // Use unique product ID as key
                                 width={150}
                                 height={150}
-                                src={`http://localhost:8000${matchingProduct?.image}`} // Show the specific image
+                                src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${matchingProduct?.image}`} // Show the specific image
                                 alt={matchingProduct?.name || 'Product Image'}
                               />
                             );
