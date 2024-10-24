@@ -44,7 +44,7 @@ class ReservationImportExportView(APIView):
     # parser_classes = [MultiPartParser]
 
     def get(self, request):
-    # Extract the username and reserved_date from query parameters
+        # Extract the username and reserved_date from query parameters
         username = request.query_params.get('username', None)
         date_str = request.query_params.get('reserved_date', None)  # Date in YYYY-MM-DD or YYYY-MM format from frontend
 
@@ -104,6 +104,17 @@ class ReservationImportExportView(APIView):
         file = request.FILES['file']
         df = pd.read_excel(file)
 
+        # Define the required columns
+        required_columns = [
+            'user', 'reservation_id', 'reservation_day', 'reservation_date',
+            'reservation_date_end', 'reservation_purpose', 'status'
+        ]
+
+        # Check if all required columns are present
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            return JsonResponse({'error': f'Missing columns in the uploaded file: {", ".join(missing_columns)}'}, status=400)
+
         # Iterate through the DataFrame and create reservations
         for _, row in df.iterrows():
             user = User.objects.filter(username=row['user']).first()
@@ -135,7 +146,6 @@ class ReservationImportExportView(APIView):
                 )
 
         return JsonResponse({'message': 'Reservations imported successfully'})
-
 class ReservationCartAPIView(APIView):
     # permission_classes = [IsAuthenticated]
 
