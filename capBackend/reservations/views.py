@@ -492,7 +492,6 @@ class ReservationCreateUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        username = None  # Initialize username to None
         try:
             token = request.COOKIES.get('jwt_access_token')
             if not token:
