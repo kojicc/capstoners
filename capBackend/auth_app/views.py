@@ -248,23 +248,27 @@ class UserView(APIView):
 
 
 
-# API view para sa pag-logout ng user
+# API view para sa pag-logout ng userfrom rest_framework.views import APIView
+
 class LogoutView(APIView):
     
     def get(self, request):
         response = Response()
-        response.delete_cookie('jwt_access_token')
-        response.delete_cookie('jwt_refresh_token')
+        response.delete_cookie('jwt_access_token', path='/', samesite='None', secure=True)
+        response.delete_cookie('jwt_refresh_token', path='/', samesite='None', secure=True)
+        
         token = request.COOKIES.get('jwt_access_token')
         token2 = request.COOKIES.get('jwt_refresh_token')
+        
+        print(f"Access token before deletion: {token}")
+        print(f"Refresh token before deletion: {token2}")
+        
         response.data = {
             'message': 'success',
-            'message2': {token},
-             'message3': {token2},
+            'message2': token,
+            'message3': token2,
         }
         return response
-    
-
 # panglagay sa cookies ng token para thru cookies ang usapan ng backend at frontend kung sino ang currently nagamit pang LOGIN
 
 
