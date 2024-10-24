@@ -62,8 +62,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -197,7 +197,7 @@ AUTH_USER_MODEL = 'auth_app.User'
 # para maallow frontend maaccess cookies kase naglologin thru cookies
 CORS_ALLOW_CREDENTIALS = True
 
-
+CORS_ORIGIN_ALLOW_ALL = False
 # CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = [
     'https://capstoners.vercel.app',  # Replace with your frontend domain
