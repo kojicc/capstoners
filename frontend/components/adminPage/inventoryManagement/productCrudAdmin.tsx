@@ -427,6 +427,10 @@ const UpdateCrudProductsAdmin = () => {
             <Text>Loading...</Text>
           ) : error ? (
             <Text color="red">{error}</Text>
+          ) : Array.isArray(products) && products.length === 0 ? (
+            <Title order={1} ta="center" mt="md">
+              There are no products yet. Please add a new one on the create tab first!
+            </Title>
           ) : (
             <Container fluid>
               {/* <ScrollArea offsetScrollbars type="auto" className={styles.tableContainer}> */}

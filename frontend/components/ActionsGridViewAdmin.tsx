@@ -476,7 +476,7 @@ const ActionsGridViewAdmin = () => {
           />
           <Autocomplete
             label="Product Type"
-            placeholder="Select product type"
+            placeholder="Select or Create a new one product type"
             data={productTypesArray}
             value={productTypes}
             rightSection={

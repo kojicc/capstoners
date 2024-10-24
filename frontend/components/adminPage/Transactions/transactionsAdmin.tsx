@@ -297,16 +297,9 @@ export default function TransactionHistory() {
     } finally {
       setLoadingImportExport(false);
       setOpenedImportExport(false);
+      mutate();
     }
   };
-
-  // Check if data contains a "message" field indicating no reservations
-
-  // useEffect(() => {
-  //   if (usersData) {
-  //     setUsers(usersData);
-  //   }
-  // }, [usersData]);
 
   // Handle search
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {

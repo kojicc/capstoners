@@ -35,16 +35,15 @@ import io
 from rest_framework.parsers import MultiPartParser
 from datetime import datetime
 from django.core.mail import send_mail
+import json
 
 # pangview ng total reservations
 # class ReservationTotalAPIView(APIView):
 #         reservations = get_object_or_404(Reservation,reservation_9)
 
 class ReservationImportExportView(APIView):
-    # parser_classes = [MultiPartParser]
-
     def get(self, request):
-    # Extract the username and reserved_date from query parameters
+        # Extract the username and reserved_date from query parameters
         username = request.query_params.get('username', None)
         date_str = request.query_params.get('reserved_date', None)  # Date in YYYY-MM-DD or YYYY-MM format from frontend
 
@@ -79,6 +78,11 @@ class ReservationImportExportView(APIView):
         serializer = ReservationSerializer(reservations, many=True)
         data = serializer.data
 
+        # Add reservation items to the serialized data
+        for reservation in data:
+            reservation_items = ReservationItem.objects.filter(reservation__reservation_id=reservation['reservation_id'])
+            reservation['items'] = ReservationItemSerializer(reservation_items, many=True).data
+
         print(f"Serialized data: {data}")
 
         # Convert data to DataFrame
@@ -108,9 +112,12 @@ class ReservationImportExportView(APIView):
         for _, row in df.iterrows():
             user = User.objects.filter(username=row['user']).first()
             if user:
+                # Fetch the ClassSchedule instance based on the value in the DataFrame
+                user_class_section = ClassSchedule.objects.filter(class_section=row['user_class_section']).first()
+
                 reservation_data = {
                     'user': user,
-                    'user_class_section': row['user_class_section'],
+                    'user_class_section': user_class_section,
                     'reservation_id': row['reservation_id'],
                     'reserved_date': row.get('reserved_date', timezone.now()),  # Use current time if not provided
                     'reservation_day': row['reservation_day'],
@@ -122,8 +129,51 @@ class ReservationImportExportView(APIView):
                     'group_members': row.get('group_members', []),  # Default to empty list if not provided
                     'subject': row.get('subject', None)  # Default to None if not provided
                 }
-                Reservation.objects.update_or_create(
+                reservation, created = Reservation.objects.update_or_create(
                     reservation_id=row['reservation_id'], defaults=reservation_data)
+
+                # Handle reservation items (check if 'items' column exists)
+                items_data = row.get('items', '[]')  # Get the 'items' field or default to an empty list as a string
+                print(f"Raw Items data: {items_data}")
+
+                # Check if items_data is a string and try to convert it to a list
+                if isinstance(items_data, str):
+                    try:
+                        # Replace single quotes with double quotes to convert to valid JSON format
+                        items_data = items_data.replace("'", '"')
+                        items_data = json.loads(items_data)
+                    except json.JSONDecodeError:
+                        return JsonResponse({
+                            'error': 'Invalid items JSON format',
+                            'raw_items_data': items_data,  # Include the raw data in the response for debugging
+                        }, status=400)
+
+                print(f"Parsed Items data: {items_data}")
+
+                # Ensure items_data is a list after parsing
+                if isinstance(items_data, list):
+                    for item in items_data:
+                        # Check if product_id is available
+                        product_id = item.get('product_id')
+                        if not product_id and 'product' in item:
+                            product_data = item.get('product')
+                            product_id = product_data.get('productId')  # Get productId from the nested 'product' dict
+
+                        # Fetch the product based on productId
+                        product = Product.objects.filter(productId=product_id).first()
+
+                        if product:
+                            ReservationItem.objects.update_or_create(
+                                reservation=reservation,
+                                product=product,
+                                defaults={'quantity': item.get('quantity', 1)}  # Default quantity to 1 if not provided
+                            )
+                        else:
+                            # Handle case where product does not exist
+                            return JsonResponse({'error': f"Product with ID {product_id} not found"}, status=400)
+                else:
+                    # Handle the case when 'items' is not a list or not present
+                    return JsonResponse({'error': 'Invalid items data'}, status=400)
 
         return JsonResponse({'message': 'Reservations imported successfully'})
 
@@ -993,8 +1043,8 @@ class AdminReservationDetailAPIView(APIView):
             return Response({
                 'message': 'An error occurred',
                 'error': str(e)
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
+            }, status=status.HTTP_400_BAD_REQUEST)        
+
 # pang view ng reservation as user
 class ReservationDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]

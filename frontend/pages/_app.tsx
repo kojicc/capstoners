@@ -33,7 +33,7 @@ export default function App({ Component, pageProps }: AppProps) {
           <Notifications />
           <ModalsProvider>
             <Head>
-              <title>fucking capstone</title>
+              <title>CTHM</title>
               <meta
                 name="viewport"
                 content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"

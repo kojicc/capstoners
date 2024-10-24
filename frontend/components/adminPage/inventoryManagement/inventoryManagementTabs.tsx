@@ -19,6 +19,7 @@ import {
   NumberInput,
   Paper,
   CloseButton,
+  Title,
 } from '@mantine/core';
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import axios from '../../../utils/axiosInstance';
@@ -327,7 +328,9 @@ const ProductAddPage = () => {
                       </Card>
                     ))
                   ) : (
-                    <p>No products found</p>
+                    <Title order={1} ta={'center'}>
+                      No products found
+                    </Title>
                   )}
                 </div>
               )}
@@ -336,9 +339,9 @@ const ProductAddPage = () => {
         </Tabs.Panel>
 
         <Tabs.Panel color="yellow" value="Update/Delete">
-          <Container fluid bg={'#417A46'}>
+          <Paper shadow="xl" radius={'md'} p={'lg'}>
             <UpdateCrudProductsAdmin />
-          </Container>
+          </Paper>
         </Tabs.Panel>
       </Tabs>
     </Paper>
