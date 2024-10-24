@@ -152,18 +152,41 @@ class ExportImportProductView(APIView):
                 category_id = product['category']
                 category = Category.objects.get(categoryId=category_id)
                 
+                product_defaults = {
+                    'name': product['name'],
+                    'description': product['description'],
+                    'type': product.get('type', 'Default Type'),
+                    'price': product['price'],
+                    'quantity': product['quantity'],
+                    'reserved': product.get('reserved', 0),
+                    'broken_damaged': product.get('broken_damaged', 0),
+                    'category': category,
+                    'image': product.get('image', 'products/images/default.png')
+                }
+                
+                # If productId is not provided, generate it
+                if not product.get('productId'):
+                    prefix = category.categoryId
+                    if not prefix:
+                        prefix = 'DEF'
+                    
+                    products_with_prefix = Product.objects.filter(productId__startswith=prefix)
+                    existing_numbers = set()
+
+                    for p in products_with_prefix:
+                        match = re.match(rf'{prefix}-(\d+)', p.productId)
+                        if match:
+                            existing_numbers.add(int(match.group(1)))
+                    
+                    number = 1
+                    while number in existing_numbers:
+                        number += 1
+                    
+                    product['productId'] = f'{prefix}-{number}'
+                
                 Product.objects.update_or_create(
                     productId=product['productId'],  # Match on productId to avoid duplicates
-                    defaults={
-                        'name': product['name'],
-                        'description': product['description'],
-                        'type': product.get('type', 'Default Type'),
-                        'price': product['price'],
-                        'quantity': product['quantity'],
-                        'reserved': product.get('reserved', 0),
-                        'broken_damaged': product.get('broken_damaged', 0),
-                        'category': category
-                    }
+                    defaults=product_defaults
                 )
             
             return Response({
@@ -173,7 +196,6 @@ class ExportImportProductView(APIView):
             return Response({
                 'message': f'An error occurred: {str(e)}'
             }, status=400)
-
 
 class createCategory(APIView):
     permission_classes = [IsAuthenticated]

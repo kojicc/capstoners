@@ -108,16 +108,31 @@ class ReservationImportExportView(APIView):
         for _, row in df.iterrows():
             user = User.objects.filter(username=row['user']).first()
             if user:
+                # Fetch the user_class_section if it exists
+                user_class_section = None
+                if 'user_class_section' in row and row['user_class_section']:
+                    user_class_section = ClassSchedule.objects.filter(class_section=row['user_class_section']).first()
+
                 reservation_data = {
                     'user': user,
+                    'user_class_section': user_class_section,
                     'reservation_id': row['reservation_id'],
+                    'reserved_date': row.get('reserved_date', timezone.now()),  # Use current time if not provided
+                    'reservation_day': row['reservation_day'],
                     'reservation_date': row['reservation_date'],
                     'reservation_date_end': row['reservation_date_end'],
                     'reservation_purpose': row['reservation_purpose'],
-                    'status': row['status']
+                    'status': row['status'],
+                    'is_group': row.get('is_group', False),  # Default to False if not provided
+                    'group_members': row.get('group_members', []),  # Default to empty list if not provided
+                    'subject': row.get('subject', None)  # Default to None if not provided
                 }
+
+                # Create or update the reservation
                 Reservation.objects.update_or_create(
-                    reservation_id=row['reservation_id'], defaults=reservation_data)
+                    reservation_id=row['reservation_id'],
+                    defaults=reservation_data
+                )
 
         return JsonResponse({'message': 'Reservations imported successfully'})
 

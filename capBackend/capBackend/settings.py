@@ -32,7 +32,7 @@ SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://capstoners.vercel.app']
+ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000']
 
 
 # Application definition
@@ -99,21 +99,21 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(default=DATABASE_URL)
-}
-
 # DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'cthmDB',
-#         'USER': 'root',  #  MySQL username to
-#         'PASSWORD': '12345',  #  MySQL password to
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
-    
+#     'default': dj_database_url.config(default=DATABASE_URL)
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'cthmDB',
+        'USER': 'root',  #  MySQL username to
+        'PASSWORD': '12345',  #  MySQL password to
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
+    
+}
 
 # DATABASES = {
 #     'default': {
@@ -211,7 +211,8 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'dektorsu@gmail.com'
 EMAIL_HOST_PASSWORD = 'qovf dpgs lytx kloo'
-FRONTEND_URL = 'http://localhost:3000'
+FRONTNED_URL = 'https://capstoners.vercel.app'
+# FRONTEND_URL = 'http://localhost:3000'
 
 # Outlook settings (if you want to use Outlook)
 # Uncomment this if you're using Outlook
