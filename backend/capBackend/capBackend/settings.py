@@ -103,9 +103,9 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 #somehow nagana kahit di nagamit neto
-DATABASES = {
-    'default': dj_database_url.config(default=DATABASE_URL)
- }
+# DATABASES = {
+#     'default': dj_database_url.config(default=DATABASE_URL)
+# # }
 
 # DATABASES = {
 #     'default': {
@@ -254,8 +254,8 @@ STORAGES = {
 # django_on_heroku.settings(locals())
 
 
-AWS_ACCESS_KEY_ID = 'AKIAQ4NXQJTC3IXDBRME'
-AWS_SECRET_ACCESS_KEY = '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'
+AWS_ACCESS_KEY_ID = 'AKIAQ4NXQJTCSQ4WLC6A'
+AWS_SECRET_ACCESS_KEY = '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'
 AWS_STORAGE_BUCKET_NAME = 'capstonecthmbucket'
 AWS_S3_SIGNATURE_NAME = 's3v4'
 AWS_S3_REGION_NAME = 'ap-southeast-1'
