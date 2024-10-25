@@ -470,10 +470,16 @@ class UploadProduct(APIView):
 
 
 
+import logging
+
 class updateProductView(APIView):
     permission_classes = [IsAuthenticated]
+
     def put(self, request):
         try:
+            logging.info(f"Headers: {request.headers}")
+            logging.info(f"User: {request.user}")
+
             productId = request.data.get('productId')
             name = request.data.get('name')
             description = request.data.get('description')
@@ -487,7 +493,6 @@ class updateProductView(APIView):
                 return Response({
                     'message': 'Product ID is required'
                 }, status=400)
-            
 
             product = Product.objects.get(productId=productId)
 
@@ -501,7 +506,16 @@ class updateProductView(APIView):
                 product.price = price
 
             if category:
-                product.category = Category.objects.get(categoryId=category)
+                try:
+                    product.category = Category.objects.get(categoryId=category)
+                except Category.DoesNotExist:
+                    # Create a new category with default values
+                    product.category = Category.objects.create(
+                        categoryId=category,
+                        name=f'{category}-NAME',
+                        description=f'{category}-DESCRIPTION',
+                        icon='IconMoodLookUp'
+                    )
 
             if quantity:
                 product.quantity = quantity
@@ -511,8 +525,6 @@ class updateProductView(APIView):
 
             if image:
                 product.image = image
-            else:
-                product.image = product.image
 
             product.save()
 
@@ -531,10 +543,10 @@ class updateProductView(APIView):
             }, status=404)
 
         except Exception as e:
+            logging.error(f"An error occurred: {str(e)}")
             return Response({
                 'message': f'An error occurred: {str(e)}'
             }, status=400)
-
 
 class deleteProductView(APIView):
     permission_classes = [IsAuthenticated]
