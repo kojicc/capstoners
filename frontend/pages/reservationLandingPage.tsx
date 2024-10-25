@@ -38,8 +38,6 @@ const ReservationLandingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryID, setCategoryID] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
-  console.log('searchQuery', searchQuery);
-  console.log('categoryID', categoryID);
   const router = useRouter();
   const { searchQuery: searchFromHeader } = router.query; // Get search query from URL
   const [opened, { toggle }] = useDisclosure();

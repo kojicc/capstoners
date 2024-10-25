@@ -106,7 +106,24 @@ export default function Header() {
 
   const theme = useMantineTheme();
 
-  const { data, error, isLoading } = useSWR('getCategories/', fetcher);
+  const { data, error, isLoading } = useSWR('getCategories/', fetcher, {
+    onSuccess: async (data) => {
+      const updatedMockdata = await Promise.all(
+        data.categories.slice(0, 6).map(async (category: any) => {
+          const IconComponent = (await import(`@tabler/icons-react`))[
+            category.icon as keyof typeof Icons
+          ];
+          return {
+            icon: IconComponent,
+            title: category.name,
+            description: category.description,
+            categoryId: category.categoryId,
+          };
+        })
+      );
+      setMockdata(updatedMockdata);
+    },
+  });
   const router = useRouter();
   const [mockdata, setMockdata] = useState<any[]>([]);
   const [strength, setStrength] = useState(0);
@@ -139,26 +156,26 @@ export default function Header() {
       });
   };
 
-  useEffect(() => {
-    if (error) {
-      console.error('Error fetching categories:', error);
-    }
-    if (data) {
-      const updatedMockdata = data.categories.slice(0, 6).map(async (category: any) => {
-        const IconComponent = (await import(`@tabler/icons-react`))[
-          category.icon as keyof typeof Icons
-        ];
-        return {
-          icon: IconComponent,
-          title: category.name,
-          description: category.description,
-          categoryId: category.categoryId,
-        };
-      });
+  // useEffect(() => {
+  //   if (error) {
+  //     console.error('Error fetching categories:', error);
+  //   }
+  //   if (data) {
+  //     const updatedMockdata = data.categories.slice(0, 6).map(async (category: any) => {
+  //       const IconComponent = (await import(`@tabler/icons-react`))[
+  //         category.icon as keyof typeof Icons
+  //       ];
+  //       return {
+  //         icon: IconComponent,
+  //         title: category.name,
+  //         description: category.description,
+  //         categoryId: category.categoryId,
+  //       };
+  //     });
 
-      Promise.all(updatedMockdata).then(setMockdata);
-    }
-  }, [data, error]);
+  //     Promise.all(updatedMockdata).then(setMockdata);
+  //   }
+  // }, [data, error]);
 
   const [isAuthenticated, setIsAuthenticated] = useLocalStorage({
     key: 'isAuthenticated',
@@ -274,20 +291,20 @@ export default function Header() {
           </Text>
 
           <Group h="100%" gap={0} visibleFrom="sm">
-            <a href="/" className={classes.link}>
+            <Text component="a" href="/" className={classes.link}>
               Home
-            </a>
+            </Text>
             {username ? (
               role === 'admin' ? (
-                <a href="adminDashboard" className={classes.link}>
+                <Text component="a" href="adminDashboard" className={classes.link}>
                   Admin Dashboard
-                </a>
+                </Text>
               ) : (
                 <Menu trigger="click-hover" withArrow position="bottom-start">
                   <Menu.Target>
-                    <a className={classes.link} style={{ cursor: 'pointer' }}>
+                    <Text component="a" className={classes.link} style={{ cursor: 'pointer' }}>
                       Support
-                    </a>
+                    </Text>
                   </Menu.Target>
                   <Menu.Dropdown>
                     <Menu.Item
@@ -308,7 +325,7 @@ export default function Header() {
             ) : null}
             <HoverCard width={600} position="bottom" radius="md" shadow="md" withinPortal>
               <HoverCard.Target>
-                <a href="reservationLandingPage" className={classes.link}>
+                <Text component="a" href="reservationLandingPage" className={classes.link}>
                   <Center inline>
                     <Box component="span" mr={5}>
                       Equipments
@@ -318,7 +335,7 @@ export default function Header() {
                       color={theme.colors.blue[6]}
                     />
                   </Center>
-                </a>
+                </Text>
               </HoverCard.Target>
 
               <HoverCard.Dropdown style={{ overflow: 'hidden' }}>
@@ -352,12 +369,13 @@ export default function Header() {
                 </div>
               </HoverCard.Dropdown>
             </HoverCard>
-            <a
+            <Text
+              component="a"
               href="https://portal.dlsud.edu.ph/mydlsud/Login.aspx?ReturnUrl=%2fmydlsud%2fStudent%2findex.aspx"
               className={classes.link}
             >
               DLSUD Portal
-            </a>
+            </Text>
           </Group>
 
           <Group visibleFrom="sm">
@@ -403,7 +421,7 @@ export default function Header() {
         onClose={closeDrawer}
         size="100%"
         padding="md"
-        title="Navigation"
+        title="CTHM"
         hiddenFrom="sm"
         zIndex={1000000}
         className={classes.drawer}
@@ -411,9 +429,9 @@ export default function Header() {
         <ScrollArea h={`calc(100vh - ${rem(80)})`} mx="-md">
           <Divider my="sm" />
 
-          <a href="/" className={classes.link}>
+          <Text component="a" href="/" className={classes.link}>
             Home
-          </a>
+          </Text>
           <UnstyledButton className={classes.link} onClick={toggleLinks}>
             <Center inline>
               <Box component="span" mr={5}>
@@ -428,18 +446,69 @@ export default function Header() {
           <Collapse ml={50} in={linksOpened}>
             {links}
           </Collapse>
-          <a href="#" className={classes.link}>
-            Learn
-          </a>
-          <a href="#" className={classes.link}>
-            Academy
-          </a>
+
+          {username ? (
+            role === 'admin' ? (
+              <Text component="a" href="adminDashboard" className={classes.link}>
+                Admin Dashboard
+              </Text>
+            ) : (
+              <Menu trigger="click-hover" withArrow position="bottom-start">
+                <Menu.Target>
+                  <Text component="a" className={classes.link} style={{ cursor: 'pointer' }}>
+                    Support
+                  </Text>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    leftSection={<IconSettings size={14} />}
+                    onClick={() => setModalOpen(true)}
+                  >
+                    Change Password
+                  </Menu.Item>
+                  <Menu.Item
+                    leftSection={<IconCalendar size={14} />}
+                    onClick={() => router.push('transactionsUser')}
+                  >
+                    Transaction History
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            )
+          ) : null}
 
           <Divider my="sm" />
 
           <Group justify="center" grow pb="xl" px="md">
-            <Button variant="default">Log in</Button>
-            <Button>Sign up</Button>
+            {isAuthenticated ? (
+              <>
+                <Button
+                  component="a"
+                  onClick={handleLogout}
+                  variant="outline"
+                  color="white"
+                  fw={700}
+                  className={classes.btn}
+                >
+                  Logout
+                </Button>
+                {/* <NotificationButton />
+                <CartIcon /> */}
+              </>
+            ) : (
+              <>
+                <Button
+                  component="a"
+                  href="login/"
+                  variant="outline"
+                  color="white"
+                  fw={700}
+                  className={classes.btn}
+                >
+                  Login
+                </Button>
+              </>
+            )}
           </Group>
         </ScrollArea>
       </Drawer>

@@ -11,7 +11,7 @@
   padding-left: var(--mantine-spacing-md);
   padding-right: var(--mantine-spacing-md);
   text-decoration: none;
-  color: white; /* Text color outside the drawer */
+  /* color: white;  */
   font-weight: 500;
   font-size: var(--mantine-font-size-sm);
 
@@ -53,10 +53,6 @@
   z-index: 100;
   position: fixed;
   color: white;
-}
-
-.drawer .link {
-  color: black !important; /* Ensure text color inside the drawer is dark */
 }
 
 .btn:hover {
