@@ -150,7 +150,16 @@ class ExportImportProductView(APIView):
             
             for product in products:
                 category_id = product['category']
-                category = Category.objects.get(categoryId=category_id)
+                try:
+                    category = Category.objects.get(categoryId=category_id)
+                except Category.DoesNotExist:
+                    # Create a new category with default values
+                    category = Category.objects.create(
+                        categoryId=category_id,
+                        name=f'{category_id}-NAME',
+                        description=f'{category_id}-DESCRIPTION',
+                        icon='IconMoodLookUp'
+                    )
                 
                 product_defaults = {
                     'name': product['name'],
@@ -196,6 +205,7 @@ class ExportImportProductView(APIView):
             return Response({
                 'message': f'An error occurred: {str(e)}'
             }, status=400)
+
 
 class createCategory(APIView):
     permission_classes = [IsAuthenticated]
