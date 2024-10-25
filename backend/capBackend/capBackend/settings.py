@@ -32,7 +32,7 @@ SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000','capstoners-665f8af6ebcf.herokuapp.com']
+ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000','capstoners-665f8af6ebcf.herokuapp.com','127.0.0.1']
 
 
 # Application definition
@@ -103,21 +103,21 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 #somehow nagana kahit di nagamit neto
-DATABASES = {
-    'default': dj_database_url.config(default=DATABASE_URL)
-}
-
 # DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'cthmDB',
-#         'USER': 'root',  #  MySQL username to
-#         'PASSWORD': '12345',  #  MySQL password to
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
-    
+#     'default': dj_database_url.config(default=DATABASE_URL)
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'cthmDB',
+        'USER': 'root',  #  MySQL username to
+        'PASSWORD': '12345',  #  MySQL password to
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
+    
+}
 
 # DATABASES = {
 #     'default': {
@@ -254,8 +254,8 @@ STORAGES = {
 # django_on_heroku.settings(locals())
 
 
-AWS_ACCESS_KEY_ID = 'AKIAQ4NXQJTCQF7DKBYT'
-AWS_SECRET_ACCESS_KEY = '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'
+AWS_ACCESS_KEY_ID = 'AKIAQ4NXQJTCWBGYWOSR'
+AWS_SECRET_ACCESS_KEY = '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'
 AWS_STORAGE_BUCKET_NAME = 'capstonecthmbucket'
 AWS_S3_SIGNATURE_NAME = 's3v4'
 AWS_S3_REGION_NAME = 'ap-southeast-1'
