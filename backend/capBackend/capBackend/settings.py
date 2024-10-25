@@ -89,6 +89,8 @@ TEMPLATES = [
         },
     },
 ]
+
+
 ASGI_APPLICATION = 'capBackend.asgi.application'
 WSGI_APPLICATION = 'capBackend.wsgi.application'
 
@@ -163,8 +165,11 @@ USE_I18N = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
-
+# STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'frontend/static'),
+# ]
 # STATICFILES_DIRS = [
 #     os.path.join(BASE_DIR, 'static')
 # ]
@@ -237,3 +242,14 @@ FRONTNED_URL = 'https://capstoners.vercel.app'
 
 
 django_on_heroku.settings(locals())
+
+
+AWS_ACCESS_KEY_ID = 'AKIAQ4NXQJTC4UMXAMXM'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'myawsbucketlieraann '
+AWS_S3_SIGNATURE_NAME = 's3v4'
+AWS_S3_REGION_NAME = 'ap-southeast-1'
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+AWS_S3_VERITY = True
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
