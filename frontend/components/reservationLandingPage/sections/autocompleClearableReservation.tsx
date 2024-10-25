@@ -111,6 +111,17 @@ export function AutocompleteClearable({
       </Tooltip>
       <ScrollArea type="auto">
         <Group justify="center" p={10} style={{ cursor: 'pointer' }}>
+          <Tooltip label="Click to view all products" position="bottom" withArrow>
+            <Badge
+              component="a"
+              onClick={() => {
+                setSearchQuery('');
+                setCategoryID('');
+              }}
+            >
+              All Products
+            </Badge>
+          </Tooltip>
           {categoryItems.length > 0 ? (
             categoryItems.map(
               (category: {
