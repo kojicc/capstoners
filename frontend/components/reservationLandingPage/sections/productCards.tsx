@@ -135,7 +135,13 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
         {currentProducts.map((product: Product) => (
           <Card key={product.productId} withBorder radius="md" className={classes.card}>
             <Card.Section className={classes.imageSection}>
-              <Image src={product.image} alt={product.name} w={200} h={200} radius={10} />
+              <Image
+                src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${product.image}`}
+                alt={product.name}
+                w={200}
+                h={200}
+                radius={10}
+              />
             </Card.Section>
 
             <Group justify="space-between" mt="md">

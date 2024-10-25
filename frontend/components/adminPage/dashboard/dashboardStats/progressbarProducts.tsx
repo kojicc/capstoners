@@ -25,7 +25,7 @@ export function ProgressProducts() {
   // const [totals, setTotals] = useState<Totals | null>(null);
   const [visible, { toggle }] = useDisclosure(false);
 
-  const fetcher = (url: string) => axios.get(url).then(res => res.data);
+  const fetcher = (url: string) => axios.get(url).then((res) => res.data);
   const { data, error } = useSWR<{ categories: CategoryStatus[]; totals: Totals }>(
     'totalStocks/',
     fetcher,
@@ -48,11 +48,13 @@ export function ProgressProducts() {
   //   fetchStatus();
   // }, []);
 
-  if (!categoryStatuses || !totals) return <LoadingOverlay visible={visible} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
-  ;
+  if (!categoryStatuses || !totals)
+    return (
+      <LoadingOverlay visible={visible} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
+    );
 
   return (
-    <Paper p="xl" shadow="xl" style={{ height: 'auto' }}>
+    <Paper withBorder p="xl" shadow="xl" style={{ height: 'auto' }}>
       {/* 
       <Text>Total Inventory Overview</Text>
       <Progress.Root size="xl" pb={'auto'}>
@@ -92,7 +94,9 @@ export function ProgressProducts() {
 
       {categoryStatuses.map((categoryStatus) => (
         <div key={categoryStatus.category} style={{ marginBottom: '20px' }}>
-          <Text w={500} size="lg">{categoryStatus.category}</Text>
+          <Text w={500} size="lg">
+            {categoryStatus.category}
+          </Text>
           <Progress.Root size="xl" pb={'auto'}>
             <Tooltip label={`In Stock – ${categoryStatus.in_stock}`}>
               <Progress.Section
@@ -127,19 +131,17 @@ export function ProgressProducts() {
               </Progress.Section>
             </Tooltip>
           </Progress.Root>
-
         </div>
-        
       ))}
-      
-      <Group justify='center' pt={30}>
-            <ColorSwatch color="green" />
-            <Text>In Stock</Text>
-            <ColorSwatch color="orange" />
-            <Text>Reserved</Text>
-            <ColorSwatch color="red" />
-            <Text>Broken/Damaged</Text>
-          </Group>
+
+      <Group justify="center" pt={30}>
+        <ColorSwatch color="green" />
+        <Text>In Stock</Text>
+        <ColorSwatch color="orange" />
+        <Text>Reserved</Text>
+        <ColorSwatch color="red" />
+        <Text>Broken/Damaged</Text>
+      </Group>
     </Paper>
   );
 }

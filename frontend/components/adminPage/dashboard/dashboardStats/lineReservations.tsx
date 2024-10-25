@@ -47,7 +47,7 @@ export function LineReservations() {
 
   console.log('dataReserved', dataReserved);
   return (
-    <Paper p="xl" shadow="xl" style={{ height: 'auto' }}>
+    <Paper withBorder p="xl" shadow="xl" style={{ height: 'auto' }}>
       <LineChart
         h={300}
         data={formattedData}
