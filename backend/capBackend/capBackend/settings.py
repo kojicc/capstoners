@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
     
     'corsheaders',
+    'storages',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -174,9 +175,9 @@ USE_I18N = True
 #     os.path.join(BASE_DIR, 'static')
 # ]
 
-MEDIA_URL = '/media/'
+# MEDIA_URL = '/media/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
@@ -240,16 +241,26 @@ FRONTNED_URL = 'https://capstoners.vercel.app'
 # DEFAULT_FROM_EMAIL = 'your-email@example.com'
 # ADMIN_EMAIL = 'admin@example.com'  # Add this line
 
+STORAGES = {
+    'default': {
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+    },
+    'staticfiles': {
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+    },
+}
+
 
 django_on_heroku.settings(locals())
 
 
-AWS_ACCESS_KEY_ID = 'AKIAQ4NXQJTC4UMXAMXM'
-AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'myawsbucketlieraann '
+AWS_ACCESS_KEY_ID = 'AKIAQ4NXQJTCQF7DKBYT'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'capstonecthmbucket'
 AWS_S3_SIGNATURE_NAME = 's3v4'
 AWS_S3_REGION_NAME = 'ap-southeast-1'
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
 AWS_S3_VERITY = True
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+

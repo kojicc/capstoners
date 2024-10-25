@@ -534,7 +534,7 @@ const UpdateCrudProductsAdmin = () => {
                                       height: 100,
                                       width: 100,
                                     }}
-                                    src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${products.image}`}
+                                    src={`${products.image}`}
                                     alt={products.name}
                                   />
                                 </Table.Td>
@@ -692,10 +692,7 @@ const UpdateCrudProductsAdmin = () => {
                       {' '}
                       Old Product Image
                     </Title>
-                    <img
-                      src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${selectedProducts?.image}`}
-                      alt={selectedProducts?.name}
-                    />
+                    <img src={`${selectedProducts?.image}`} alt={selectedProducts?.name} />
                   </>
                 )}
               </>

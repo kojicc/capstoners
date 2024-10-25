@@ -124,11 +124,7 @@ export default function CartItems() {
         {data.cart_items.map((item) => (
           <Card key={item.product.productId} shadow="sm" padding="lg">
             <Card.Section>
-              <Image
-                src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${item.product.image}`}
-                alt={item.product.name}
-                height={160}
-              />
+              <Image src={`${item.product.image}`} alt={item.product.name} height={160} />
             </Card.Section>
             <Group p="apart" mt="md" mb="xs">
               <Text w={500}>{item.product.name}</Text>

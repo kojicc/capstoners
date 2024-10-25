@@ -404,7 +404,7 @@ export function CartIcon() {
                       onChange={() => handleCheckboxChange(item.product.productId)}
                     />
                     <img
-                      src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${item.product.image}`}
+                      src={`${item.product.image}`}
                       alt={item.product.name}
                       style={{ width: 50, height: 50, objectFit: 'cover' }}
                     />
@@ -470,7 +470,7 @@ export function CartIcon() {
                 <Paper key={item.product.productId} p="md" shadow="xs" radius="md" withBorder>
                   <Group align="flex-start">
                     <img
-                      src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${item.product.image}`}
+                      src={`${item.product.image}`}
                       alt={item.product.name}
                       style={{ width: 50, height: 50, objectFit: 'cover' }}
                     />
@@ -606,7 +606,7 @@ export function CartIcon() {
                                 <Table.Td>{item?.product.name}</Table.Td>
                                 <Table.Td>
                                   <Image
-                                    src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${item?.product.image}`}
+                                    src={`${item?.product.image}`}
                                     alt={item?.product.name}
                                     width={50}
                                     height={50}

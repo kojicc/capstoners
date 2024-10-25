@@ -210,11 +210,7 @@ export default function CartItems() {
         {data.cart_items.map((item, index) => (
           <Card key={index} shadow="sm" padding="lg" radius="md" withBorder>
             <Card.Section>
-              <Image
-                src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${item.product.image}`}
-                alt={item.product.name}
-                height={160}
-              />
+              <Image src={`${item.product.image}`} alt={item.product.name} height={160} />
             </Card.Section>
 
             <Group mt="md" mb="xs">

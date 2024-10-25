@@ -567,7 +567,7 @@ export default function TransactionHistory() {
 
   const cards =
     selectedReservation?.items.map((item) => {
-      const fullImageUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${item.product.image}`;
+      const fullImageUrl = `${item.product.image}`;
 
       return (
         <Checkbox.Card
@@ -1348,7 +1348,7 @@ export default function TransactionHistory() {
                     >
                       <Stack pt="md" gap="xs">
                         {selectedReservation?.items.map((item, index) => {
-                          const fullImageUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${item.product.image}`;
+                          const fullImageUrl = `${item.product.image}`;
 
                           return (
                             <div key={item.product.productId}>

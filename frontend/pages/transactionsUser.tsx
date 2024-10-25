@@ -454,7 +454,7 @@ export default function TransactionHistoryUser() {
                                         {reservation.items.map((item) => (
                                           <Avatar
                                             key={item.product.productId}
-                                            src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${item.product.image}`}
+                                            src={`${item.product.image}`}
                                             alt={item.product.productId}
                                             size={80}
                                             radius="md"
@@ -658,7 +658,7 @@ export default function TransactionHistoryUser() {
                                           {reservation.items.map((item) => (
                                             <Group key={item.product.productId} align="center">
                                               <Image
-                                                src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${item.product.image}`}
+                                                src={`${item.product.image}`}
                                                 alt={item.product.productId}
                                                 width={180}
                                                 height={180}

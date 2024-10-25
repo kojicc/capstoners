@@ -318,7 +318,7 @@ const ProductAddPage = () => {
                           </Stack>
                           <Image
                             mx={'auto'}
-                            src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${product.image}`}
+                            src={`${product.image}`}
                             alt={product.name}
                             radius="md"
                             h={200}
