@@ -103,21 +103,21 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 #somehow nagana kahit di nagamit neto
-# DATABASES = {
-#     'default': dj_database_url.config(default=DATABASE_URL)
-# }
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'cthmDB',
-        'USER': 'root',  #  MySQL username to
-        'PASSWORD': '12345',  #  MySQL password to
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-    
+    'default': dj_database_url.config(default=DATABASE_URL)
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'cthmDB',
+#         'USER': 'root',  #  MySQL username to
+#         'PASSWORD': '12345',  #  MySQL password to
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#     }
+    
+# }
 
 # DATABASES = {
 #     'default': {
@@ -262,5 +262,4 @@ AWS_S3_REGION_NAME = 'ap-southeast-1'
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
 AWS_S3_VERITY = True
-# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
