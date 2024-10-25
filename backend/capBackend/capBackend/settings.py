@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from datetime import datetime, timedelta
+# from dotenv import load_dotenv
 import os
 import django_on_heroku
 import dj_database_url
@@ -20,6 +21,7 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -30,10 +32,15 @@ SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://capstoners.vercel.app', 'http://localhost:3000']
+ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000']
+
 
 # Application definition
+
+
 INSTALLED_APPS = [
+
+    
     'corsheaders',
     'storages',
     'django.contrib.admin',
@@ -49,7 +56,10 @@ INSTALLED_APPS = [
     'reservations',
     'rest_framework_simplejwt.token_blacklist',
     'analytics',
+    
+    
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -81,17 +91,49 @@ TEMPLATES = [
     },
 ]
 
+
 ASGI_APPLICATION = 'capBackend.asgi.application'
 WSGI_APPLICATION = 'capBackend.wsgi.application'
 
+
+
+
+
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+
+#somehow nagana kahit di nagamit neto
 DATABASES = {
     'default': dj_database_url.config(default=DATABASE_URL)
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'cthmDB',
+#         'USER': 'root',  #  MySQL username to
+#         'PASSWORD': '12345',  #  MySQL password to
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#     }
+    
+# }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'cthmDB',
+#         'USER': 'admin',
+#         'PASSWORD': 'admin',
+#         # 'HOST': 'localhost',
+#         # 'PORT': '5432',
+#     }
+# }
+
+
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -107,8 +149,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Manila'
@@ -116,8 +160,27 @@ USE_TZ = True
 USE_L10N = True
 USE_I18N = True
 
+# USE_TZ = False
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
+
+# STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'frontend/static'),
+# ]
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static')
+# ]
+
+# MEDIA_URL = '/media/'
+
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
@@ -137,11 +200,16 @@ SIMPLE_JWT = {
 
 AUTH_USER_MODEL = 'auth_app.User'
 
+
+
+
 CORS_ORIGIN_ALLOW_ALL = False
+# CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = [
     'https://capstoners.vercel.app',  # Replace with your frontend domain
     'http://localhost:3000',  # Add this for local development
 ]
+# para maallow frontend maaccess cookies kase naglologin thru cookies
 CORS_ALLOW_CREDENTIALS = True
 
 # Gmail settings
@@ -152,17 +220,39 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'dektorsu@gmail.com'
 EMAIL_HOST_PASSWORD = 'qovf dpgs lytx kloo'
 FRONTNED_URL = 'https://capstoners.vercel.app'
+# FRONTEND_URL = 'http://localhost:3000'
+
+# Outlook settings (if you want to use Outlook)
+# Uncomment this if you're using Outlook
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.office365.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your_outlook@outlook.com'
+# EMAIL_HOST_PASSWORD = 'your_outlook_password'
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'dektorsu@gmail.com'
+# EMAIL_HOST_PASSWORD = 'qovf dpgs lytx kloo'
+# DEFAULT_FROM_EMAIL = 'your-email@example.com'
+# ADMIN_EMAIL = 'admin@example.com'  # Add this line
 
 STORAGES = {
     'default': {
         'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
     },
     'staticfiles': {
-        'BACKEND': 'storages.backends.s3boto3.S3StaticStorage',
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
     },
 }
 
-django_on_heroku.settings(locals())
+
+# django_on_heroku.settings(locals())
+
 
 AWS_ACCESS_KEY_ID = 'AKIAQ4NXQJTCQF7DKBYT'
 AWS_SECRET_ACCESS_KEY = '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'
@@ -171,4 +261,5 @@ AWS_S3_SIGNATURE_NAME = 's3v4'
 AWS_S3_REGION_NAME = 'ap-southeast-1'
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
-AWS_S3_VERIFY = True
+AWS_S3_VERITY = True
+
