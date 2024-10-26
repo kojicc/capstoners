@@ -10,7 +10,6 @@ from django.http import HttpResponse
 import io
 import rest_framework.status as status
 from urllib.parse import urlparse
-import boto3
 # Create your views here.
 
 
@@ -542,16 +541,7 @@ class updateProductView(APIView):
                 product.type = type
 
             if image:
-                # Generate a pre-signed URL for the image upload
-                s3_client = boto3.client('s3')
-                bucket_name = 'capstonecthmbucket'
-                object_name = f'products/images/{image}'
-                presigned_url = s3_client.generate_presigned_url(
-                    'put_object',
-                    Params={'Bucket': bucket_name, 'Key': object_name},
-                    ExpiresIn=3600  # URL expiration time in seconds
-                )
-                product.image = presigned_url
+                product.image = image
 
             product.save()
 
