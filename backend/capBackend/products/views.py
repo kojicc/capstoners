@@ -541,12 +541,7 @@ class updateProductView(APIView):
             # Upload image to S3
             if image:
                 # Upload image to S3
-                s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                    region_name=settings.AWS_S3_REGION_NAME
-                )
+                s3_client = boto3.client('s3')
 
                 try:
                     # Define the bucket name and the file path
