@@ -2,6 +2,7 @@
   "name": "mantine-next-template",
   "version": "1.0.0",
   "private": true,
+  "proxy": "http://capstoners-665f8af6ebcf.herokuapp.com",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
