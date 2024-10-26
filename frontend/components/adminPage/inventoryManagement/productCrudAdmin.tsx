@@ -254,9 +254,6 @@ const UpdateCrudProductsAdmin = () => {
       await axiosInstance.put('updateProduct/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          'Access-Control-Allow-Origin': 'https://https://capstoners.vercel.app',
-          'Access-Control-Allow-Headers': 'multipart/form-data',
-          'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
         },
       });
       // Revalidate the SWR data to fetch the updated products
