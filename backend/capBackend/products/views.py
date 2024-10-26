@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 import boto3
 from django.conf import settings
 from botocore.exceptions import NoCredentialsError
-import os
+
 # Create your views here.
 
 
@@ -536,45 +536,42 @@ class updateProductView(APIView):
             if type:
                 product.type = type
 
-            
+            # if image:
+            #     product.image = image
 
             # Upload image to S3
             if image:
-                # Upload image to S3
-                s3_client = boto3.client('s3',region_name=settings.AWS_S3_REGION_NAME, aws_access_key_id=settings.AWS_ACCESS_KEY_ID, aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+                s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                    region_name=settings.AWS_S3_REGION_NAME
+                )
 
                 try:
                     # Define the bucket name and the file path
                     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                    file_key = f"products/images/{image}"  # Folder path in S3
+                    file_key = f"products/images/{image.name}"  # Folder path in S3
 
                     # Upload file to S3
                     s3_client.upload_fileobj(
                         image,
                         bucket_name,
                         file_key,
+                        ExtraArgs={'ContentType': image.content_type}
                     )
 
                     # Generate the file URL
                     image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
-                    product.image = image_url
-                    # product.image = image
-                    # product.save()
-                    
+
                 except NoCredentialsError:
-                    response = Response({'error': 'Credentials not available'}, status=403)
-                    response['Access-Control-Allow-Origin'] = '*'
-                    return response
+                    return Response({'error': 'Credentials not available'}, status=403)
 
                 except Exception as e:
-                    response = Response({'error': str(e)}, status=500)
-                    response['Access-Control-Allow-Origin'] = '*'
-                    return response
-                    # product.image = image
-                    # product.save()
+                    return Response({'error': str(e)}, status=500)
 
 
-                
+            product.save()
 
             return Response({
                 'message': 'Product updated successfully'
