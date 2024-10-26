@@ -562,16 +562,16 @@ class updateProductView(APIView):
                     )
 
                     # Generate the file URL
-                    image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
-
-                except NoCredentialsError:
-                    return Response({'error': 'Credentials not available'}, status=403)
-
+                    file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{file_key}"
+                    product.image = file_url
                 except Exception as e:
-                    return Response({'error': str(e)}, status=500)
+                    logging.error(f"Error uploading file to S3: {e}")
+                    return Response({
+                        'message': 'Error uploading file to S3'
+                    }, status=500)
 
 
-            product.save()
+                product.save()
 
             return Response({
                 'message': 'Product updated successfully'
