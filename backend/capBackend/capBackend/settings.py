@@ -266,6 +266,9 @@ AWS_S3_REGION_NAME = 'ap-southeast-1'
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
 AWS_S3_VERITY = True
+AWS_HEADERS = {
+    'Access-Control-Allow-Origin': 'https://capstoners.vercel.app'
+}
 
 # MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
 # MEDIA_ROOT = None
