@@ -8,9 +8,6 @@ import { useRouter } from 'next/router';
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL + '/api/', // Change this for production
   timeout: 5000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
   withCredentials: true,
 });
 
