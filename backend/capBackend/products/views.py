@@ -12,6 +12,7 @@ import rest_framework.status as status
 from urllib.parse import urlparse
 import boto3
 from django.conf import settings
+from botocore.exceptions import NoCredentialsError
 
 # Create your views here.
 
@@ -550,7 +551,7 @@ class updateProductView(APIView):
                 try:
                     # Define the bucket name and the file path
                     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                    file_key = f"products/images/{image}"  # Folder path in S3
+                    file_key = f"uploads/{image}"  # Folder path in S3
 
                     # Upload file to S3
                     s3_client.upload_fileobj(
