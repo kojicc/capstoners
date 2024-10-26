@@ -56,7 +56,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'analytics',
     'storages',
-    's3file',
     
     
 ]
@@ -72,7 +71,6 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    's3file.middleware.S3FileMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 

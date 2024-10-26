@@ -12,7 +12,6 @@ import rest_framework.status as status
 from urllib.parse import urlparse
 import boto3
 from django.conf import settings
-from botocore.exceptions import NoCredentialsError
 
 # Create your views here.
 
