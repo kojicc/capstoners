@@ -551,25 +551,22 @@ class updateProductView(APIView):
                     region_name=settings.AWS_S3_REGION_NAME
                 )
 
-                try:
-                    # Define the bucket name and the file path
-                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                    file_key = f"products/images/{image.name}"  # Folder path in S3
+            try:
+                # Define the bucket name and the file path
+                bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                folder_name = 'products/images'
+                file_key = f"{folder_name}/{image.name}"  # Folder path in S3
 
-                    # Upload file to S3 using the resource
-                    s3_resource.Bucket(bucket_name).put_object(
-                        Key=file_key,
-                        Body=image,
-                        ACL='public-read'
-                    )
+                # Upload file to S3 using the resource
+                bucket = s3_resource.Bucket(bucket_name)
+                bucket.upload_fileobj(image, file_key)
 
-                    # Generate the file URL
-                    # image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
-                except NoCredentialsError:
-                    return Response({'error': 'Credentials not available'}, status=403)
-
-                except Exception as e:
-                    return Response({'error': str(e)}, status=500)
+                # Generate the file URL
+                # image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
+            except NoCredentialsError:
+                return Response({'error': 'Credentials not available'}, status=403)
+            except Exception as e:
+                return Response({'error': str(e)}, status=500)
 
 
             
@@ -593,6 +590,9 @@ class updateProductView(APIView):
             return Response({
                 'message': f'An error occurred: {str(e)}'
             }, status=400)
+
+
+
 
 class deleteProductView(APIView):
     permission_classes = [IsAuthenticated]
