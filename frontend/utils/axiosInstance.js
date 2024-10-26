@@ -10,7 +10,6 @@ const axiosInstance = axios.create({
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': 'https://capstoners.vercel.app',
   },
   withCredentials: true,
 });
