@@ -213,11 +213,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 # para maallow frontend maaccess cookies kase naglologin thru cookies
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_HEADERS = [
-    'content-type',
-    'authorization',
-    # Add any other custom headers if used
-]
+
 
 
 # Gmail settings
