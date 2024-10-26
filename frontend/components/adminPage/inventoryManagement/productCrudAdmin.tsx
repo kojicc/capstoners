@@ -255,7 +255,7 @@ const UpdateCrudProductsAdmin = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Access-Control-Allow-Origin': 'https://https://capstoners.vercel.app',
-          'Access-Control-Allow-Headers': 'Content-Type',
+          'Access-Control-Allow-Headers': 'multipart/form-data',
           'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
         },
       });
