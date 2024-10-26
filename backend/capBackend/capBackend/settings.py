@@ -104,21 +104,18 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 #somehow nagana kahit di nagamit neto
-# DATABASES = {
-#     'default': dj_database_url.config(default=DATABASE_URL)
-#  }
-
 DATABASES = {
-    'default': {
+    'default': dj_database_url.config(default=DATABASE_URL) if DATABASE_URL else {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'cthmDB',
-        'USER': 'root',  #  MySQL username to
-        'PASSWORD': '12345',  #  MySQL password to
+        'USER': 'root',
+        'PASSWORD': '12345',
         'HOST': 'localhost',
         'PORT': '3306',
     }
-    
 }
+
+
 
 # DATABASES = {
 #     'default': {
