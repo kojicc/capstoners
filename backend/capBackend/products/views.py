@@ -417,53 +417,64 @@ class RetrieveProductAdmin(APIView):
             }, status=400)
 
 
-class UploadProduct(APIView):   
+class UploadProduct(APIView):
     permission_classes = [IsAuthenticated]
+
     def post(self, request):
         try:
             name = request.data.get('name')
             description = request.data.get('description')
             price = request.data.get('price')
             quantity = request.data.get('quantity')
-            category = request.data.get('category')
+            category_name = request.data.get('category')
             image = request.FILES.get('image')
-            type_name = request.data.get('type')  # Retrieve the product type
-            print("image: ",image)
-            
+            type_name = request.data.get('type')
 
-            print(f"Received data: name={name}, description={description}, price={price}, quantity={quantity}, category={category}, image={image}")
+            print(f"Received data: name={name}, description={description}, price={price}, "
+                  f"quantity={quantity}, category={category_name}, image={image}")
 
             if not all([name, description, price, quantity]):
                 return Response({
                     'message': 'All fields except category are required'
                 }, status=400)
 
-            if category:
-                category = Category.objects.get(name=category)
-
-                
+            # Retrieve or create category and product type
+            if category_name:
+                category = Category.objects.get(name=category_name)
             else:
-                category, created = Category.objects.get_or_create(categoryId='DEF', name='Default Category', defaults={'description': 'This is a default category.'})
-                # type, created = ProductType.objects.get_or_create(name='Default Type', category=category, defaults={'description': 'This is a default product type.'})
+                category, _ = Category.objects.get_or_create(
+                    categoryId='DEF', name='Default Category',
+                    defaults={'description': 'This is a default category.'}
+                )
 
-            product_type, created = ProductType.objects.get_or_create(
-                name=type_name,
+            product_type, _ = ProductType.objects.get_or_create(
+                name=type_name or 'Default Type',
                 defaults={'description': description or 'Default Description', 'category': category}
             )
+
+            # Save the image to S3 using default storage
+            if image:
+                file_name = default_storage.save(image.name, image)
+                product_image_url = default_storage.url(file_name)
+            else:
+                product_image_url = None  # Optional: handle case where no image is uploaded
+
+            # Create product with saved image URL
             product = Product.objects.create(
                 name=name,
                 description=description,
                 price=price,
-                category=category, 
+                category=category,
                 type=product_type,
                 quantity=quantity,
-                image=image
+                image=file_name if product_image_url else None
             )
 
             return Response({
                 'message': 'Product uploaded successfully',
                 'productId': product.productId,
-                'category': product.category.name
+                'category': product.category.name,
+                'image_url': product_image_url  # Include image URL in response
             }, status=201)
 
         except Category.DoesNotExist:
@@ -474,7 +485,6 @@ class UploadProduct(APIView):
             return Response({
                 'message': f'An error occurred: {str(e)}'
             }, status=400)
-
 
 
 import logging
