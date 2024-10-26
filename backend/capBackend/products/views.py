@@ -9,6 +9,7 @@ import pandas as pd
 from django.http import HttpResponse
 import io
 import rest_framework.status as status
+from urllib.parse import urlparse
 # Create your views here.
 
 
@@ -103,22 +104,33 @@ class ExportImportProductView(APIView):
     def get(self, request):
         products = Product.objects.all()
         categories = Category.objects.all()
+        product_types = ProductType.objects.all()
         
         product_serializer = ProductImageSerializer(products, many=True)
         category_serializer = CategorySerializer(categories, many=True)
+        product_type_serializer = ProductTypeSerializer(product_types, many=True)
         
         product_data = product_serializer.data
         category_data = category_serializer.data
+        product_type_data = product_type_serializer.data
+        
+        # Process image URLs to extract only the path part
+        for product in product_data:
+            if 'image' in product and product['image']:
+                parsed_url = urlparse(product['image'])
+                product['image'] = parsed_url.path
         
         # Convert data to DataFrame
         product_df = pd.DataFrame(product_data)
         category_df = pd.DataFrame(category_data)
+        product_type_df = pd.DataFrame(product_type_data)
         
         # Create an in-memory output file for the HTTP response
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             product_df.to_excel(writer, index=False, sheet_name='Products')
             category_df.to_excel(writer, index=False, sheet_name='Categories')
+            product_type_df.to_excel(writer, index=False, sheet_name='ProductTypes')
         
         output.seek(0)  # Move to the beginning of the BytesIO object
         
@@ -134,10 +146,13 @@ class ExportImportProductView(APIView):
             file = request.FILES['file']
             df_products = pd.read_excel(file, sheet_name='Products')
             df_categories = pd.read_excel(file, sheet_name='Categories')
+            df_product_types = pd.read_excel(file, sheet_name='ProductTypes')
             
             categories = df_categories.to_dict(orient='records')
             products = df_products.to_dict(orient='records')
+            product_types = df_product_types.to_dict(orient='records')
             
+            # First, update or create categories
             for category in categories:
                 Category.objects.update_or_create(
                     categoryId=category['categoryId'],
@@ -148,6 +163,18 @@ class ExportImportProductView(APIView):
                     }
                 )
             
+            # Then, update or create product types
+            for product_type in product_types:
+                category = Category.objects.get(categoryId=product_type['category'])
+                ProductType.objects.update_or_create(
+                    name=product_type['name'],
+                    defaults={
+                        'description': product_type['description'],
+                        'category': category
+                    }
+                )
+            
+            # Finally, update or create products
             for product in products:
                 category_id = product['category']
                 category = Category.objects.get(categoryId=category_id)
@@ -164,33 +191,13 @@ class ExportImportProductView(APIView):
                     'image': product.get('image', 'products/images/default.png')
                 }
                 
-                # If productId is not provided, generate it
-                if not product.get('productId'):
-                    prefix = category.categoryId
-                    if not prefix:
-                        prefix = 'DEF'
-                    
-                    products_with_prefix = Product.objects.filter(productId__startswith=prefix)
-                    existing_numbers = set()
-
-                    for p in products_with_prefix:
-                        match = re.match(rf'{prefix}-(\d+)', p.productId)
-                        if match:
-                            existing_numbers.add(int(match.group(1)))
-                    
-                    number = 1
-                    while number in existing_numbers:
-                        number += 1
-                    
-                    product['productId'] = f'{prefix}-{number}'
-                
                 Product.objects.update_or_create(
                     productId=product['productId'],  # Match on productId to avoid duplicates
                     defaults=product_defaults
                 )
             
             return Response({
-                'message': 'Products and categories uploaded and updated successfully'
+                'message': 'Products, categories, and product types uploaded and updated successfully'
             }, status=201)
         except Exception as e:
             return Response({

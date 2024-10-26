@@ -35,7 +35,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     quantity = models.IntegerField()
-    image = models.ImageField(upload_to='products/images/', blank=True, default='products/images/default.png')
+    image = models.ImageField(upload_to='products/images/', blank=True, default='products/images/default.png',max_length=500)
     created_at = models.DateTimeField(default=timezone.now)
     reserved = models.IntegerField(default=0)
     broken_damaged = models.IntegerField(default=0)
