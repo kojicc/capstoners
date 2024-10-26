@@ -104,21 +104,21 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 #somehow nagana kahit di nagamit neto
-DATABASES = {
-    'default': dj_database_url.config(default=DATABASE_URL)
- }
-
 # DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'cthmDB',
-#         'USER': 'root',  #  MySQL username to
-#         'PASSWORD': '12345',  #  MySQL password to
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
+#     'default': dj_database_url.config(default=DATABASE_URL)
+#  }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'cthmDB',
+        'USER': 'root',  #  MySQL username to
+        'PASSWORD': '12345',  #  MySQL password to
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
     
-# }
+}
 
 # DATABASES = {
 #     'default': {
@@ -209,7 +209,7 @@ CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOWED_ORIGINS = [
     'https://capstoners.vercel.app',  # Replace with your frontend domain
     'http://localhost:3000',
-    'capstoners-665f8af6ebcf.herokuapp.com'  # Add this for local development
+    'https://capstoners-665f8af6ebcf.herokuapp.com'  # Add this for local development
 ]
 # para maallow frontend maaccess cookies kase naglologin thru cookies
 CORS_ALLOW_CREDENTIALS = True
@@ -267,5 +267,5 @@ AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
 AWS_S3_VERITY = True
 
-MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
-MEDIA_ROOT = None
+# MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
+# MEDIA_ROOT = None

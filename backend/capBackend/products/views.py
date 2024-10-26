@@ -10,6 +10,10 @@ from django.http import HttpResponse
 import io
 import rest_framework.status as status
 from urllib.parse import urlparse
+import boto3
+from django.conf import settings
+from botocore.exceptions import NoCredentialsError
+
 # Create your views here.
 
 
@@ -431,7 +435,7 @@ class UploadProduct(APIView):
             type_name = request.data.get('type')
 
             print(f"Received data: name={name}, description={description}, price={price}, "
-                  f"quantity={quantity}, category={category_name}, image={image}")
+                f"quantity={quantity}, category={category_name}, image={image}")
 
             if not all([name, description, price, quantity]):
                 return Response({
@@ -452,13 +456,6 @@ class UploadProduct(APIView):
                 defaults={'description': description or 'Default Description', 'category': category}
             )
 
-            # Save the image to S3 using default storage
-            if image:
-                file_name = default_storage.save(image.name, image)
-                product_image_url = default_storage.url(file_name)
-            else:
-                product_image_url = None  # Optional: handle case where no image is uploaded
-
             # Create product with saved image URL
             product = Product.objects.create(
                 name=name,
@@ -467,14 +464,13 @@ class UploadProduct(APIView):
                 category=category,
                 type=product_type,
                 quantity=quantity,
-                image=file_name if product_image_url else None
+                image=image
             )
 
             return Response({
                 'message': 'Product uploaded successfully',
                 'productId': product.productId,
-                'category': product.category.name,
-                'image_url': product_image_url  # Include image URL in response
+                'category': product.category.name
             }, status=201)
 
         except Category.DoesNotExist:
@@ -542,6 +538,8 @@ class updateProductView(APIView):
 
             if image:
                 product.image = image
+
+
 
             product.save()
 
