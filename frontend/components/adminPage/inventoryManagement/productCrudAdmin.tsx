@@ -243,7 +243,7 @@ const UpdateCrudProductsAdmin = () => {
     formData.append('quantity', selectedProducts?.quantity.toString() || '');
     formData.append('image', files[0] || '');
     formData.append('type', selectedProducts?.type || '');
-
+    console.log('formData Image:', formData.get('image'));
     try {
       setLoading(true);
       await axiosInstance.put('updateProduct/', formData, {

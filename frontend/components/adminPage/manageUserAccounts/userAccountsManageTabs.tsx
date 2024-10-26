@@ -78,7 +78,6 @@ const UserAccountsManage = () => {
   const [prodPrice, setprodPrice] = useState<number>(0);
   const [prodQuantity, setprodQuantity] = useState<number>(0);
   const [prodCategory, setprodCategory] = useState<string>('');
-  console.log('prodCategory', prodCategory);
   const [prodCategoryID, setprodCategoryID] = useState<string>('');
   const [prodImage, setprodImage] = useState<FileWithPath[]>([]);
   const [focused, setFocused] = useState<boolean>(false);
