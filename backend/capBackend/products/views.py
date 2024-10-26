@@ -11,7 +11,6 @@ import io
 import rest_framework.status as status
 from urllib.parse import urlparse
 import boto3
-from django.core.files.storage import default_storage
 # Create your views here.
 
 
@@ -490,7 +489,6 @@ class UploadProduct(APIView):
 
 
 import logging
-from django.conf import settings
 
 class updateProductView(APIView):
     permission_classes = [IsAuthenticated]
@@ -544,13 +542,16 @@ class updateProductView(APIView):
                 product.type = type
 
             if image:
-                # product.image = image
+                # Generate a pre-signed URL for the image upload
                 s3_client = boto3.client('s3')
-                s3_bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                s3_client.upload_fileobj(image, s3_bucket_name, image.name)
-                product.image = f'https://capstone-2021.s3.amazonaws.com/{image.name}'
-                # product.image = image
-
+                bucket_name = 'capstonecthmbucket'
+                object_name = f'products/images/{image}'
+                presigned_url = s3_client.generate_presigned_url(
+                    'put_object',
+                    Params={'Bucket': bucket_name, 'Key': object_name},
+                    ExpiresIn=3600  # URL expiration time in seconds
+                )
+                product.image = presigned_url
 
             product.save()
 
