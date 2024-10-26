@@ -209,7 +209,7 @@ CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOWED_ORIGINS = [
     'https://capstoners.vercel.app',  # Replace with your frontend domain
     'http://localhost:3000',
-    'https://capstoners-665f8af6ebcf.herokuapp.com/'  # Add this for local development
+    'https://capstoners-665f8af6ebcf.herokuapp.com'  # Add this for local development
 ]
 # para maallow frontend maaccess cookies kase naglologin thru cookies
 CORS_ALLOW_CREDENTIALS = True
