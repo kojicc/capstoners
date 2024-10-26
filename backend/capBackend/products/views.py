@@ -558,7 +558,6 @@ class updateProductView(APIView):
                         image,
                         bucket_name,
                         file_key,
-                        ExtraArgs={'ContentType': image.content_type}
                     )
 
                     # Generate the file URL
