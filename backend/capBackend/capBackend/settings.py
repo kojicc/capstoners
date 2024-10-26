@@ -271,7 +271,6 @@ AWS_DEFAULT_ACL='public-read'
 # Additional S3 settings
 AWS_QUERYSTRING_AUTH = False  # Makes files public by default
 AWS_S3_FILE_OVERWRITE = False  # Ensures files with the same name don't overwrite
-AWS_DEFAULT_ACL = 'public-read'
 
 # S3FILE_STORAGE_OPTIONS = {
 #     'bucket_name': AWS_STORAGE_BUCKET_NAME,
