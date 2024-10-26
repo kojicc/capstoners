@@ -167,8 +167,6 @@ USE_I18N = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # STATICFILES_DIRS = [
 #     os.path.join(BASE_DIR, 'frontend/static'),
 # ]
@@ -266,12 +264,10 @@ AWS_QUERYSTRING_AUTH = False
 AWS_LOCATION = 'products/images/'
 AWS_S3_SIGNATURE_VERSION  = 's3v4'
 AWS_S3_REGION_NAME = 'ap-southeast-1'
+AWS_S3_FILE_OVERWRITE = False  # Ensures files with the same name don't overwrite
 AWS_HEADERS = {
     'Access-Control-Allow-Origin': 'https://capstoners.vercel.app'
 }
-# Additional S3 settings
-AWS_QUERYSTRING_AUTH = False  # Makes files public by default
-AWS_S3_FILE_OVERWRITE = False  # Ensures files with the same name don't overwrite
 
 # S3FILE_STORAGE_OPTIONS = {
 #     'bucket_name': AWS_STORAGE_BUCKET_NAME,
@@ -280,6 +276,8 @@ AWS_S3_FILE_OVERWRITE = False  # Ensures files with the same name don't overwrit
 #     'secret_key': AWS_SECRET_ACCESS_KEY,
 # }
 
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = f'https://capstonecthmbucket.s3.ap-southeast-1.amazonaws.com/products/images/'
 MEDIA_ROOT = None
