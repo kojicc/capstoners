@@ -551,7 +551,7 @@ class updateProductView(APIView):
                 try:
                     # Define the bucket name and the file path
                     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                    file_key = f"uploads/{image.name}"  # Folder path in S3
+                    file_key = f"products/images/{image}"  # Folder path in S3
 
                     # Upload file to S3
                     s3_client.upload_fileobj(
@@ -564,7 +564,7 @@ class updateProductView(APIView):
                     # Generate the file URL
                     image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
                     product.image = image_url
-
+                    
                 except NoCredentialsError:
                     response = Response({'error': 'Credentials not available'}, status=403)
                     response['Access-Control-Allow-Origin'] = '*'
@@ -574,10 +574,11 @@ class updateProductView(APIView):
                     response = Response({'error': str(e)}, status=500)
                     response['Access-Control-Allow-Origin'] = '*'
                     return response
+                    # product.image = image
+                    # product.save()
 
 
-                product.image = image
-                product.save()
+                
 
             return Response({
                 'message': 'Product updated successfully'
