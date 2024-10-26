@@ -541,35 +541,10 @@ class updateProductView(APIView):
             # Upload image to S3
             if image:
                 # Upload image to S3
-                s3_client = boto3.client('s3')
-
-                try:
-                    # Define the bucket name and the file path
-                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                    file_key = f"products/images/{image}"  # Folder path in S3
-
-                    # Upload file to S3
-                    s3_client.upload_fileobj(
-                        image,
-                        bucket_name,
-                        file_key,
-                    )
-
-                    # Generate the file URL
-                    image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
-                    product.image = image_url
-                    
-                except NoCredentialsError:
-                    response = Response({'error': 'Credentials not available'}, status=403)
-                    response['Access-Control-Allow-Origin'] = '*'
-                    return response
-
-                except Exception as e:
-                    response = Response({'error': str(e)}, status=500)
-                    response['Access-Control-Allow-Origin'] = '*'
-                    return response
+                s3 = boto3.resource('s3',aws_access_key_id=settings.AWS_ACCESS_KEY_ID,aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,config=settings.AWS_S3_SIGNATURE_VERSION, region_name='REGION_NAME')
                     # product.image = image
                     # product.save()
+                s3.Bucket(settings.AWS_STORAGE_BUCKET_NAME).upload_file(image, f'products/images/{image}')
 
 
                 
