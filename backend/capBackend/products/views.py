@@ -544,7 +544,7 @@ class updateProductView(APIView):
                 
                 product.image = image
                 product.save()
-                s3_client = boto3.client(
+                s3_resource = boto3.resource(
                     's3',
                     aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                     aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
@@ -556,13 +556,11 @@ class updateProductView(APIView):
                     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
                     file_key = f"products/images/{image.name}"  # Folder path in S3
 
-
-                    # Upload file to S3
-                    s3_client.upload_fileobj(
-                        image,
-                        bucket_name,
-                        file_key,
-                        ExtraArgs={'ACL': 'public-read'}
+                    # Upload file to S3 using the resource
+                    s3_resource.Bucket(bucket_name).put_object(
+                        Key=file_key,
+                        Body=image,
+                        ACL='public-read'
                     )
 
                     # Generate the file URL
