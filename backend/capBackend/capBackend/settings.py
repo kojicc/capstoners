@@ -255,7 +255,7 @@ STORAGES = {
 }
 
 
-# django_on_heroku.settings(locals())
+django_on_heroku.settings(locals())
 
 
 AWS_ACCESS_KEY_ID = 'AKIAQ4NXQJTCSQ4WLC6A'
