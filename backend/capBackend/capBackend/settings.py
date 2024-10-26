@@ -261,7 +261,6 @@ AWS_SECRET_ACCESS_KEY = 'mrHY2EX5tKh5yKtUGmiMOtIYl9X9yVHB4r9h+NBw'
 AWS_STORAGE_BUCKET_NAME = 'capstonecthmbucket'
 AWS_DEFAULT_ACL='public-read'
 AWS_QUERYSTRING_AUTH = False
-AWS_LOCATION = 'products/images/'
 AWS_S3_SIGNATURE_VERSION  = 's3v4'
 AWS_S3_REGION_NAME = 'ap-southeast-1'
 AWS_S3_FILE_OVERWRITE = False  # Ensures files with the same name don't overwrite
