@@ -273,12 +273,12 @@ AWS_HEADERS = {
 }
 AWS_DEFAULT_ACL='public-read'
 
-S3FILE_STORAGE_OPTIONS = {
-    'bucket_name': AWS_STORAGE_BUCKET_NAME,
-    'region_name': AWS_S3_REGION_NAME,
-    'access_key': AWS_ACCESS_KEY_ID,
-    'secret_key': AWS_SECRET_ACCESS_KEY,
-}
+# S3FILE_STORAGE_OPTIONS = {
+#     'bucket_name': AWS_STORAGE_BUCKET_NAME,
+#     'region_name': AWS_S3_REGION_NAME,
+#     'access_key': AWS_ACCESS_KEY_ID,
+#     'secret_key': AWS_SECRET_ACCESS_KEY,
+# }
 
 
 MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/media/products/images/'

@@ -485,12 +485,6 @@ class UploadProduct(APIView):
 
 import logging
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django_s3file.storage import S3FileField
-import logging
-
 class updateProductView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -509,49 +503,95 @@ class updateProductView(APIView):
             type = request.data.get('type')
 
             if not productId:
-                return Response({'message': 'Product ID is required'}, status=400)
+                return Response({
+                    'message': 'Product ID is required'
+                }, status=400)
 
-            # Get the existing product or handle if not found
             product = Product.objects.get(productId=productId)
 
-            # Update fields as needed
             if name:
                 product.name = name
+
             if description:
                 product.description = description
+
             if price:
                 product.price = price
+
             if category:
                 try:
                     product.category = Category.objects.get(categoryId=category)
                 except Category.DoesNotExist:
+                    # Create a new category with default values
                     product.category = Category.objects.create(
                         categoryId=category,
                         name=f'{category}-NAME',
                         description=f'{category}-DESCRIPTION',
                         icon='IconMoodLookUp'
                     )
+
             if quantity:
                 product.quantity = quantity
+
             if type:
                 product.type = type
 
-            # Handle image upload using django-s3file
-            if image:
-                # Assign the image file from S3
-                product.image.save(image.name, image)
+            # if image:
+            #     product.image = image
 
-            # Save the updated product
+            # Upload image to S3
+            if image:
+                s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                    region_name=settings.AWS_S3_REGION_NAME
+                )
+
+                try:
+                    # Define the bucket name and the file path
+                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                    file_key = f"products/images/{image.name}"  # Folder path in S3
+
+                    # Upload file to S3
+                    s3_client.upload_fileobj(
+                        image,
+                        bucket_name,
+                        file_key,
+                        ExtraArgs={'ContentType': image.content_type}
+                    )
+
+                    # Generate the file URL
+                    image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
+
+                except NoCredentialsError:
+                    return Response({'error': 'Credentials not available'}, status=403)
+
+                except Exception as e:
+                    return Response({'error': str(e)}, status=500)
+
+
             product.save()
 
-            return Response({'message': 'Product updated successfully'}, status=200)
+            return Response({
+                'message': 'Product updated successfully'
+            }, status=200)
 
         except Product.DoesNotExist:
-            return Response({'message': 'Product not found'}, status=404)
+            return Response({
+                'message': 'Product not found'
+            }, status=404)
+
+        except Category.DoesNotExist:
+            return Response({
+                'message': 'Category not found'
+            }, status=404)
 
         except Exception as e:
             logging.error(f"An error occurred: {str(e)}")
-            return Response({'message': f'An error occurred: {str(e)}'}, status=400)
+            return Response({
+                'message': f'An error occurred: {str(e)}'
+            }, status=400)
 
 class deleteProductView(APIView):
     permission_classes = [IsAuthenticated]
