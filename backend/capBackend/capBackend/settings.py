@@ -278,7 +278,7 @@ AWS_HEADERS = {
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-MEDIA_URL = f'https://capstonecthmbucket.s3.ap-southeast-1.amazonaws.com/products/images/'
+MEDIA_URL = f'https://capstonecthmbucket.s3.ap-southeast-1.amazonaws.com/media/'
 MEDIA_ROOT = None
 
 django_on_heroku.settings(locals(), staticfiles=False)
