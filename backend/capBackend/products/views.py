@@ -485,6 +485,42 @@ class UploadProduct(APIView):
 
 import logging
 
+import logging
+import boto3
+from botocore.exceptions import ClientError
+import os
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import Product, Category
+
+def upload_file(file, bucket, object_name=None):
+    """Upload a file to an S3 bucket
+
+    :param file: File to upload
+    :param bucket: Bucket to upload to
+    :param object_name: S3 object name. If not specified then file_name is used
+    :return: True if file was uploaded, else False
+    """
+    # If S3 object_name was not specified, use file_name
+    if object_name is None:
+        object_name = os.path.basename(file.name)
+
+    # Upload the file
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region_name=settings.AWS_S3_REGION_NAME
+    )
+    try:
+        s3_client.upload_fileobj(file, bucket, object_name, ExtraArgs={'ContentType': file.content_type})
+    except ClientError as e:
+        logging.error(e)
+        return False
+    return True
+
 class updateProductView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -536,42 +572,21 @@ class updateProductView(APIView):
             if type:
                 product.type = type
 
-            
-
             # Upload image to S3
             if image:
-                s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                    region_name=settings.AWS_S3_REGION_NAME
-                )
+                bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                file_key = f"products/images/{image.name}"
 
-                try:
-                    # Define the bucket name and the file path
-                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                    file_key = f"products/images/{image.name}"
-
-                    # Upload file to S3
-                    s3_client.upload_fileobj(
-                        image,
-                        bucket_name,
-                        file_key,
-                        ExtraArgs={'ContentType': image.content_type}
-                    )
-
-                    # Generate the file URL
+                if upload_file(image, bucket_name, file_key):
                     file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{file_key}"
-                    print(f"File URL: {file_url}")
-                    product.image = image
-                    product.save()
-                except Exception as e:
-                    logging.error(f"Error uploading file to S3: {e}")
+                    logging.info(f"File URL: {file_url}")
+                    product.image = file_url
+                else:
                     return Response({
                         'message': 'Error uploading file to S3'
                     }, status=500)
 
-            
+            product.save()
 
             return Response({
                 'message': 'Product updated successfully'
@@ -592,7 +607,6 @@ class updateProductView(APIView):
             return Response({
                 'message': f'An error occurred: {str(e)}'
             }, status=400)
-
 class deleteProductView(APIView):
     permission_classes = [IsAuthenticated]
     def delete(self, request):
