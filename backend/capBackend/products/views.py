@@ -540,38 +540,37 @@ class updateProductView(APIView):
                 product.image = image
 
             # Upload image to S3
-            # if image:
-            #     s3_client = boto3.client(
-            #         's3',
-            #         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            #         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            #         region_name=settings.AWS_S3_REGION_NAME
-            #     )
+            if image:
+                s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                    region_name=settings.AWS_S3_REGION_NAME
+                )
 
-            #     try:
-            #         # Define the bucket name and the file path
-            #         bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-            #         file_key = f"uploads/{image.name}"  # Folder path in S3
+                try:
+                    # Define the bucket name and the file path
+                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                    file_key = f"products/images/{image.name}"  # Folder path in S3
 
-            #         # Upload file to S3
-            #         s3_client.upload_fileobj(
-            #             image,
-            #             bucket_name,
-            #             file_key,
-            #             ExtraArgs={'ContentType': image.content_type}
-            #         )
+                    # Upload file to S3
+                    s3_client.upload_fileobj(
+                        image,
+                        bucket_name,
+                        file_key,
+                        ExtraArgs={'ContentType': image.content_type}
+                    )
 
-            #         # Generate the file URL
-            #         file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{file_key}"
-            #         product.image = file_url
-            #     except Exception as e:
-            #         logging.error(f"Error uploading file to S3: {e}")
-            #         return Response({
-            #             'message': 'Error uploading file to S3'
-            #         }, status=500)
+                    # Generate the file URL
+                    file_url = f"https://capstonecthmbucket.s3.ap-southeast-1.amazonaws.com/{file_key}"
+                    product.image = file_url
+                except Exception as e:
+                    logging.error(f"Error uploading file to S3: {e}")
+                    return Response({
+                        'message': 'Error uploading file to S3'
+                    }, status=500)
 
-
-            #     product.save()
+            product.save()
 
             return Response({
                 'message': 'Product updated successfully'
