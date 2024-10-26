@@ -541,6 +541,9 @@ class updateProductView(APIView):
 
             # Upload image to S3
             if image:
+                
+                product.image = image
+                product.save()
                 s3_client = boto3.client(
                     's3',
                     aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
@@ -553,17 +556,17 @@ class updateProductView(APIView):
                     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
                     file_key = f"products/images/{image.name}"  # Folder path in S3
 
+
                     # Upload file to S3
                     s3_client.upload_fileobj(
                         image,
                         bucket_name,
                         file_key,
-                        ExtraArgs={'ContentType': image.content_type}
+                        ExtraArgs={'ACL': 'public-read'}
                     )
 
                     # Generate the file URL
-                    image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
-
+                    # image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
                 except NoCredentialsError:
                     return Response({'error': 'Credentials not available'}, status=403)
 
@@ -571,7 +574,7 @@ class updateProductView(APIView):
                     return Response({'error': str(e)}, status=500)
 
 
-            product.save()
+            
 
             return Response({
                 'message': 'Product updated successfully'
