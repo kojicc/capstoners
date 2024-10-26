@@ -540,45 +540,44 @@ class updateProductView(APIView):
 
             # Upload image to S3
             if image:
-                
-                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                region_name=settings.AWS_S3_REGION_NAME
+                # Upload image to S3
                 s3_client = boto3.client(
-                    's3'
+                    's3',
+                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                    region_name=settings.AWS_S3_REGION_NAME
                 )
-                print(f"aws_access_key_id: {aws_access_key_id}")
 
                 try:
-                    object_name=None
-                    if object_name is None:
-                        object_name = os.path.basename(image)
-                    # # Define the bucket name and the file path
-                    # bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                    # file_key = f"products/images/{image.name}"
+                    # Define the bucket name and the file path
+                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                    file_key = f"uploads/{image.name}"  # Folder path in S3
 
-                    # # Upload file to S3
-                    # s3_client.upload_fileobj(
-                    #     image,
-                    #     bucket_name,
-                    #     file_key,
-                    #     ExtraArgs={'ContentType': image.content_type}
-                    # )
+                    # Upload file to S3
+                    s3_client.upload_fileobj(
+                        image,
+                        bucket_name,
+                        file_key,
+                        ExtraArgs={'ContentType': image.content_type}
+                    )
 
-                    # # Generate the file URL
-                    # file_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{file_key}"
-                    # print(f"File URL: {file_url}")
-                    # product.image = image
-                    response = s3_client.upload_file(image, settings.AWS_STORAGE_BUCKET_NAME, object_name)
-                    
-                    product.save()
+                    # Generate the file URL
+                    image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
+                    product.image = image_url
+
+                except NoCredentialsError:
+                    response = Response({'error': 'Credentials not available'}, status=403)
+                    response['Access-Control-Allow-Origin'] = '*'
+                    return response
+
                 except Exception as e:
-                    logging.error(f"Error uploading file to S3: {e}")
-                    return Response({
-                        'message': 'Error uploading file to S3'
-                    }, status=500)
+                    response = Response({'error': str(e)}, status=500)
+                    response['Access-Control-Allow-Origin'] = '*'
+                    return response
 
-            
+
+                product.image = image
+                product.save()
 
             return Response({
                 'message': 'Product updated successfully'
