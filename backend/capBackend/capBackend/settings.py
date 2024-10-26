@@ -104,21 +104,21 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 #somehow nagana kahit di nagamit neto
-DATABASES = {
-    'default': dj_database_url.config(default=DATABASE_URL)
- }
-
 # DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'cthmDB',
-#         'USER': 'root',  #  MySQL username to
-#         'PASSWORD': '12345',  #  MySQL password to
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
+#     'default': dj_database_url.config(default=DATABASE_URL)
+#  }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'cthmDB',
+        'USER': 'root',  #  MySQL username to
+        'PASSWORD': '12345',  #  MySQL password to
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
     
-# }
+}
 
 # DATABASES = {
 #     'default': {
@@ -259,7 +259,7 @@ STORAGES = {
 AWS_ACCESS_KEY_ID = 'AKIAQ4NXQJTCSQ4WLC6A'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_STORAGE_BUCKET_NAME = 'capstonecthmbucket'
-AWS_DEFAULT_ACL='public-read'
+# AWS_DEFAULT_ACL='public-read'
 AWS_QUERYSTRING_AUTH = False
 AWS_S3_SIGNATURE_VERSION  = 's3v4'
 AWS_S3_REGION_NAME = 'ap-southeast-1'
@@ -278,7 +278,7 @@ AWS_HEADERS = {
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-MEDIA_URL = f'https://capstonecthmbucket.s3.ap-southeast-1.amazonaws.com/media/'
-MEDIA_ROOT = None
+# MEDIA_URL = f'https://capstonecthmbucket.s3.ap-southeast-1.amazonaws.com/media/'
+# MEDIA_ROOT = None
 
 django_on_heroku.settings(locals(), staticfiles=False)
