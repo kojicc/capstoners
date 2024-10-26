@@ -10,6 +10,8 @@ from django.http import HttpResponse
 import io
 import rest_framework.status as status
 from urllib.parse import urlparse
+import boto3
+from django.core.files.storage import default_storage
 # Create your views here.
 
 
@@ -541,7 +543,11 @@ class updateProductView(APIView):
                 product.type = type
 
             if image:
-                product.image = image
+                # product.image = image
+                file_name = default_storage.save(image.name, image)
+                product.image = default_storage.url(file_name)
+                
+
 
             product.save()
 
