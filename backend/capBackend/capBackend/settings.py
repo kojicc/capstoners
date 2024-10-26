@@ -284,4 +284,4 @@ AWS_S3_FILE_OVERWRITE = False  # Ensures files with the same name don't overwrit
 MEDIA_URL = f'https://capstonecthmbucket.s3.ap-southeast-1.amazonaws.com/products/images/'
 MEDIA_ROOT = None
 
-django_on_heroku.settings(locals())
+django_on_heroku.settings(locals(), staticfiles=False)
