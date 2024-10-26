@@ -281,5 +281,5 @@ AWS_DEFAULT_ACL = 'public-read'
 # }
 
 
-MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/media/products/images/'
+MEDIA_URL = f'https://capstonecthmbucket.s3.ap-southeast-1.amazonaws.com/products/images/'
 MEDIA_ROOT = None
