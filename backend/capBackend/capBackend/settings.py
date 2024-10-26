@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'analytics',
     'storages',
+    's3file',
     
     
 ]
@@ -71,6 +72,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    's3file.middleware.S3FileMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -269,6 +271,15 @@ AWS_S3_VERITY = True
 AWS_HEADERS = {
     'Access-Control-Allow-Origin': 'https://capstoners.vercel.app'
 }
+AWS_DEFAULT_ACL='public-read'
 
-# MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
-# MEDIA_ROOT = None
+S3FILE_STORAGE_OPTIONS = {
+    'bucket_name': AWS_STORAGE_BUCKET_NAME,
+    'region_name': AWS_S3_REGION_NAME,
+    'access_key': AWS_ACCESS_KEY_ID,
+    'secret_key': AWS_SECRET_ACCESS_KEY,
+}
+
+
+MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/media/products/images/'
+MEDIA_ROOT = None

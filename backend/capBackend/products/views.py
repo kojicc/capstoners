@@ -485,14 +485,11 @@ class UploadProduct(APIView):
 
 import logging
 
-import logging
-import boto3
-from botocore.exceptions import NoCredentialsError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.conf import settings
-from .models import Product, Category
+from django_s3file.storage import S3FileField
+import logging
 
 class updateProductView(APIView):
     permission_classes = [IsAuthenticated]
@@ -512,104 +509,50 @@ class updateProductView(APIView):
             type = request.data.get('type')
 
             if not productId:
-                return Response({
-                    'message': 'Product ID is required'
-                }, status=400)
+                return Response({'message': 'Product ID is required'}, status=400)
 
+            # Get the existing product or handle if not found
             product = Product.objects.get(productId=productId)
 
+            # Update fields as needed
             if name:
                 product.name = name
-
             if description:
                 product.description = description
-
             if price:
                 product.price = price
-
             if category:
                 try:
                     product.category = Category.objects.get(categoryId=category)
                 except Category.DoesNotExist:
-                    # Create a new category with default values
                     product.category = Category.objects.create(
                         categoryId=category,
                         name=f'{category}-NAME',
                         description=f'{category}-DESCRIPTION',
                         icon='IconMoodLookUp'
                     )
-
             if quantity:
                 product.quantity = quantity
-
             if type:
                 product.type = type
 
+            # Handle image upload using django-s3file
             if image:
-                # Upload image to S3
-                s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                    region_name=settings.AWS_S3_REGION_NAME
-                )
+                # Assign the image file from S3
+                product.image.save(image.name, image)
 
-                try:
-                    # Define the bucket name and the file path
-                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                    file_key = f"uploads/{image.name}"  # Folder path in S3
-
-                    # Upload file to S3
-                    s3_client.upload_fileobj(
-                        image,
-                        bucket_name,
-                        file_key,
-                        ExtraArgs={'ContentType': image.content_type}
-                    )
-
-                    # Generate the file URL
-                    image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
-                    product.image = image_url
-
-                except NoCredentialsError:
-                    response = Response({'error': 'Credentials not available'}, status=403)
-                    response['Access-Control-Allow-Origin'] = '*'
-                    return response
-
-                except Exception as e:
-                    response = Response({'error': str(e)}, status=500)
-                    response['Access-Control-Allow-Origin'] = '*'
-                    return response
-
+            # Save the updated product
             product.save()
 
-            response = Response({
-                'message': 'Product updated successfully'
-            }, status=200)
-            response['Access-Control-Allow-Origin'] = '*'
-            return response
+            return Response({'message': 'Product updated successfully'}, status=200)
 
         except Product.DoesNotExist:
-            response = Response({
-                'message': 'Product not found'
-            }, status=404)
-            response['Access-Control-Allow-Origin'] = '*'
-            return response
-
-        except Category.DoesNotExist:
-            response = Response({
-                'message': 'Category not found'
-            }, status=404)
-            response['Access-Control-Allow-Origin'] = '*'
-            return response
+            return Response({'message': 'Product not found'}, status=404)
 
         except Exception as e:
             logging.error(f"An error occurred: {str(e)}")
-            response = Response({
-                'message': f'An error occurred: {str(e)}'
-            }, status=400)
-            response['Access-Control-Allow-Origin'] = '*'
-            return response
+            return Response({'message': f'An error occurred: {str(e)}'}, status=400)
+
 class deleteProductView(APIView):
     permission_classes = [IsAuthenticated]
     def delete(self, request):
