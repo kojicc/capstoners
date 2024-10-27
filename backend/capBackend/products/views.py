@@ -167,9 +167,9 @@ class ExportImportProductView(APIView):
                 Category.objects.update_or_create(
                     categoryId=category['categoryId'],
                     defaults={
-                        'name': category['name'],
-                        'description': category['description'],
-                        'icon': category['icon']
+                        'name': category.get('name', 'Default Category'),
+                        'description': category.get('description', 'Default Description'),
+                        'icon': category.get('icon', 'IconToolsKitchen')
                     }
                 )
             
