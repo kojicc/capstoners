@@ -174,15 +174,15 @@ class ExportImportProductView(APIView):
                 )
             
             # Then, update or create product types
-            for product_type in product_types:
-                category = Category.objects.get(categoryId=product_type['category'])
-                ProductType.objects.update_or_create(
-                    name=product_type['name'],
-                    defaults={
-                        'description': product_type['description'],
-                        'category': category
-                    }
-                )
+            # for product_type in product_types:
+            #     category = Category.objects.get(categoryId=product_type['category'])
+            #     ProductType.objects.update_or_create(
+            #         name=product_type['name'],
+            #         defaults={
+            #             'description': product_type['description'],
+            #             'category': category
+            #         }
+            #     )
             
             # Finally, update or create products
             # for product in products:
