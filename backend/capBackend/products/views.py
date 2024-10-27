@@ -20,6 +20,8 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.http import JsonResponse, HttpResponse
+
 # Create your views here.
 
 
@@ -107,22 +109,126 @@ class ProductTypeCRUD(APIView):
 
 
 #excel import at export here
-class ExportImportProductView(APIView):
-    permission_classes = [IsAuthenticated]  # Uncomment if you want to enforce authentication
+# class ExportImportProductView(APIView):
+#     permission_classes = [IsAuthenticated]  # Uncomment if you want to enforce authentication
 
-    # exporter
+#     # exporter
+#     def get(self, request):
+#         products = Product.objects.all()
+#         categories = Category.objects.all()
+#         product_types = ProductType.objects.all()
+        
+#         product_serializer = ProductImageSerializer(products, many=True)
+#         category_serializer = CategorySerializer(categories, many=True)
+#         product_type_serializer = ProductTypeSerializer(product_types, many=True)
+        
+#         product_data = product_serializer.data
+#         category_data = category_serializer.data
+#         product_type_data = product_type_serializer.data
+        
+#         # Process image URLs to extract only the path part
+#         for product in product_data:
+#             if 'image' in product and product['image']:
+#                 parsed_url = urlparse(product['image'])
+#                 product['image'] = parsed_url.path
+        
+#         # Convert data to DataFrame
+#         product_df = pd.DataFrame(product_data)
+#         category_df = pd.DataFrame(category_data)
+#         product_type_df = pd.DataFrame(product_type_data)
+        
+#         # Create an in-memory output file for the HTTP response
+#         output = io.BytesIO()
+#         with pd.ExcelWriter(output, engine='openpyxl') as writer:
+#             product_df.to_excel(writer, index=False, sheet_name='Products')
+#             category_df.to_excel(writer, index=False, sheet_name='Categories')
+#             product_type_df.to_excel(writer, index=False, sheet_name='ProductTypes')
+        
+#         output.seek(0)  # Move to the beginning of the BytesIO object
+        
+#         # Create the HTTP response with the Excel file
+#         response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+#         response['Content-Disposition'] = 'attachment; filename="products_and_categories.xlsx"'
+        
+#         return response
+
+#     # importer
+#     def post(self, request):
+#         try:
+#             file = request.FILES['file']
+#             df_products = pd.read_excel(file, sheetname='Products')
+#             df_categories = pd.read_excel(file, sheetname='Categories')
+#             df_product_types = pd.read_excel(file, sheetname='ProductTypes')
+            
+#             categories = df_categories.to_dict(orient='records')
+#             products = df_products.to_dict(orient='records')
+#             product_types = df_product_types.to_dict(orient='records')
+            
+#             # First, update or create categories
+#             for category in categories:
+#                 Category.objects.update_or_create(
+#                     categoryId=category['categoryId'],
+#                     defaults={
+#                         'name': category['name'],
+#                         'description': category['description'],
+#                         'icon': category['icon']
+#                     }
+#                 )
+            
+#             # Then, update or create product types
+#             for product_type in product_types:
+#                 category = Category.objects.get(categoryId=product_type['category'])
+#                 ProductType.objects.update_or_create(
+#                     name=product_type['name'],
+#                     defaults={
+#                         'description': product_type['description'],
+#                         'category': category
+#                     }
+#                 )
+            
+#             # Finally, update or create products
+#             for product in products:
+#                 category_id = product['category']
+#                 category = Category.objects.get(categoryId=category_id)
+                
+#                 product_defaults = {
+#                     'name': product['name'],
+#                     'description': product['description'],
+#                     'type': product.get('type', 'Default Type'),
+#                     'price': product['price'],
+#                     'quantity': product['quantity'],
+#                     'reserved': product.get('reserved', 0),
+#                     'broken_damaged': product.get('broken_damaged', 0),
+#                     'category': category,# Set default image for all products
+#                 }
+                
+#                 Product.objects.update_or_create(
+#                     productId=product['productId'],  # Match on productId to avoid duplicates
+#                     defaults=product_defaults
+#                 )
+            
+#             return Response({
+#                 'message': 'Products, categories, and product types uploaded and updated successfully'
+#             }, status=201)
+#         except Exception as e:
+#             return Response({
+#                 'message': f'An error occurred: {str(e)}'
+#             }, status=400)
+
+class ExportImportProductView(APIView):
     def get(self, request):
-        products = Product.objects.all()
+        # Export data for all models
         categories = Category.objects.all()
         product_types = ProductType.objects.all()
+        products = Product.objects.all()
         
-        product_serializer = ProductImageSerializer(products, many=True)
         category_serializer = CategorySerializer(categories, many=True)
         product_type_serializer = ProductTypeSerializer(product_types, many=True)
+        product_serializer = ProductImageSerializer(products, many=True)
         
-        product_data = product_serializer.data
         category_data = category_serializer.data
         product_type_data = product_type_serializer.data
+        product_data = product_serializer.data
         
         # Process image URLs to extract only the path part
         for product in product_data:
@@ -131,131 +237,95 @@ class ExportImportProductView(APIView):
                 product['image'] = parsed_url.path
         
         # Convert data to DataFrame
-        product_df = pd.DataFrame(product_data)
         category_df = pd.DataFrame(category_data)
         product_type_df = pd.DataFrame(product_type_data)
+        product_df = pd.DataFrame(product_data)
         
         # Create an in-memory output file for the HTTP response
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            product_df.to_excel(writer, index=False, sheet_name='Products')
             category_df.to_excel(writer, index=False, sheet_name='Categories')
             product_type_df.to_excel(writer, index=False, sheet_name='ProductTypes')
+            product_df.to_excel(writer, index=False, sheet_name='Products')
         
         output.seek(0)  # Move to the beginning of the BytesIO object
         
         # Create the HTTP response with the Excel file
         response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename="products_and_categories.xlsx"'
+        response['Content-Disposition'] = 'attachment; filename="all_models.xlsx"'
         
         return response
 
     def post(self, request):
         try:
+            if 'file' not in request.FILES:
+                return JsonResponse({'error': 'No file uploaded'}, status=400)
+
             file = request.FILES['file']
-            df_products = pd.read_excel(file, sheet_name='Products')
             df_categories = pd.read_excel(file, sheet_name='Categories')
+            df_product_types = pd.read_excel(file, sheet_name='ProductTypes')
+            df_products = pd.read_excel(file, sheet_name='Products')
             
             categories = df_categories.to_dict(orient='records')
+            product_types = df_product_types.to_dict(orient='records')
             products = df_products.to_dict(orient='records')
             
+            logging.info(f"Categories: {categories}")
+            logging.info(f"Product Types: {product_types}")
+            logging.info(f"Products: {products}")
+            
+            # First, update or create categories
             for category in categories:
                 Category.objects.update_or_create(
                     categoryId=category['categoryId'],
                     defaults={
                         'name': category['name'],
                         'description': category['description'],
-                        'icon': category['icon']
+                        'icon': category.get('icon', 'IconToolsKitchen')  # Use default icon if not provided
                     }
                 )
             
-            for product in products:
-                category_id = product['category']
-                category = Category.objects.get(categoryId=category_id)
-                
-                Product.objects.update_or_create(
-                    productId=product['productId'],  # Match on productId to avoid duplicates
+            # Then, update or create product types
+            for product_type in product_types:
+                category = Category.objects.get(categoryId=product_type['category'])
+                ProductType.objects.update_or_create(
+                    name=product_type['name'],
                     defaults={
-                        'name': product['name'],
-                        'description': product['description'],
-                        'type': product.get('type', 'Default Type'),
-                        'price': product['price'],
-                        'quantity': product['quantity'],
-                        'reserved': product.get('reserved', 0),
-                        'broken_damaged': product.get('broken_damaged', 0),
+                        'description': product_type['description'],
                         'category': category
                     }
                 )
             
-            return Response({
-                'message': 'Products and categories uploaded and updated successfully'
+            # Finally, update or create products
+            for product in products:
+                category_id = product['category']
+                category = Category.objects.get(categoryId=category_id)
+                
+                product_defaults = {
+                    'name': product['name'],
+                    'description': product['description'],
+                    'type': product.get('type', 'Default Type'),
+                    'price': product['price'],
+                    'quantity': product['quantity'],
+                    'reserved': product.get('reserved', 0),
+                    'broken_damaged': product.get('broken_damaged', 0),
+                    'category': category,
+                    'image': product.get('image', 'products/images/default.png')  # Use the default image if not provided
+                }
+                
+                Product.objects.update_or_create(
+                    productId=product['productId'],  # Match on productId to avoid duplicates
+                    defaults=product_defaults
+                )
+            
+            return JsonResponse({
+                'message': 'Categories, product types, and products uploaded and updated successfully'
             }, status=201)
         except Exception as e:
-            return Response({
+            logging.error(f"An error occurred: {str(e)}")
+            return JsonResponse({
                 'message': f'An error occurred: {str(e)}'
             }, status=400)
-    # importer
-    # def post(self, request):
-    #     try:
-    #         file = request.FILES['file']
-    #         df_products = pd.read_excel(file, sheetname='Products')
-    #         df_categories = pd.read_excel(file, sheetname='Categories')
-    #         df_product_types = pd.read_excel(file, sheetname='ProductTypes')
-            
-    #         categories = df_categories.to_dict(orient='records')
-    #         products = df_products.to_dict(orient='records')
-    #         product_types = df_product_types.to_dict(orient='records')
-            
-    #         # First, update or create categories
-    #         for category in categories:
-    #             Category.objects.update_or_create(
-    #                 categoryId=category['categoryId'],
-    #                 defaults={
-    #                     'name': category['name'],
-    #                     'description': category['description'],
-    #                     'icon': category['icon']
-    #                 }
-    #             )
-            
-    #         # Then, update or create product types
-    #         for product_type in product_types:
-    #             category = Category.objects.get(categoryId=product_type['category'])
-    #             ProductType.objects.update_or_create(
-    #                 name=product_type['name'],
-    #                 defaults={
-    #                     'description': product_type['description'],
-    #                     'category': category
-    #                 }
-    #             )
-            
-    #         # Finally, update or create products
-    #         for product in products:
-    #             category_id = product['category']
-    #             category = Category.objects.get(categoryId=category_id)
-                
-    #             product_defaults = {
-    #                 'name': product['name'],
-    #                 'description': product['description'],
-    #                 'type': product.get('type', 'Default Type'),
-    #                 'price': product['price'],
-    #                 'quantity': product['quantity'],
-    #                 'reserved': product.get('reserved', 0),
-    #                 'broken_damaged': product.get('broken_damaged', 0),
-    #                 'category': category,# Set default image for all products
-    #             }
-                
-    #             Product.objects.update_or_create(
-    #                 productId=product['productId'],  # Match on productId to avoid duplicates
-    #                 defaults=product_defaults
-    #             )
-            
-    #         return Response({
-    #             'message': 'Products, categories, and product types uploaded and updated successfully'
-    #         }, status=201)
-    #     except Exception as e:
-    #         return Response({
-    #             'message': f'An error occurred: {str(e)}'
-    #         }, status=400)
 
 # class ExportImportProductView(APIView):
 #     permission_classes = [IsAuthenticated]
