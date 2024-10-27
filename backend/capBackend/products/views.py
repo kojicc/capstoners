@@ -541,32 +541,39 @@ class updateProductView(APIView):
 
             # Upload image to S3
             if image:
-                
-                product.image = image
-                product.save()
-                s3_resource = boto3.resource(
+                s3_client = boto3.client(
                     's3',
                     aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                     aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                     region_name=settings.AWS_S3_REGION_NAME
                 )
 
-            try:
-                # Define the bucket name and the file path
-                bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                folder_name = 'products/images/'
-                file_key = f"{folder_name}/{image.name}"  # Folder path in S3
+                try:
+                    # Define the bucket name and the file path
+                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                    folder_name = 'products/images/'
+                    file_key = f"{folder_name}/{image.name}"  # Folder path in S3
 
-                # Upload file to S3 using the resource
-                bucket = s3_resource.Bucket(bucket_name)
-                bucket.upload_fileobj(image, file_key)
+                    # Generate a presigned URL for the file upload
+                    presigned_url = s3_client.generate_presigned_url(
+                        'put_object',
+                        Params={'Bucket': bucket_name, 'Key': file_key},
+                        ExpiresIn=3600  # URL expiration time in seconds
+                    )
 
-                # Generate the file URL
-                # image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}"
-            except NoCredentialsError:
-                return Response({'error': 'Credentials not available'}, status=403)
-            except Exception as e:
-                return Response({'error': str(e)}, status=500)
+                    # Save the image URL to the product
+                    product.image = file_key
+                    product.save()
+
+                    return Response({
+                        'message': 'Product updated successfully',
+                        'presigned_url': presigned_url
+                    }, status=200)
+
+                except NoCredentialsError:
+                    return Response({'error': 'Credentials not available'}, status=403)
+                except Exception as e:
+                    return Response({'error': str(e)}, status=500)
 
 
             
