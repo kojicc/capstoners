@@ -212,7 +212,9 @@ CORS_ALLOWED_ORIGINS = [
 # para maallow frontend maaccess cookies kase naglologin thru cookies
 CORS_ALLOW_CREDENTIALS = True
 
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://capstoners.vercel.app",
+]
 
 # Gmail settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
