@@ -189,7 +189,11 @@ class ExportImportProductView(APIView):
                 category_id = product['category']
                 category = Category.objects.get(categoryId=category_id)
                 
-                product_defaults = {
+                
+                
+                Product.objects.update_or_create(
+                    productId=product['productId'],  # Match on productId to avoid duplicates
+                    defaults= {
                     'name': product['name'],
                     'description': product['description'],
                     'type': product.get('type', 'Default Type'),
@@ -199,10 +203,6 @@ class ExportImportProductView(APIView):
                     'broken_damaged': product.get('broken_damaged', 0),
                     'category': category,# Set default image for all products
                 }
-                
-                Product.objects.update_or_create(
-                    productId=product['productId'],  # Match on productId to avoid duplicates
-                    defaults=product_defaults
                 )
             
             return Response({
