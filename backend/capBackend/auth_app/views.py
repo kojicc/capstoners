@@ -256,8 +256,8 @@ class LogoutView(APIView):
     
     def get(self, request):
         response = Response()
-        response.delete_cookie('jwt_access_token', path='/', samesite='None')
-        response.delete_cookie('jwt_refresh_token', path='/', samesite='None')
+        response.delete_cookie('jwt_access_token', path='/', samesite='Lax')
+        response.delete_cookie('jwt_refresh_token', path='/', samesite='Lax')
         
         token = request.COOKIES.get('jwt_access_token')
         token2 = request.COOKIES.get('jwt_refresh_token')
@@ -383,7 +383,7 @@ class RefreshTokenView(APIView):
 
             # Return the new access token in the response and set it as a cookie
             response = Response({'access': new_access_token}, status=200)
-            response.set_cookie(key='jwt_access_token', value=new_access_token, httponly=True, samesite='None', secure=True)
+            response.set_cookie(key='jwt_access_token', value=new_access_token, httponly=True, samesite='Lax')
             return response
 
         except Exception as e:
