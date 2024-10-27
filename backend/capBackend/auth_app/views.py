@@ -256,8 +256,8 @@ class LogoutView(APIView):
     
     def get(self, request):
         response = Response()
-        response.delete_cookie('jwt_access_token', path='/', samesite='None')
-        response.delete_cookie('jwt_refresh_token', path='/', samesite='None')
+        response.delete_cookie('jwt_access_token', path='/', samesite='Lax')
+        response.delete_cookie('jwt_refresh_token', path='/', samesite='Lax')
         
         token = request.COOKIES.get('jwt_access_token')
         token2 = request.COOKIES.get('jwt_refresh_token')
@@ -319,8 +319,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
                 new_access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
                 print(f"Encoded JWT: {new_access_token}") 
                 # Set the new token in the response cookies
-                response.set_cookie(key='jwt_access_token', value=new_access_token, httponly=True, samesite='None')
-                response.set_cookie(key='jwt_refresh_token', value=refresh_token, httponly=True, samesite='None')
+                response.set_cookie(key='jwt_access_token', value=new_access_token, httponly=True, samesite='Lax')
+                response.set_cookie(key='jwt_refresh_token', value=refresh_token, httponly=True, samesite='Lax')
 
             return response
 
@@ -383,7 +383,7 @@ class RefreshTokenView(APIView):
 
             # Return the new access token in the response and set it as a cookie
             response = Response({'access': new_access_token}, status=200)
-            response.set_cookie(key='jwt_access_token', value=new_access_token, httponly=True, samesite='None')
+            response.set_cookie(key='jwt_access_token', value=new_access_token, httponly=True, samesite='Lax')
             return response
 
         except Exception as e:
