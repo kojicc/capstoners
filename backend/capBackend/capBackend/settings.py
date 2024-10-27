@@ -32,7 +32,7 @@ SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000','capstoners-665f8af6ebcf.herokuapp.com','127.0.0.1']
+ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000','capstoners-665f8af6ebcf.herokuapp.com','127.0.0.1','web-production-c92c.up.railway.app']
 
 
 # Application definition
@@ -71,7 +71,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'capBackend.urls'
@@ -248,7 +248,7 @@ STORAGES = {
         'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
     },
     'staticfiles': {
-        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
 }
 
