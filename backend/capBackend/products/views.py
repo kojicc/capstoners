@@ -198,7 +198,7 @@ class ExportImportProductView(APIView):
                     'reserved': product.get('reserved', 0),
                     'broken_damaged': product.get('broken_damaged', 0),
                     'category': category,
-                    'image': product.get('products/images/default.png')
+                    'image': product.get('image', 'products/images/default.png')
                 }
                 
                 Product.objects.update_or_create(

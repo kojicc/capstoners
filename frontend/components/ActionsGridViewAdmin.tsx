@@ -552,9 +552,7 @@ const ActionsGridViewAdmin = () => {
               formData.append('quantity', createProductQuantity.toString());
               formData.append('category', createCategoryName);
               formData.append('type', productTypes);
-              // if (prodImage.length > 0) {
-              //   formData.append('image', prodImage[0]);
-              // }
+
               if (prodImage.length > 0) {
                 const file = prodImage[0];
                 try {
@@ -580,12 +578,10 @@ const ActionsGridViewAdmin = () => {
                   });
 
                   // Adjust file URL if necessary
-                  // const fileUrl = `${url}${fields.key}`;
                   formData.append('image', file.name);
-                  // formData.append('image', file.name);
-                  // console.log('File URL:', fileUrl);
                 } catch (error) {
                   console.error('Error uploading image:', error);
+                  setLoading(false);
                   return;
                 }
               }
@@ -626,8 +622,6 @@ const ActionsGridViewAdmin = () => {
                   console.log('Finally block executed');
                   setLoading(false);
                   mutate('getImages/');
-                  // dispatch({ type: 'SET_CATEGORY_ID', payload: '' });
-                  // setGlobalCategoryChanged('0')
                 });
             }}
           >
