@@ -185,25 +185,25 @@ class ExportImportProductView(APIView):
                 )
             
             # Finally, update or create products
-            for product in products:
-                category_id = product['category']
-                category = Category.objects.get(categoryId=category_id)
+            # for product in products:
+            #     category_id = product['category']
+            #     category = Category.objects.get(categoryId=category_id)
                 
                 
                 
-                Product.objects.update_or_create(
-                    productId=product['productId'],  # Match on productId to avoid duplicates
-                    defaults= {
-                    'name': product['name'],
-                    'description': product['description'],
-                    'type': product.get('type', 'Default Type'),
-                    'price': product['price'],
-                    'quantity': product['quantity'],
-                    'reserved': product.get('reserved', 0),
-                    'broken_damaged': product.get('broken_damaged', 0),
-                    'category': category,# Set default image for all products
-                }
-                )
+            #     Product.objects.update_or_create(
+            #         productId=product['productId'],  # Match on productId to avoid duplicates
+            #         defaults= {
+            #         'name': product['name'],
+            #         'description': product['description'],
+            #         'type': product.get('type', 'Default Type'),
+            #         'price': product['price'],
+            #         'quantity': product['quantity'],
+            #         'reserved': product.get('reserved', 0),
+            #         'broken_damaged': product.get('broken_damaged', 0),
+            #         'category': category,# Set default image for all products
+            #     }
+            #     )
             
             return Response({
                 'message': 'Products, categories, and product types uploaded and updated successfully'
