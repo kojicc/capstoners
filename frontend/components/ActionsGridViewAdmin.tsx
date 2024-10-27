@@ -543,7 +543,7 @@ const ActionsGridViewAdmin = () => {
           </SimpleGrid>
 
           <Button
-            onClick={() => {
+            onClick={async () => {
               setLoading(true);
               const formData = new FormData();
               formData.append('name', createProductName);
@@ -552,9 +552,44 @@ const ActionsGridViewAdmin = () => {
               formData.append('quantity', createProductQuantity.toString());
               formData.append('category', createCategoryName);
               formData.append('type', productTypes);
+              // if (prodImage.length > 0) {
+              //   formData.append('image', prodImage[0]);
+              // }
               if (prodImage.length > 0) {
-                formData.append('image', prodImage[0]);
+                const file = prodImage[0];
+                try {
+                  // Get presigned URL from the backend
+                  const presignedUrlResponse = await axios.post('generate-presigned-url/', {
+                    file_name: file.name,
+                    file_type: file.type,
+                  });
+
+                  console.log('Presigned URL Response:', presignedUrlResponse.data);
+
+                  const { url, fields } = presignedUrlResponse.data;
+
+                  // Upload the file to S3 using the presigned URL
+                  const uploadData = new FormData();
+                  Object.entries(fields).forEach(([key, value]) => {
+                    uploadData.append(key, value as string);
+                  });
+                  uploadData.append('file', file);
+
+                  await axios.post(url, uploadData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                  });
+
+                  // Adjust file URL if necessary
+                  // const fileUrl = `${url}${fields.key}`;
+                  formData.append('image', file.name);
+                  // formData.append('image', file.name);
+                  // console.log('File URL:', fileUrl);
+                } catch (error) {
+                  console.error('Error uploading image:', error);
+                  return;
+                }
               }
+
               axios
                 .post('uploadProduct/', formData, {
                   headers: {
