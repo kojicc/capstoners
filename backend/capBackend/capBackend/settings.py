@@ -256,17 +256,17 @@ STORAGES = {
 
 
 
-AWS_ACCESS_KEY_ID = 'AKIAQ4NXQJTCSQ4WLC6A'
-AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'capstonecthmbucket'
-# AWS_DEFAULT_ACL='public-read'
-AWS_QUERYSTRING_AUTH = False
-AWS_S3_SIGNATURE_VERSION  = 's3v4'
-AWS_S3_REGION_NAME = 'ap-southeast-1'
-AWS_S3_FILE_OVERWRITE = False  # Ensures files with the same name don't overwrite
-AWS_HEADERS = {
-    'Access-Control-Allow-Origin': 'https://capstoners.vercel.app'
-}
+# AWS_ACCESS_KEY_ID = 'AKIAQ4NXQJTCSQ4WLC6A'
+# AWS_SECRET_ACCESS_KEY = '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'
+# AWS_STORAGE_BUCKET_NAME = 'capstonecthmbucket'
+# # AWS_DEFAULT_ACL='public-read'
+# AWS_QUERYSTRING_AUTH = False
+# AWS_S3_SIGNATURE_VERSION  = 's3v4'
+# AWS_S3_REGION_NAME = 'ap-southeast-1'
+# AWS_S3_FILE_OVERWRITE = False  # Ensures files with the same name don't overwrite
+# AWS_HEADERS = {
+#     'Access-Control-Allow-Origin': 'https://capstoners.vercel.app'
+# }
 
 # S3FILE_STORAGE_OPTIONS = {
 #     'bucket_name': AWS_STORAGE_BUCKET_NAME,
@@ -278,7 +278,7 @@ AWS_HEADERS = {
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# MEDIA_URL = f'https://capstonecthmbucket.s3.ap-southeast-1.amazonaws.com/media/'
-# MEDIA_ROOT = None
+MEDIA_URL = f'https://capstonecthmbucket.s3.ap-southeast-1.amazonaws.com/media/'
+MEDIA_ROOT = None
 
 django_on_heroku.settings(locals(), staticfiles=False)
