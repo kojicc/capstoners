@@ -24,6 +24,9 @@ import pandas as pd
 from django.http import HttpResponse
 from django.core.mail import send_mail
 from uuid import uuid4
+
+
+
 # Excel import export here
 class ExportImportUserView(APIView):
     # permission_classes = [IsAuthenticated]  # Uncomment if you want to enforce authentication
@@ -150,7 +153,6 @@ class adminUpdateUsersView(APIView):
             return Response('User deleted')
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=404)
-
 
 
 class forgetPasswordView(APIView):
@@ -317,8 +319,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
                 new_access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
                 print(f"Encoded JWT: {new_access_token}") 
                 # Set the new token in the response cookies
-                response.set_cookie(key='jwt_access_token', value=new_access_token, httponly=True, samesite='None', secure=True)
-                response.set_cookie(key='jwt_refresh_token', value=refresh_token, httponly=True, samesite='None', secure=True)
+                response.set_cookie(key='jwt_access_token', value=new_access_token, httponly=True, samesite='Lax')
+                response.set_cookie(key='jwt_refresh_token', value=refresh_token, httponly=True, samesite='Lax')
 
             return response
 
