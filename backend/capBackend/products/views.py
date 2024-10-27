@@ -485,6 +485,49 @@ class UploadProduct(APIView):
 
 import logging
 
+import logging
+import boto3
+from botocore.exceptions import ClientError
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+def create_presigned_post(bucket_name, object_name, fields=None, conditions=None, expiration=3600):
+    """Generate a presigned URL S3 POST request to upload a file"""
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region_name=settings.AWS_S3_REGION_NAME
+    )
+    try:
+        response = s3_client.generate_presigned_post(bucket_name, object_name, Fields=fields, Conditions=conditions, ExpiresIn=expiration)
+    except ClientError as e:
+        logging.error(e)
+        return None
+    return response
+
+class GeneratePresignedUrl(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        file_name = request.data.get('file_name')
+        file_type = request.data.get('file_type')
+
+        if not file_name or not file_type:
+            return Response({'error': 'File name and file type are required'}, status=400)
+
+        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+        object_name = f"products/images/{file_name}"
+
+        presigned_post = create_presigned_post(bucket_name, object_name, fields={"Content-Type": file_type}, conditions=[{"Content-Type": file_type}])
+
+        if presigned_post is None:
+            return Response({'error': 'Could not generate presigned URL'}, status=500)
+
+        return Response({'url': presigned_post['url'], 'fields': presigned_post['fields']}, status=200)
+
 class updateProductView(APIView):
     permission_classes = [IsAuthenticated]
 

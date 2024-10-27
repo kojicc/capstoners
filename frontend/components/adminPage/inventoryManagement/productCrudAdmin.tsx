@@ -234,6 +234,43 @@ const UpdateCrudProductsAdmin = () => {
     }
   };
 
+  // const handleEdit = async () => {
+  //   const formData = new FormData();
+  //   formData.append('productId', selectedProducts?.productId || '');
+  //   formData.append('name', selectedProducts?.name || '');
+  //   formData.append('description', selectedProducts?.description || '');
+  //   formData.append('price', selectedProducts?.price.toString() || '');
+  //   formData.append('quantity', selectedProducts?.quantity.toString() || '');
+
+  //   if (files.length > 0) {
+  //     formData.append('image', files[0]); // Only append if files is not empty
+  //   }
+
+  //   formData.append('type', selectedProducts?.type || '');
+  //   console.log('formData Image:', formData.get('image'));
+
+  //   try {
+  //     setLoading(true);
+  //     await axiosInstance.put('updateProduct/', formData, {
+  //       headers: {
+  //         'Content-Type': 'multipart/form-data',
+  //       },
+  //     });
+  //     // Revalidate the SWR data to fetch the updated products
+  //     mutate('getadminProductDetail/');
+  //     handleCloseModal();
+  //     notifications.show({
+  //       title: 'Success',
+  //       message: 'Product updated successfully.',
+  //       color: 'green',
+  //     });
+  //   } catch (error) {
+  //     console.error('Error updating products:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleEdit = async () => {
     const formData = new FormData();
     formData.append('productId', selectedProducts?.productId || '');
@@ -243,11 +280,41 @@ const UpdateCrudProductsAdmin = () => {
     formData.append('quantity', selectedProducts?.quantity.toString() || '');
 
     if (files.length > 0) {
-      formData.append('image', files[0]); // Only append if files is not empty
+      const file = files[0];
+      try {
+        // Get presigned URL from the backend
+        const presignedUrlResponse = await axiosInstance.post('generate-presigned-url/', {
+          file_name: file.name,
+          file_type: file.type,
+        });
+
+        console.log('Presigned URL Response:', presignedUrlResponse.data);
+
+        const { url, fields } = presignedUrlResponse.data;
+
+        // Upload the file to S3 using the presigned URL
+        const uploadData = new FormData();
+        Object.entries(fields).forEach(([key, value]) => {
+          uploadData.append(key, value as string);
+        });
+        uploadData.append('file', file);
+
+        await axiosInstance.post(url, uploadData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        // Adjust file URL if necessary
+        const fileUrl = `${url}${fields.key}`;
+        formData.append('image', fileUrl);
+
+        console.log('File URL:', fileUrl);
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        return;
+      }
     }
 
     formData.append('type', selectedProducts?.type || '');
-    console.log('formData Image:', formData.get('image'));
 
     try {
       setLoading(true);
@@ -256,7 +323,6 @@ const UpdateCrudProductsAdmin = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      // Revalidate the SWR data to fetch the updated products
       mutate('getadminProductDetail/');
       handleCloseModal();
       notifications.show({
