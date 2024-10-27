@@ -162,57 +162,62 @@ class ExportImportProductView(APIView):
             products = df_products.to_dict(orient='records')
             product_types = df_product_types.to_dict(orient='records')
             
+            logging.info(f"Categories: {categories}")
+            logging.info(f"Products: {products}")
+            logging.info(f"Product Types: {product_types}")
+            
             # First, update or create categories
             for category in categories:
                 Category.objects.update_or_create(
                     categoryId=category['categoryId'],
                     defaults={
-                        'name': category.get('name', 'Default Category'),
-                        'description': category.get('description', 'Default Description'),
-                        'icon': category.get('icon', 'IconToolsKitchen')
+                        'name': category['name'],
+                        'description': category['description'],
+                        'icon': category['icon']
                     }
                 )
             
             # Then, update or create product types
-            # for product_type in product_types:
-            #     category = Category.objects.get(categoryId=product_type['category'])
-            #     ProductType.objects.update_or_create(
-            #         name=product_type['name'],
-            #         defaults={
-            #             'description': product_type['description'],
-            #             'category': category
-            #         }
-            #     )
+            for product_type in product_types:
+                category = Category.objects.get(categoryId=product_type['category'])
+                ProductType.objects.update_or_create(
+                    name=product_type['name'],
+                    defaults={
+                        'description': product_type['description'],
+                        'category': category
+                    }
+                )
             
             # Finally, update or create products
-            # for product in products:
-            #     category_id = product['category']
-            #     category = Category.objects.get(categoryId=category_id)
+            for product in products:
+                category_id = product['category']
+                category = Category.objects.get(categoryId=category_id)
                 
+                product_defaults = {
+                    'name': product['name'],
+                    'description': product['description'],
+                    'type': product.get('type', 'Default Type'),
+                    'price': product['price'],
+                    'quantity': product['quantity'],
+                    'reserved': product.get('reserved', 0),
+                    'broken_damaged': product.get('broken_damaged', 0),
+                    'category': category,
+                    'image': product.get('image', 'products/images/default.png')  # Use the default image if not provided
+                }
                 
-                
-            #     Product.objects.update_or_create(
-            #         productId=product['productId'],  # Match on productId to avoid duplicates
-            #         defaults= {
-            #         'name': product['name'],
-            #         'description': product['description'],
-            #         'type': product.get('type', 'Default Type'),
-            #         'price': product['price'],
-            #         'quantity': product['quantity'],
-            #         'reserved': product.get('reserved', 0),
-            #         'broken_damaged': product.get('broken_damaged', 0),
-            #         'category': category,# Set default image for all products
-            #     }
-            #     )
-            
+                Product.objects.update_or_create(
+                    productId=product['productId'],  # Match on productId to avoid duplicates
+                    defaults=product_defaults
+                )
             return Response({
                 'message': 'Products, categories, and product types uploaded and updated successfully'
             }, status=201)
         except Exception as e:
+            logging.error(f"An error occurred: {str(e)}")
             return Response({
                 'message': f'An error occurred: {str(e)}'
             }, status=400)
-
+            
 class createCategory(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
