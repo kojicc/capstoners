@@ -198,7 +198,7 @@ class ExportImportProductView(APIView):
                     'reserved': product.get('reserved', 0),
                     'broken_damaged': product.get('broken_damaged', 0),
                     'category': category,
-                    'image': product.get('image', 'products/images/default.png')
+                    'image': 'products/images/default.png'  # Set default image for all products
                 }
                 
                 Product.objects.update_or_create(
@@ -437,7 +437,7 @@ class UploadProduct(APIView):
             price = request.data.get('price')
             quantity = request.data.get('quantity')
             category_name = request.data.get('category')
-            image = request.FILES.get('image')
+            image = request.data.get('image')
             type_name = request.data.get('type')
 
             print(f"Received data: name={name}, description={description}, price={price}, "
