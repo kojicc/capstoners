@@ -199,9 +199,9 @@ export default function Header() {
     try {
       const response = await axiosInstance.get('logout/');
       setIsAuthenticated(false);
-      Cookies.remove('access_token');
-      Cookies.remove('refresh_token');
-      Cookies.remove('Role');
+      Cookies.remove('jwt_access_token', { path: '/' });
+      Cookies.remove('jwt_refresh_token', { path: '/' });
+      Cookies.remove('Role', { path: '/' });
       router.push('/login');
     } catch (error) {
       console.error('Logout error:', error);

@@ -252,73 +252,35 @@ class UserView(APIView):
 
 # API view para sa pag-logout ng userfrom rest_framework.views import APIView
 
-class LogoutView(APIView):
-    
-    def get(self, request):
-        response = Response()
-        response.delete_cookie('jwt_access_token', path='/',  httponly=True, samesite='None', secure=True)
-        response.delete_cookie('jwt_refresh_token', path='/', httponly=True,samesite='None', secure=True)
-        
-        token = request.COOKIES.get('jwt_access_token')
-        token2 = request.COOKIES.get('jwt_refresh_token')
-        
-        print(f"Access token before deletion: {token}")
-        print(f"Refresh token before deletion: {token2}")
-        
-        response.data = {
-            'message': 'success',
-            'message2': token,
-            'message3': token2,
-        }
-        return response
-# panglagay sa cookies ng token para thru cookies ang usapan ng backend at frontend kung sino ang currently nagamit pang LOGIN
-
-
 class MyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         try:
-            # Get the user based on the username provided in the request data
             user = get_object_or_404(User, username=request.data['username'])
 
-            # Check if the user account is locked
             if user.locked_out:
                 return Response({'detail': 'User account is locked'}, status=status.HTTP_403_FORBIDDEN)
 
-            # Check if the user is active
             if not user.is_active:
                 return Response({'detail': 'User account is not active. Please verify your email.'}, status=status.HTTP_403_FORBIDDEN)
 
-            # Call the parent class's post method to handle the initial token generation
             response = super().post(request, *args, **kwargs)
 
-            # Check if access token exists in the response
             if 'access' in response.data:
                 access_token = response.data['access']
                 refresh_token = response.data['refresh']
 
-                # Decode the access token payload to modify it
                 payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=['HS256'])
-
-                # Add role and username to the payload
                 payload['role'] = user.role
                 payload['username'] = user.username
 
-                # Check if the user has a class_section assigned and print it for debugging
                 if user.class_section:
-                    class_section_value = user.class_section.class_section  # Adjust to the right field
-                    print(f"Class section value: {class_section_value}")  # Debugging line
+                    class_section_value = user.class_section.class_section
                     payload['class_section'] = class_section_value
                 else:
                     payload['class_section'] = None
-                    print("User has no class_section")  # Debugging line
 
-                # Print the payload to ensure it's correct before encoding
-                print(f"Modified payload: {payload}")  # Debugging line
-
-                # Encode a new access token with the updated payload
                 new_access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
-                print(f"Encoded JWT: {new_access_token}") 
-                # Set the new token in the response cookies
+
                 response.set_cookie(key='jwt_access_token', value=new_access_token, httponly=True, samesite='None', secure=True)
                 response.set_cookie(key='jwt_refresh_token', value=refresh_token, httponly=True, samesite='None', secure=True)
 
@@ -334,6 +296,17 @@ class MyTokenObtainPairView(TokenObtainPairView):
             return Response({'detail': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
             return Response({'detail': 'An error occurred', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class LogoutView(APIView):
+    def get(self, request):
+        response = Response()
+        response.delete_cookie('jwt_access_token', path='/', httponly=True, samesite='None', secure=True)
+        response.delete_cookie('jwt_refresh_token', path='/', httponly=True, samesite='None', secure=True)
+        
+        response.data = {
+            'message': 'success',
+        }
+        return response
 
 def get_access_token(request):
     
@@ -368,12 +341,13 @@ class RefreshTokenView(APIView):
             
             # Check if the user has a class_section assigned and print it for debugging
             if user.class_section:
-                    class_section_value = user.class_section.class_section  # Adjust to the right field
-                    print(f"Class section value: {class_section_value}")  # Debugging line
-                    payload['class_section'] = class_section_value
+                class_section_value = user.class_section.class_section  # Adjust to the right field
+                print(f"Class section value: {class_section_value}")  # Debugging line
+                payload['class_section'] = class_section_value
             else:
-                    payload['class_section'] = None
-                    print("User has no class_section")  # Debugging line
+                payload['class_section'] = None
+                print("User has no class_section")  # Debugging line
+
             # Encode the new access token with the updated payload
             new_access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 

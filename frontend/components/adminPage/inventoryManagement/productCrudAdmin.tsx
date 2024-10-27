@@ -752,17 +752,11 @@ const UpdateCrudProductsAdmin = () => {
               <>
                 {files.length ? (
                   <>
-                    <Title order={2} c={'black'}>
-                      New Product Image
-                    </Title>{' '}
-                    {previews}
+                    <Title order={2}>New Product Image</Title> {previews}
                   </>
                 ) : (
                   <>
-                    <Title order={2} c={'black'}>
-                      {' '}
-                      Old Product Image
-                    </Title>
+                    <Title order={2}> Old Product Image</Title>
                     <img src={`${selectedProducts?.image}`} alt={selectedProducts?.name} />
                   </>
                 )}

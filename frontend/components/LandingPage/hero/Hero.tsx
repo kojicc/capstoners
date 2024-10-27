@@ -99,6 +99,7 @@ export function Hero() {
                 size="xl"
                 h={120}
                 w={150}
+                title={isDisabled ? 'Login first!' : 'Go to Dashboard'}
               >
                 <div className={classes.buttonContent}>
                   <IconBuildingStore className={classes.icon} size={35} />
@@ -118,6 +119,7 @@ export function Hero() {
                 size="xl"
                 h={120}
                 w={150}
+                title={isDisabled ? 'Login first!' : 'Go to Reservation'}
               >
                 <div className={classes.buttonContent}>
                   <IconChartBar className={classes.icon} size={35} />
@@ -139,6 +141,7 @@ export function Hero() {
                 size="xl"
                 h={120}
                 w={150}
+                title={isDisabled ? 'Login first!' : 'Make a Reservation'}
               >
                 <div className={classes.buttonContent}>
                   <IconBuildingStore className={classes.icon} size={35} />
@@ -148,25 +151,6 @@ export function Hero() {
                   </Text>
                 </div>
               </Button>
-              {/* 
-              <Button
-                className={classes.disabled}
-                component="a"
-                href="userStatusPage"
-                data-disabled={isDisabled}
-                onClick={isDisabled ? (event) => event.preventDefault() : undefined}
-                size="xl"
-                h={120}
-                w={150}
-              >
-                <div className={classes.buttonContent}>
-                  <IconChartBar className={classes.icon} size={35} />
-
-                  <Text fw={700} c="white">
-                    Status
-                  </Text>
-                </div>
-              </Button> */}
 
               <Button
                 className={classes.disabled}
@@ -177,6 +161,7 @@ export function Hero() {
                 size="xl"
                 h={120}
                 w={150}
+                title={isDisabled ? 'Login first!' : 'View Transaction History'}
               >
                 <div className={classes.buttonContent}>
                   <IconCalendarMonth className={cx(classes.icon, classes.thIcon)} size={35} />
