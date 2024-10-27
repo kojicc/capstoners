@@ -542,7 +542,7 @@ class updateProductView(APIView):
             price = request.data.get('price')
             category = request.data.get('category')
             quantity = request.data.get('quantity')
-            image = request.FILES.get('image')
+            image = request.data.get('image')
             type = request.data.get('type')
 
             if not productId:
@@ -584,40 +584,47 @@ class updateProductView(APIView):
 
             # Upload image to S3
             if image:
-                product.image = image
-                s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                    region_name=settings.AWS_S3_REGION_NAME
-                )
+                bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                folder_name = 'products/images/'
+                file_key = f"{folder_name}/{image}"
+                image_url = f"{file_key}"
+                product.image = image_url
+               
+                
+                
+                # s3_client = boto3.client(
+                #     's3',
+                #     aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                #     aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                #     region_name=settings.AWS_S3_REGION_NAME
+                # )
 
-                try:
-                    # Define the bucket name and the file path
-                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                    folder_name = 'products/images/'
-                    file_key = f"{folder_name}/{image.name}"  # Folder path in S3
+                # try:
+                #     # Define the bucket name and the file path
+                #     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                #     folder_name = 'products/images/'
+                #     file_key = f"{folder_name}/{image.name}"  # Folder path in S3
 
-                    # Generate a presigned URL for the file upload
-                    presigned_url = s3_client.generate_presigned_url(
-                        'put_object',
-                        Params={'Bucket': bucket_name, 'Key': file_key},
-                        ExpiresIn=3600  # URL expiration time in seconds
-                    )
+                #     # Generate a presigned URL for the file upload
+                #     presigned_url = s3_client.generate_presigned_url(
+                #         'put_object',
+                #         Params={'Bucket': bucket_name, 'Key': file_key},
+                #         ExpiresIn=3600  # URL expiration time in seconds
+                #     )
 
-                    # Save the image URL to the product
-                    product.image = file_key
-                    product.save()
+                #     # Save the image URL to the product
+                #     product.image = file_key
+                #     product.save()
 
-                    return Response({
-                        'message': 'Product updated successfully',
-                        'presigned_url': presigned_url
-                    }, status=200)
+                #     return Response({
+                #         'message': 'Product updated successfully',
+                #         'presigned_url': presigned_url
+                #     }, status=200)
 
-                except NoCredentialsError:
-                    return Response({'error': 'Credentials not available'}, status=403)
-                except Exception as e:
-                    return Response({'error': str(e)}, status=500)
+                # except NoCredentialsError:
+                #     return Response({'error': 'Credentials not available'}, status=403)
+                # except Exception as e:
+                #     return Response({'error': str(e)}, status=500)
 
 
             product.save()

@@ -304,10 +304,10 @@ const UpdateCrudProductsAdmin = () => {
         });
 
         // Adjust file URL if necessary
-        const fileUrl = `${url}${fields.key}`;
-        // formData.append('image', fileUrl);
-        formData.append('image', files[0]);
-        console.log('File URL:', fileUrl);
+        // const fileUrl = `${url}${fields.key}`;
+        formData.append('image', file.name);
+        // formData.append('image', file.name);
+        // console.log('File URL:', fileUrl);
       } catch (error) {
         console.error('Error uploading image:', error);
         return;
