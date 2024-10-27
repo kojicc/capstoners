@@ -576,7 +576,7 @@ class updateProductView(APIView):
                     return Response({'error': str(e)}, status=500)
 
 
-            
+            product.save()
 
             return Response({
                 'message': 'Product updated successfully'
