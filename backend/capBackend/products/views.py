@@ -154,39 +154,40 @@ class ExportImportProductView(APIView):
     def post(self, request):
         try:
             file = request.FILES['file']
-            df_products = pd.read_excel(file, sheet_name='Products')
-            df_categories = pd.read_excel(file, sheet_name='Categories')
-            df_product_types = pd.read_excel(file, sheet_name='ProductTypes')
+            df = pd.read_excel(file)
+            # df_products = pd.read_excel(file, sheet_name='Products')
+            # df_categories = pd.read_excel(file, sheet_name='Categories')
+            # df_product_types = pd.read_excel(file, sheet_name='ProductTypes')
             
-            categories = df_categories.to_dict(orient='records')
-            products = df_products.to_dict(orient='records')
-            product_types = df_product_types.to_dict(orient='records')
+            # categories = df_categories.to_dict(orient='records')
+            products = df.to_dict(orient='records')
+            # product_types = df_product_types.to_dict(orient='records')
             
-            logging.info(f"Categories: {categories}")
-            logging.info(f"Products: {products}")
-            logging.info(f"Product Types: {product_types}")
+            # logging.info(f"Categories: {categories}")
+            # logging.info(f"Products: {products}")
+            # logging.info(f"Product Types: {product_types}")
             
-            # First, update or create categories
-            for category in categories:
-                Category.objects.update_or_create(
-                    categoryId=category['categoryId'],
-                    defaults={
-                        'name': category['name'],
-                        'description': category['description'],
-                        'icon': category['icon']
-                    }
-                )
+            # # First, update or create categories
+            # for category in categories:
+            #     Category.objects.update_or_create(
+            #         categoryId=category['categoryId'],
+            #         defaults={
+            #             'name': category['name'],
+            #             'description': category['description'],
+            #             'icon': category['icon']
+            #         }
+            #     )
             
-            # Then, update or create product types
-            for product_type in product_types:
-                category = Category.objects.get(categoryId=product_type['category'])
-                ProductType.objects.update_or_create(
-                    name=product_type['name'],
-                    defaults={
-                        'description': product_type['description'],
-                        'category': category
-                    }
-                )
+            # # Then, update or create product types
+            # for product_type in product_types:
+            #     category = Category.objects.get(categoryId=product_type['category'])
+            #     ProductType.objects.update_or_create(
+            #         name=product_type['name'],
+            #         defaults={
+            #             'description': product_type['description'],
+            #             'category': category
+            #         }
+            #     )
             
             # Finally, update or create products
             for product in products:

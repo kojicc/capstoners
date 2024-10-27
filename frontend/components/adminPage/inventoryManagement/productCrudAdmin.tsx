@@ -378,7 +378,7 @@ const UpdateCrudProductsAdmin = () => {
         });
         return;
       }
-      await axiosInstance.post('importExportReservations/', formData, {
+      await axiosInstance.post('exportimportProduct/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
