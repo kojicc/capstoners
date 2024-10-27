@@ -313,6 +313,10 @@ class ExportImportProductView(APIView):
                     'image': product.get('image', 'products/images/default.png')  # Use the default image if not provided
                 }
                 
+                # Ensure 'image' attribute is a valid file path or URL
+                if isinstance(product['image'], float):
+                    product_defaults['image'] = 'products/images/default.png'
+                
                 Product.objects.update_or_create(
                     productId=product['productId'],  # Match on productId to avoid duplicates
                     defaults=product_defaults
