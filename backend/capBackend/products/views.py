@@ -13,7 +13,13 @@ from urllib.parse import urlparse
 import boto3
 from django.conf import settings
 from botocore.exceptions import NoCredentialsError
-
+import logging
+import boto3
+from botocore.exceptions import ClientError
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
 
@@ -192,7 +198,7 @@ class ExportImportProductView(APIView):
                     'reserved': product.get('reserved', 0),
                     'broken_damaged': product.get('broken_damaged', 0),
                     'category': category,
-                    'image': product.get('image', 'products/images/default.png')
+                    'image': product.get('products/images/default.png')
                 }
                 
                 Product.objects.update_or_create(
@@ -456,6 +462,11 @@ class UploadProduct(APIView):
                 defaults={'description': description or 'Default Description', 'category': category}
             )
 
+            bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+            folder_name = 'products/images/'
+            file_key = f"{folder_name}/{image}"
+            image_url = f"{file_key}"
+
             # Create product with saved image URL
             product = Product.objects.create(
                 name=name,
@@ -464,7 +475,7 @@ class UploadProduct(APIView):
                 category=category,
                 type=product_type,
                 quantity=quantity,
-                image=image
+                image=image_url
             )
 
             return Response({
@@ -483,15 +494,7 @@ class UploadProduct(APIView):
             }, status=400)
 
 
-import logging
 
-import logging
-import boto3
-from botocore.exceptions import ClientError
-from django.conf import settings
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 
 def create_presigned_post(bucket_name, object_name, fields=None, conditions=None, expiration=3600):
     """Generate a presigned URL S3 POST request to upload a file"""
