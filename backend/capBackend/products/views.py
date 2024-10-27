@@ -554,7 +554,7 @@ class updateProductView(APIView):
             try:
                 # Define the bucket name and the file path
                 bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                folder_name = 'products/images'
+                folder_name = 'products/images/'
                 file_key = f"{folder_name}/{image.name}"  # Folder path in S3
 
                 # Upload file to S3 using the resource
