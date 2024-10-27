@@ -365,21 +365,19 @@ const UpdateCrudProductsAdmin = () => {
     }
   };
 
-  const handleImport = async (event: { preventDefault: () => void }) => {
-    event.preventDefault();
-    const formData = new FormData();
-    if (fileExportImport) {
-      formData.append('file', fileExportImport);
-    } else {
-      notifications.show({
-        color: 'red',
-        title: 'Error',
-        message: 'No file selected',
-      });
-      return;
-    }
-
+  const handleImport = async () => {
     try {
+      const formData = new FormData();
+      if (fileExportImport) {
+        formData.append('file', fileExportImport);
+      } else {
+        notifications.show({
+          color: 'red',
+          title: 'Error',
+          message: 'No file selected',
+        });
+        return;
+      }
       await axiosInstance.post('exportimportProduct/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -390,6 +388,7 @@ const UpdateCrudProductsAdmin = () => {
         title: 'Success',
         message: 'Products uploaded successfully',
       });
+      setFileExportImport(null);
       setOpenedExportImport(false);
     } catch (error) {
       notifications.show({
@@ -397,6 +396,7 @@ const UpdateCrudProductsAdmin = () => {
         title: 'Error',
         message: 'Failed to upload products',
       });
+      mutate('getadminProductDetail/');
     }
   };
 
