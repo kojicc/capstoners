@@ -300,8 +300,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
 class LogoutView(APIView):
     def get(self, request):
         response = Response()
-        response.delete_cookie('jwt_access_token', path='/', samesite='None', secure=True)
-        response.delete_cookie('jwt_refresh_token', path='/', samesite='None', secure=True)
+        response.delete_cookie('jwt_access_token', path='/', samesite='None')
+        response.delete_cookie('jwt_refresh_token', path='/', samesite='None')
         
         response.data = {
             'message': 'success',
