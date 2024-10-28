@@ -119,7 +119,6 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
 #     }
     
 # }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
