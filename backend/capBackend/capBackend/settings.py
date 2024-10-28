@@ -122,9 +122,9 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'CTHM-DB',
+        'NAME': 'cthmDB_AWS',
         'USER': 'ben10',
-        'PASSWORD': 'cthmDB2024',
+        'PASSWORD': 'cthmDB2024!',
         'HOST': 'cthm-db.cr04mi4yu3a2.ap-southeast-1.rds.amazonaws.com',
         'PORT': '5432',
     }
