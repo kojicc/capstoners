@@ -1,0 +1,14 @@
+{
+  "builds": [
+    {
+      "src": "backend/capBackend/wsgi.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "backend/capBackend/wsgi.py"
+    }
+  ]
+}
