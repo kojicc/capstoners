@@ -108,17 +108,6 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
 #     'default': dj_database_url.config(default=DATABASE_URL)
 #  }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'cthmDB',
-#         'USER': 'root',  #  MySQL username to
-#         'PASSWORD': '12345',  #  MySQL password to
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
-    
-# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
