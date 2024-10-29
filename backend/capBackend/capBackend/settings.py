@@ -14,10 +14,10 @@ from pathlib import Path
 from datetime import datetime, timedelta
 # from dotenv import load_dotenv
 import os
-import django_on_heroku
-import dj_database_url
+# import django_on_heroku
+# import dj_database_url
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
+# DATABASE_URL = os.environ.get('DATABASE_URL')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
