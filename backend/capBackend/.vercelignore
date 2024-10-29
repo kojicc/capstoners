@@ -1,0 +1,13 @@
+# Ignore test files and directories
+tests/
+*.pyc
+__pycache__/
+*.pyo
+
+# Ignore other unnecessary files
+*.log
+*.env
+node_modules/
+venv/
+*.sqlite3
+*.db
