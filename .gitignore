@@ -3,3 +3,8 @@ node_modules
 node_modules/
 client-production 0.pack
 next-swc.win32-x64-msvc.node
+.env.local
+capBackend/.env
+env/
+capBackend/TESTENV
+capBackend/env/
