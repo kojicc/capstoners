@@ -1,7 +1,7 @@
 {
   "builds": [
     {
-      "src": "capBackend/wsgi.py",
+      "src": "backend/capBackend/capBackend/wsgi.py",
       "use": "@vercel/python",
       "config": { "maxLambdaSize": "15mb", "runtime":"python3.12.4" }
     }
@@ -9,7 +9,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "capBackend/wsgi.py"
+      "dest": "backend/capBackend/capBackend/wsgi.py"
     }
   ]
 }
