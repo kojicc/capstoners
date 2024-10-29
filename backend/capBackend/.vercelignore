@@ -11,4 +11,4 @@ node_modules/
 venv/
 *.sqlite3
 *.db
-.next
+.next/
