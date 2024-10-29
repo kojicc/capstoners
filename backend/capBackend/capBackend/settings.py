@@ -14,10 +14,10 @@ from pathlib import Path
 from datetime import datetime, timedelta
 # from dotenv import load_dotenv
 import os
-# import django_on_heroku
+import django_on_heroku
 # import dj_database_url
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
+# DATABASE_URL = os.environ.get('DATABASE_URL')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -271,7 +271,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = f'https://capstonecthmbucket.s3.ap-southeast-1.amazonaws.com/media/'
 MEDIA_ROOT = None
 
-# django_on_heroku.settings(locals(), staticfiles=False)
+django_on_heroku.settings(locals(), staticfiles=False)
 
 # Debugging in heroku live
 # LOGGING = {
