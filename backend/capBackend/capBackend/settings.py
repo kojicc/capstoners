@@ -1,3 +1,4 @@
+
 """
 Django settings for capBackend project.
 
@@ -32,7 +33,6 @@ SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000','capstoners-665f8af6ebcf.herokuapp.com','127.0.0.1','web-production-c92c.up.railway.app','https://capstoners-backend.vercel.app']
 
 
 # Application definition
@@ -175,15 +175,13 @@ CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOWED_ORIGINS = [
     'https://capstoners.vercel.app',  # Replace with your frontend domain
     'http://localhost:3000',
-    'https://capstoners-665f8af6ebcf.herokuapp.com'
-    'https://capstoners-backend.vercel.app'  # Add this for local development
+    'https://capstoners-665f8af6ebcf.herokuapp.com'  # Add this for local development
 ]
 # para maallow frontend maaccess cookies kase naglologin thru cookies
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "https://capstoners.vercel.app",
-    'https://capstoners-backend.vercel.app'
 ]
 
 # Gmail settings
@@ -254,35 +252,35 @@ MEDIA_ROOT = None
 django_on_heroku.settings(locals(), staticfiles=False)
 
 # Debugging in heroku live
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'formatters': {
-#         'verbose': {
-#             'format': ('%(asctime)s [%(process)d] [%(levelname)s] ' +
-#                        'pathname=%(pathname)s lineno=%(lineno)s ' +
-#                        'funcname=%(funcName)s %(message)s'),
-#             'datefmt': '%Y-%m-%d %H:%M:%S'
-#         },
-#         'simple': {
-#             'format': '%(levelname)s %(message)s'
-#         }
-#     },
-#     'handlers': {
-#         'null': {
-#             'level': 'DEBUG',
-#             'class': 'logging.NullHandler',
-#         },
-#         'console': {
-#             'level': 'DEBUG',
-#             'class': 'logging.StreamHandler',
-#             'formatter': 'verbose'
-#         }
-#     },
-#     'loggers': {
-#         'testlogger': {
-#             'handlers': ['console'],
-#             'level': 'INFO',
-#         }
-#     }
-# }
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': ('%(asctime)s [%(process)d] [%(levelname)s] ' +
+                       'pathname=%(pathname)s lineno=%(lineno)s ' +
+                       'funcname=%(funcName)s %(message)s'),
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        }
+    },
+    'handlers': {
+        'null': {
+            'level': 'DEBUG',
+            'class': 'logging.NullHandler',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        }
+    },
+    'loggers': {
+        'testlogger': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        }
+    }
+}
