@@ -115,7 +115,8 @@ DATABASES = {
         'NAME': 'cthmDB_AWS',
         'USER': 'ben10',
         'PASSWORD': 'cthmDB2024!',
-        'HOST': 'cthm-db.cr04mi4yu3a2.ap-southeast-1.rds.amazonaws.com',
+        'HOST': 'cthmdb-aws.c164yeas6z92.us-east-1.rds.amazonaws.com',
+        # 'HOST': 'cthm-db.cr04mi4yu3a2.ap-southeast-1.rds.amazonaws.com',
         'PORT': '5432',
     }
 }
