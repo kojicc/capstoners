@@ -295,6 +295,31 @@ export default function TransactionHistoryUser() {
     icon: JSX.Element;
   }) => <Stepper.Step label={label} description={description} icon={icon} />;
 
+  const pendingCount = reservations.filter(
+    (reservation) => reservation.status === 'PENDING'
+  ).length;
+  const approvedCount = reservations.filter(
+    (reservation) => reservation.status === 'APPROVED'
+  ).length;
+  const awaitingReturnCount = reservations.filter(
+    (reservation) => reservation.status === 'AWAITING RETURN'
+  ).length;
+  const completedCount = reservations.filter(
+    (reservation) => reservation.status === 'COMPLETED'
+  ).length;
+  const damagedLostCount = reservations.filter(
+    (reservation) => reservation.status === 'DAMAGED/LOST/PARTIALLY_COMPLETED'
+  ).length;
+  const awaitingPaymentCount = reservations.filter(
+    (reservation) => reservation.status === 'AWAITING PAYMENT'
+  ).length;
+  const resolvedCount = reservations.filter(
+    (reservation) => reservation.status === 'RESOLVED'
+  ).length;
+  const cancelledCount = reservations.filter(
+    (reservation) => reservation.status === 'CANCELLED'
+  ).length;
+
   return (
     <>
       <AppShell
@@ -368,49 +393,55 @@ export default function TransactionHistoryUser() {
                         value="PENDING"
                         leftSection={<IconClock size={14} />}
                       >
-                        Pending
+                        Pending ({pendingCount})
                       </Tabs.Tab>
+
                       <Tabs.Tab
                         className={classes.tab}
                         value="APPROVED"
                         leftSection={<IconCheck size={14} />}
                       >
-                        Approved
+                        Approved ({approvedCount})
                       </Tabs.Tab>
+
                       <Tabs.Tab
                         className={classes.tab}
                         value="AWAITING RETURN"
                         leftSection={<IconTruck size={14} />}
                       >
-                        Awaiting Return
+                        Awaiting Return ({awaitingReturnCount})
                       </Tabs.Tab>
+
                       <Tabs.Tab
                         className={classes.tab}
                         value="COMPLETED"
                         leftSection={<IconBox size={14} />}
                       >
-                        Completed
+                        Completed ({completedCount})
                       </Tabs.Tab>
+
                       <Tabs.Tab
                         className={classes.tab}
                         value="DAMAGED/LOST/PARTIALLY_COMPLETED"
                         leftSection={<IconX size={14} />}
                       >
-                        Damaged/Lost
+                        Damaged/Lost ({damagedLostCount})
                       </Tabs.Tab>
+
                       <Tabs.Tab
                         className={classes.tab}
                         value="AWAITING PAYMENT"
                         leftSection={<IconCash size={14} />}
                       >
-                        Awaiting Payment
+                        Awaiting Payment ({awaitingPaymentCount})
                       </Tabs.Tab>
+
                       <Tabs.Tab
                         className={classes.tab}
                         value="RESOLVED"
                         leftSection={<IconCheck size={14} />}
                       >
-                        Resolved
+                        Resolved ({resolvedCount})
                       </Tabs.Tab>
 
                       <Tabs.Tab
@@ -418,7 +449,7 @@ export default function TransactionHistoryUser() {
                         value="CANCELLED"
                         leftSection={<IconX size={14} />}
                       >
-                        Cancelled
+                        Cancelled ({cancelledCount})
                       </Tabs.Tab>
                     </Tabs.List>
 

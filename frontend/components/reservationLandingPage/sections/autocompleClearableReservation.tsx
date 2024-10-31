@@ -20,6 +20,7 @@ import {
   Badge,
   Group,
   ScrollArea,
+  Chip,
 } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
 import router from 'next/router';
@@ -110,55 +111,57 @@ export function AutocompleteClearable({
         />
       </Tooltip>
       <ScrollArea type="auto">
-        <Group justify="center" p={10} style={{ cursor: 'pointer' }}>
-          <Tooltip label="Click to view all products" position="bottom" withArrow>
-            <Badge
-              component="a"
-              onClick={() => {
-                setSearchQuery('');
-                setCategoryID('');
-              }}
-            >
-              All Products
-            </Badge>
-          </Tooltip>
-          {categoryItems.length > 0 ? (
-            categoryItems.map(
-              (category: {
-                value: Key | null | undefined;
-                label:
-                  | string
-                  | number
-                  | boolean
-                  | ReactElement<any, string | JSXElementConstructor<any>>
-                  | Iterable<ReactNode>
-                  | ReactPortal
-                  | null
-                  | undefined;
-              }) => (
-                <Tooltip
-                  label="Click to view products for this category"
-                  position="bottom"
-                  withArrow
-                >
-                  <Badge
-                    key={category.value}
-                    component="a"
-                    onClick={() => {
-                      console.log('category.value', category.value);
-                      setSearchQuery(category.value?.toString() || '');
-                      setCategoryID(category.value?.toString() || '');
-                    }}
+        <Chip.Group>
+          <Group justify="center" p={10} style={{ cursor: 'pointer' }}>
+            <Tooltip label="Click to view all products" position="bottom" withArrow>
+              <Chip
+                value="all"
+                onClick={() => {
+                  setSearchQuery('');
+                  setCategoryID('');
+                }}
+              >
+                All Products
+              </Chip>
+            </Tooltip>
+            {categoryItems.length > 0 ? (
+              categoryItems.map(
+                (category: {
+                  value: Key | null | undefined;
+                  label:
+                    | string
+                    | number
+                    | boolean
+                    | ReactElement<any, string | JSXElementConstructor<any>>
+                    | Iterable<ReactNode>
+                    | ReactPortal
+                    | null
+                    | undefined;
+                }) => (
+                  <Tooltip
+                    label="Click to view products for this category"
+                    position="bottom"
+                    withArrow
                   >
-                    {category.label}
-                  </Badge>
-                </Tooltip>
+                    <Chip
+                      key={category.value}
+                      value={category.value?.toString() || ''}
+                      onClick={() => {
+                        console.log('category.value', category.value);
+                        setSearchQuery(category.value?.toString() || '');
+                        setCategoryID(category.value?.toString() || '');
+                      }}
+                    >
+                      {category.label}
+                    </Chip>
+                  </Tooltip>
+                )
               )
-            )
-          ) : (
-            <div>No categories available</div>
-          )}
-        </Group>
+            ) : (
+              <div>No categories available</div>
+            )}
+          </Group>
+        </Chip.Group>
       </ScrollArea>
     </div>
   );

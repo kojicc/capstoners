@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 # from dotenv import load_dotenv
 import os
 import django_on_heroku
+from dotenv import load_dotenv
 # import dj_database_url
 
 # DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -31,7 +32,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
 
 ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000','capstoners-665f8af6ebcf.herokuapp.com','127.0.0.1','web-production-c92c.up.railway.app']
 
@@ -112,12 +113,16 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cthmDB_AWS',
-        'USER': 'ben10',
-        'PASSWORD': 'cthmDB2024!',
-        'HOST': 'cthmdb-aws.c164yeas6z92.us-east-1.rds.amazonaws.com',
+        # 'NAME': 'cthmDB_AWS',
+        # 'USER': 'ben10',
+        # 'PASSWORD': 'cthmDB2024!',
+        # 'HOST': 'cthmdb-aws.c164yeas6z92.us-east-1.rds.amazonaws.com',
         # 'HOST': 'cthm-db.cr04mi4yu3a2.ap-southeast-1.rds.amazonaws.com',
         'PORT': '5432',
+        'NAME': 'cthmDB',
+        'HOST': 'localhost',
+        'USER': 'admin',
+        'PASSWORD': 'admin',
     }
 }
 
@@ -226,24 +231,20 @@ STORAGES = {
 
 
 
-AWS_ACCESS_KEY_ID  = 'AKIAQ4NXQJTCSQ4WLC6A'
-AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'capstonecthmbucket'
-# AWS_DEFAULT_ACL='public-read'
+load_dotenv()
+
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
 AWS_QUERYSTRING_AUTH = False
-AWS_S3_SIGNATURE_VERSION  = 's3v4'
-AWS_S3_REGION_NAME = 'ap-southeast-1'
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
 AWS_S3_FILE_OVERWRITE = False  # Ensures files with the same name don't overwrite
 AWS_HEADERS = {
-    'Access-Control-Allow-Origin': 'https://capstoners.vercel.app'
+    'Access-Control-Allow-Origin': os.getenv('CORS_ALLOWED_ORIGIN')
 }
 
-# S3FILE_STORAGE_OPTIONS = {
-#     'bucket_name': AWS_STORAGE_BUCKET_NAME,
-#     'region_name': AWS_S3_REGION_NAME,
-#     'access_key': AWS_ACCESS_KEY_ID,
-#     'secret_key': AWS_SECRET_ACCESS_KEY,
-# }
+
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

@@ -293,7 +293,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
         except jwt.InvalidTokenError:
             return Response({'detail': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
         except AuthenticationFailed as e:
-            return Response({'detail': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': str(e)}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'detail': 'An error occurred', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

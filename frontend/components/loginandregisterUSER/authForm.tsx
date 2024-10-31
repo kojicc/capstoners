@@ -178,27 +178,6 @@ export function AuthenticationForm(props: PaperProps) {
     try {
       const response = await axios.post('login/', { username, password });
 
-      // Handle specific error messages
-      if (response.status === 403) {
-        if (response.data.detail === 'User account is locked') {
-          notifications.show({
-            title: 'Account Locked',
-            message: 'Your account is locked. Please contact support.',
-            color: 'red',
-          });
-          return;
-        }
-
-        if (response.data.detail === 'User account is not active. Please verify your email.') {
-          notifications.show({
-            title: 'Account Not Active',
-            message: 'Your account is not active. Please verify your email.',
-            color: 'red',
-          });
-          return;
-        }
-      }
-
       const { role, username: fetchedUsername } = (await fetchDecodedAccessTokenRole()) as {
         role: string;
         username: string;
@@ -219,6 +198,7 @@ export function AuthenticationForm(props: PaperProps) {
       // Ensure 'err' is typed as AxiosError
       if (err instanceof AxiosError && err.response) {
         const { data } = err.response;
+        console.log('Error data:', data);
 
         // Check if the error response has a specific detail message
         if (data && data.detail) {
@@ -236,6 +216,15 @@ export function AuthenticationForm(props: PaperProps) {
               message: 'Your account is not active. Please verify your email.',
               color: 'red',
             });
+          } else if (detail === 'No active account found with the given credentials') {
+            notifications.show({
+              title: 'Wrong username or password',
+              message: 'No active account found with the given credentials',
+              color: 'red',
+            });
+            // Generic error handling
+            form.setFieldError('username', 'Invalid email or password!');
+            form.setFieldError('password', 'Invalid email or password!');
           } else {
             notifications.show({
               title: 'Login Error',
@@ -243,10 +232,6 @@ export function AuthenticationForm(props: PaperProps) {
               color: 'red',
             });
           }
-        } else {
-          // Generic error handling
-          form.setFieldError('username', 'Invalid email or password!');
-          form.setFieldError('password', 'Invalid email or password!');
         }
       } else {
         // Handle unexpected error type
