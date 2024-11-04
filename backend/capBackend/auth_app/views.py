@@ -154,6 +154,26 @@ class adminUpdateUsersView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=404)
 
+class sendForgetPasswordEmailView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        if email is None:
+            return Response({'error': 'Email is required'}, status=400)
+        
+        try:
+            user = User.objects.get(email=email)
+            # Send verification email
+            reset_link = f"{settings.FRONTEND_URL}/forgetpassword/?username={user.email}"
+            send_mail(
+                'Reset your password',
+                f'Click the link to reset your password: {reset_link}',
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+            return Response({'message': 'Email sent'})
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
 
 class forgetPasswordView(APIView):
     # def post(self, request):

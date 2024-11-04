@@ -134,10 +134,43 @@ export function AuthenticationForm(props: PaperProps) {
   const [type, toggle1] = useToggle(['login', 'register']);
   const [opened, { toggle }] = useDisclosure();
   const [popoverOpened, setPopoverOpened] = useState(false);
+  const [forgotPasswordPopoverOpened, setForgotPasswordPopoverOpened] = useState(false);
+  const [forgotEmailError, setForgotEmailError] = useState('');
+  const [forgotEmail, setForgotEmail] = useState('');
 
   // #endregion
 
   const router = useRouter();
+
+  const handleForgotPassword = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post('forgetPasswordEmail/', { forgotEmail });
+      notifications.show({
+        title: 'Password Reset Email Sent',
+        message: 'Please check your email for further instructions.',
+        color: 'teal',
+      });
+
+      setForgotPasswordPopoverOpened(false);
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 404) {
+        notifications.show({
+          title: 'User Not Found',
+          message: 'No user found with the given email address.',
+          color: 'red',
+        });
+      } else {
+        notifications.show({
+          title: 'Error',
+          message: 'An unexpected error occurred. Please try again ' + error + '.',
+          color: 'red',
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const options = groceries.map((item, index) => (
     <Combobox.Option
@@ -484,11 +517,43 @@ export function AuthenticationForm(props: PaperProps) {
           )}
         </Stack>
 
-        <Group justify="apart" mt="xl">
+        <Group justify="center" mt="xl">
           {type === 'login' && (
-            <Anchor<'a'> size="sm" onClick={() => router.push('/forgot-password')}>
-              Forgot Password?
-            </Anchor>
+            <Popover
+              opened={forgotPasswordPopoverOpened}
+              onClose={() => {
+                setForgotPasswordPopoverOpened(false);
+                setForgotEmailError('');
+                setForgotEmail('');
+              }}
+              trapFocus
+              position="bottom"
+              withArrow
+            >
+              <Popover.Target>
+                <Anchor<'a'> size="sm" onClick={() => setForgotPasswordPopoverOpened(true)}>
+                  Forgot Password?
+                </Anchor>
+              </Popover.Target>
+              <Popover.Dropdown>
+                <Stack>
+                  <TextInput
+                    required
+                    label="Email"
+                    placeholder="Enter your email"
+                    value={forgotEmail}
+                    onChange={(event) => setForgotEmail(event.currentTarget.value)}
+                  />
+                  <Button
+                    radius="xl"
+                    onClick={handleForgotPassword}
+                    style={{ backgroundColor: '#592f55', color: '#fff' }}
+                  >
+                    Reset Password
+                  </Button>
+                </Stack>
+              </Popover.Dropdown>
+            </Popover>
           )}
           <Button
             type="submit"
