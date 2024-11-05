@@ -11,6 +11,99 @@ from reservations.models import Reservation
 from django.db.models import Sum
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
+import pandas as pd
+from io import BytesIO
+from django.http import HttpResponse
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from .models import PageView, NewUser, CompletedOrder
+from auth_app.models import User
+from reservations.models import Reservation
+from products.models import Product
+from .serializers import PageViewSerializer, NewUserSerializer, CompletedOrderSerializer
+from reservations.serializers import ReservationSerializer
+from auth_app.serializers import UserSerializer
+
+class ExportDataView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Get the date filter from the request
+        start_date = request.data.get('start_date')
+        end_date = request.data.get('end_date')
+        username = request.data.get('username', None)
+
+        # Filter data based on the date range if provided
+        if start_date and end_date:
+            page_views = PageView.objects.filter(timestamp__range=[start_date, end_date])
+            new_users = NewUser.objects.filter(signup_date__range=[start_date, end_date])
+            completed_orders = CompletedOrder.objects.filter(completed_date__range=[start_date, end_date])
+            reservations = Reservation.objects.filter(reservation_date__range=[start_date, end_date])
+        else:
+            page_views = PageView.objects.all()
+            new_users = NewUser.objects.all()
+            completed_orders = CompletedOrder.objects.all()
+            reservations = Reservation.objects.all()
+
+        # Serialize the data
+        page_view_serializer = PageViewSerializer(page_views, many=True)
+        new_user_serializer = NewUserSerializer(new_users, many=True)
+        completed_order_serializer = CompletedOrderSerializer(completed_orders, many=True)
+        reservation_serializer = ReservationSerializer(reservations, many=True)
+
+        page_view_data = page_view_serializer.data
+        new_user_data = new_user_serializer.data
+        completed_order_data = completed_order_serializer.data
+        reservation_data = reservation_serializer.data
+
+        products = Product.objects.all()
+
+        # Fetch users with optional filtering by username
+        if username:
+            users = User.objects.filter(username=username)
+        else:
+            users = User.objects.all()
+
+        # Serialize the user data
+        user_serializer = UserSerializer(users, many=True)
+        user_data = user_serializer.data
+        # Convert serialized data to DataFrame
+        page_view_df = pd.DataFrame(page_view_data)
+        new_user_df = pd.DataFrame(new_user_data)
+        completed_order_df = pd.DataFrame(completed_order_data)
+        reservation_df = pd.DataFrame(reservation_data)
+
+        # Create a Pandas Excel writer using XlsxWriter as the engine
+        output = BytesIO()
+        writer = pd.ExcelWriter(output, engine='xlsxwriter')
+
+        # Write each DataFrame to a different sheet
+        page_view_df.to_excel(writer, sheet_name='PageViews', index=False)
+        new_user_df.to_excel(writer, sheet_name='NewUsers', index=False)
+        completed_order_df.to_excel(writer, sheet_name='CompletedOrders', index=False)
+        reservation_df.to_excel(writer, sheet_name='Reservations', index=False)
+        pd.DataFrame(list(products.values())).to_excel(writer, sheet_name='Products', index=False)
+        pd.DataFrame(user_data).to_excel(writer, sheet_name='Users', index=False)
+
+        output.seek(0)
+
+        response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=data.xlsx'
+
+        return response
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # class PageViewViewSet(viewsets.ModelViewSet):

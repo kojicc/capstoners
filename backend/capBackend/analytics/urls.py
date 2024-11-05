@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import getMostReservedProducts,getTotalPageViews,getTotalNewUsersEachMonth,getCompletedOrdersEachMonth,TotalStocksPerCategoryAPIView,TotalStocksPerCategoryAPIView,getTotalPendingOrders,getTotalUsers,RecordPageView
+from .views import getMostReservedProducts,getTotalPageViews,getTotalNewUsersEachMonth,getCompletedOrdersEachMonth,TotalStocksPerCategoryAPIView,TotalStocksPerCategoryAPIView,getTotalPendingOrders,getTotalUsers,RecordPageView,ExportDataView
 
 urlpatterns = [
     
@@ -11,6 +11,7 @@ urlpatterns = [
     path('pending-orders/', getTotalPendingOrders.as_view()),
     path('total-users/', getTotalUsers.as_view()),
     path('record-page-view/', RecordPageView.as_view(), name='record-page-view'),
+    path('exportData/', ExportDataView.as_view(), name='export-data'),
 
 
 ]
