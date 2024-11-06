@@ -39,6 +39,7 @@ const NotificationButton = () => {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [activePage, setPage] = useState(1);
   const ref = useClickOutside(() => setOpened(false));
+
   //#endregion
 
   interface FetchedNotifications {

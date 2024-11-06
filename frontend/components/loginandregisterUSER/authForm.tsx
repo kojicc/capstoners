@@ -134,10 +134,43 @@ export function AuthenticationForm(props: PaperProps) {
   const [type, toggle1] = useToggle(['login', 'register']);
   const [opened, { toggle }] = useDisclosure();
   const [popoverOpened, setPopoverOpened] = useState(false);
+  const [forgotPasswordPopoverOpened, setForgotPasswordPopoverOpened] = useState(false);
+  const [forgotEmailError, setForgotEmailError] = useState('');
+  const [forgotEmail, setForgotEmail] = useState('');
 
   // #endregion
 
   const router = useRouter();
+
+  const handleForgotPassword = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post('forgetPasswordEmail/', { forgotEmail });
+      notifications.show({
+        title: 'Password Reset Email Sent',
+        message: 'Please check your email for further instructions.',
+        color: 'teal',
+      });
+
+      setForgotPasswordPopoverOpened(false);
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 404) {
+        notifications.show({
+          title: 'User Not Found',
+          message: 'No user found with the given email address.',
+          color: 'red',
+        });
+      } else {
+        notifications.show({
+          title: 'Error',
+          message: 'An unexpected error occurred. Please try again ' + error + '.',
+          color: 'red',
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const options = groceries.map((item, index) => (
     <Combobox.Option
@@ -178,27 +211,6 @@ export function AuthenticationForm(props: PaperProps) {
     try {
       const response = await axios.post('login/', { username, password });
 
-      // Handle specific error messages
-      if (response.status === 403) {
-        if (response.data.detail === 'User account is locked') {
-          notifications.show({
-            title: 'Account Locked',
-            message: 'Your account is locked. Please contact support.',
-            color: 'red',
-          });
-          return;
-        }
-
-        if (response.data.detail === 'User account is not active. Please verify your email.') {
-          notifications.show({
-            title: 'Account Not Active',
-            message: 'Your account is not active. Please verify your email.',
-            color: 'red',
-          });
-          return;
-        }
-      }
-
       const { role, username: fetchedUsername } = (await fetchDecodedAccessTokenRole()) as {
         role: string;
         username: string;
@@ -219,6 +231,7 @@ export function AuthenticationForm(props: PaperProps) {
       // Ensure 'err' is typed as AxiosError
       if (err instanceof AxiosError && err.response) {
         const { data } = err.response;
+        console.log('Error data:', data);
 
         // Check if the error response has a specific detail message
         if (data && data.detail) {
@@ -236,6 +249,15 @@ export function AuthenticationForm(props: PaperProps) {
               message: 'Your account is not active. Please verify your email.',
               color: 'red',
             });
+          } else if (detail === 'No active account found with the given credentials') {
+            notifications.show({
+              title: 'Wrong username or password',
+              message: 'No active account found with the given credentials',
+              color: 'red',
+            });
+            // Generic error handling
+            form.setFieldError('username', 'Invalid email or password!');
+            form.setFieldError('password', 'Invalid email or password!');
           } else {
             notifications.show({
               title: 'Login Error',
@@ -243,10 +265,6 @@ export function AuthenticationForm(props: PaperProps) {
               color: 'red',
             });
           }
-        } else {
-          // Generic error handling
-          form.setFieldError('username', 'Invalid email or password!');
-          form.setFieldError('password', 'Invalid email or password!');
         }
       } else {
         // Handle unexpected error type
@@ -499,11 +517,43 @@ export function AuthenticationForm(props: PaperProps) {
           )}
         </Stack>
 
-        <Group justify="apart" mt="xl">
+        <Group justify="center" mt="xl">
           {type === 'login' && (
-            <Anchor<'a'> size="sm" onClick={() => router.push('/forgot-password')}>
-              Forgot Password?
-            </Anchor>
+            <Popover
+              opened={forgotPasswordPopoverOpened}
+              onClose={() => {
+                setForgotPasswordPopoverOpened(false);
+                setForgotEmailError('');
+                setForgotEmail('');
+              }}
+              trapFocus
+              position="bottom"
+              withArrow
+            >
+              <Popover.Target>
+                <Anchor<'a'> size="sm" onClick={() => setForgotPasswordPopoverOpened(true)}>
+                  Forgot Password?
+                </Anchor>
+              </Popover.Target>
+              <Popover.Dropdown>
+                <Stack>
+                  <TextInput
+                    required
+                    label="Email"
+                    placeholder="Enter your email"
+                    value={forgotEmail}
+                    onChange={(event) => setForgotEmail(event.currentTarget.value)}
+                  />
+                  <Button
+                    radius="xl"
+                    onClick={handleForgotPassword}
+                    style={{ backgroundColor: '#592f55', color: '#fff' }}
+                  >
+                    Reset Password
+                  </Button>
+                </Stack>
+              </Popover.Dropdown>
+            </Popover>
           )}
           <Button
             type="submit"

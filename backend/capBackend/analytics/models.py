@@ -15,4 +15,5 @@ class CompletedOrder(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     reservation_id = models.CharField(max_length=200)
     reservation_date = models.DateTimeField(auto_now_add=True)
+    completed_date = models.DateTimeField(auto_now_add=True)
     # satisfaction_rate = models.DecimalField(max_digits=5, decimal_places=2, default=100.0)

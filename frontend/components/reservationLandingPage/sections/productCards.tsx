@@ -82,6 +82,9 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
 
   const filteredProducts = data.images.filter((product: Product) => {
     const lowerSearchValue = searchValue.toLowerCase();
+    if (categoryID === '' || searchQuery === '') {
+      return true;
+    }
     if (lowerSearchValue) {
       return (
         product.productId.toLowerCase().includes(lowerSearchValue) ||
@@ -96,12 +99,10 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
           product.name.toLowerCase().includes(lowerSearchValue) ||
           (product.category && product.category.toLowerCase().includes(lowerSearchValue)))
       );
-    } else {
-      return true;
     }
   });
 
-  const paginatedProducts = chunk(filteredProducts, 5);
+  const paginatedProducts = chunk(filteredProducts, 6);
   const currentProducts = paginatedProducts[activePage - 1] || [];
 
   const addTocart = async (productId: string, quantity: number, productName: string) => {
@@ -126,14 +127,14 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
   };
 
   return (
-    <Paper shadow="xl" radius="lg" withBorder p="xl" bg={'#592f55'}>
+    <Paper shadow="xl" radius="lg" withBorder p="md">
       <SimpleGrid
         cols={{ base: 1, sm: 2, lg: 3 }}
         spacing={{ base: 10, sm: 'xl' }}
         verticalSpacing={{ base: 'md', sm: 'xl' }}
       >
         {currentProducts.map((product: Product) => (
-          <Card key={product.productId} withBorder radius="md" className={classes.card}>
+          <Card key={product.productId} withBorder radius="md" className={classes.card} shadow="xl">
             <Card.Section className={classes.imageSection}>
               <Image src={`${product.image}`} alt={product.name} w={200} h={200} radius={10} />
             </Card.Section>

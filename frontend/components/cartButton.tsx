@@ -107,6 +107,7 @@ export function CartIcon() {
   const [disabledCheckoutButton, setDisabledCheckoutButton] = useState(true);
   const [users, setUsers] = useState<Users[]>([]);
   const [cthmSubjects, setCthmSubjects] = useState<string[]>([]);
+  const [cartItemCount, setCartItemCount] = useState<number>(0);
 
   const { data: usersData, error: usersError } = useSWR<Users[]>(
     `adminupdateUsers/?class_section=${class_section}`,
@@ -123,6 +124,9 @@ export function CartIcon() {
 
   const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher, {
     refreshInterval: 1000,
+    onSuccess: (data) => {
+      setCartItemCount(data.cart_items.length);
+    },
   });
 
   // Filter items with 0 stock
@@ -327,14 +331,6 @@ export function CartIcon() {
           )
       : [];
 
-  // const cthmSubjects = [
-  //   'Hospitality Management',
-  //   'Tourism Management',
-  //   'Culinary Arts',
-  //   'Hotel Administration',
-  //   'Event Management',
-  // ];
-
   const getSelectableDates = (days: string[], weeksToConsider: number = 10) => {
     const daysOfWeek = [
       'SUNDAY',
@@ -378,9 +374,38 @@ export function CartIcon() {
 
   return (
     <>
-      <ActionIcon variant="outline" color="blue" size="lg" onClick={() => setOpened(true)}>
-        <IconShoppingCart size={24} />
-      </ActionIcon>
+      <div style={{ position: 'relative', display: 'inline-block' }}>
+        <ActionIcon
+          variant="outline"
+          color="blue"
+          size="lg"
+          onClick={() => setOpened(true)}
+          style={{ position: 'relative', display: 'inline-block' }}
+        >
+          <IconShoppingCart size={24} />
+        </ActionIcon>
+        {cartItemCount > 0 && (
+          <Text
+            size="xs"
+            style={{
+              position: 'absolute',
+              top: -10,
+              right: -10,
+              backgroundColor: 'red',
+              borderRadius: '50%',
+              width: 20,
+              height: 20,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: 'bold',
+            }}
+          >
+            {cartItemCount}
+          </Text>
+        )}
+      </div>
 
       <Drawer
         opened={opened}
@@ -457,7 +482,13 @@ export function CartIcon() {
           >
             Delete Selected ({selectedItems.length} items)
           </Button>
-          <Button onClick={handleCheckout} disabled={selectedItems.length === 0}>
+          <Button
+            onClick={() => {
+              handleCheckout();
+              setOpened(false);
+            }}
+            disabled={selectedItems.length === 0}
+          >
             Checkout ({selectedItems.length} items)
           </Button>
         </Group>

@@ -588,7 +588,6 @@ class ReservationCreateUpdateAPIView(APIView):
 
             philippines_tz = pytz.timezone('Asia/Manila')
 
-
             # pangupdate ng reservation as user
             if reservation_id:
                 print(f"Updating reservation: {reservation_id}")
@@ -600,7 +599,6 @@ class ReservationCreateUpdateAPIView(APIView):
                 if reservation_day:
                     reservation.reservation_day = reservation_day
 
-                
                 reservation.save()
 
                 if product_ids and quantities:
@@ -716,7 +714,6 @@ class ReservationCreateUpdateAPIView(APIView):
                         subject=subject,
                         status=reservation_status or 'PENDING',
                         reservation_day=reservation_day
-                        
                     )
                     reservation.save()
 
@@ -732,6 +729,8 @@ class ReservationCreateUpdateAPIView(APIView):
                             )
                             reservation_item.save()
 
+                            # Decrease the product quantity on successful reservation creation
+                            product.quantity -= quantity
                             product.save()
                             cart_item.delete()
 
@@ -842,14 +841,10 @@ class AdminUpdateReservationStatusAPIView(APIView):
             if reservation_id:
 
                  # Ensure group_members is a list
-            
-
-
-
-
 
                 reservation = get_object_or_404(Reservation, reservation_id=reservation_id)
                 notification_message = ""
+
                 if reservation_status:
                     reservation.status = reservation_status
                     notification_message = f'Your reservation`s status for {reservation_id} has been updated by {usernameAdmin}.'
@@ -885,6 +880,13 @@ class AdminUpdateReservationStatusAPIView(APIView):
                         product = get_object_or_404(Product, productId=product_id)
                         try:
                             reservation_item = ReservationItem.objects.get(reservation=reservation, product=product)
+                            
+                            # Check if the quantity exceeds the available stock
+                            if quantity > product.quantity:
+                                return Response({
+                                    'message': f'Not enough stock available for product {product_id}'
+                                }, status=status.HTTP_400_BAD_REQUEST)
+                            
                             reservation_item.quantity = quantity
                             reservation_item.save()
 
