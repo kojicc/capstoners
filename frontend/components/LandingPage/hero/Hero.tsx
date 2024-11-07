@@ -8,6 +8,7 @@ import {
   Flex,
   ActionIcon,
   BackgroundImage,
+  Group,
 } from '@mantine/core';
 import classes from './HeroImageBackground.module.css';
 import {
@@ -89,7 +90,7 @@ export function Hero() {
 
         <div className={classes.controls}>
           {role === 'admin' ? (
-            <>
+            <Group visibleFrom="sm">
               <Button
                 className={classes.disabled}
                 component="a"
@@ -129,9 +130,9 @@ export function Hero() {
                   </Text>
                 </div>
               </Button>
-            </>
+            </Group>
           ) : (
-            <>
+            <Group visibleFrom="sm">
               <Button
                 className={classes.disabled}
                 component="a"
@@ -171,7 +172,7 @@ export function Hero() {
                   </Text>
                 </div>
               </Button>
-            </>
+            </Group>
           )}
         </div>
       </div>

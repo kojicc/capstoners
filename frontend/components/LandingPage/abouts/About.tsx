@@ -138,9 +138,8 @@ export function About() {
                   </ThemeIcon>
                   <Title order={2}>Reserve</Title>
                   <Text size="md" lineClamp={1}>
-                    Consequuntur sunt aut quasi enim aliquam quae harum pariatur laboris nisi ut
-                    aliquip Consequuntur sunt aut quasi enim aliquam quae harum pariatur laboris
-                    nisi ut aliquip
+                    Easily reserve items online with our user-friendly reservation system. Browse
+                    through our catalog and select the items you need.
                   </Text>
                 </Group>
               )}
@@ -159,9 +158,8 @@ export function About() {
                   </ThemeIcon>
                   <Title order={2}>Status</Title>
                   <Text size="md" lineClamp={1}>
-                    Consequuntur sunt aut quasi enim aliquam quae harum pariatur laboris nisi ut
-                    aliquip Consequuntur sunt aut quasi enim aliquam quae harum pariatur laboris
-                    nisi ut aliquip
+                    Check the status of your reservations in real-time. Stay updated on the
+                    availability and progress of your reserved items.
                   </Text>
                 </Group>
               )}
@@ -180,9 +178,8 @@ export function About() {
                   </ThemeIcon>
                   <Title order={2}>Transaction History</Title>
                   <Text size="md" lineClamp={1}>
-                    Consequuntur sunt aut quasi enim aliquam quae harum pariatur laboris nisi ut
-                    aliquip Consequuntur sunt aut quasi enim aliquam quae harum pariatur laboris
-                    nisi ut aliquip
+                    View your complete transaction history. Keep track of all your past reservations
+                    and transactions in one place.
                   </Text>
                 </Group>
               )}

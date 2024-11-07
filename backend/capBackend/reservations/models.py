@@ -5,8 +5,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 import datetime
 from django.conf import settings
-
-
+from django.core.mail import send_mail
 # Create your models here.
 
 
@@ -33,6 +32,7 @@ class Reservation(models.Model):
     is_group = models.BooleanField(default=False)
     group_members = models.JSONField(default=list, blank=True, null=True)  # Ensure this is present
     subject = models.CharField(max_length=200, blank=True, null=True)
+    # status_updated_at = models.DateTimeField(auto_now=True)
     
     def add_group_member(self, member):
         members = self.group_members
@@ -53,7 +53,7 @@ class Reservation(models.Model):
             self.reservation_id = f'{self.user.username}_{timezone.now().strftime("%Y%m%d_%H%M%S")}_{uuid.uuid4().hex[:8]}'
         super().save(*args, **kwargs)
 
-
+    
 class ReservationItem(models.Model):
     reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, to_field='productId')

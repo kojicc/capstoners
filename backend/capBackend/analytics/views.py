@@ -1,3 +1,4 @@
+from datetime import timedelta
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -28,62 +29,85 @@ class ExportDataView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Get the date filter from the request
-        start_date = request.data.get('start_date')
-        end_date = request.data.get('end_date')
-        username = request.data.get('username', None)
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        username = request.query_params.get('username', None)
 
         # Filter data based on the date range if provided
         if start_date and end_date:
             page_views = PageView.objects.filter(timestamp__range=[start_date, end_date])
-            new_users = NewUser.objects.filter(signup_date__range=[start_date, end_date])
-            completed_orders = CompletedOrder.objects.filter(completed_date__range=[start_date, end_date])
+            completed_orders = Reservation.objects.filter(status='COMPLETED', reservation_date_end__range=[start_date, end_date])
             reservations = Reservation.objects.filter(reservation_date__range=[start_date, end_date])
         else:
             page_views = PageView.objects.all()
-            new_users = NewUser.objects.all()
-            completed_orders = CompletedOrder.objects.all()
+            completed_orders = Reservation.objects.filter(status='COMPLETED')
             reservations = Reservation.objects.all()
 
-        # Serialize the data
-        page_view_serializer = PageViewSerializer(page_views, many=True)
-        new_user_serializer = NewUserSerializer(new_users, many=True)
-        completed_order_serializer = CompletedOrderSerializer(completed_orders, many=True)
-        reservation_serializer = ReservationSerializer(reservations, many=True)
-
-        page_view_data = page_view_serializer.data
-        new_user_data = new_user_serializer.data
-        completed_order_data = completed_order_serializer.data
-        reservation_data = reservation_serializer.data
-
+        users = User.objects.filter(username=username) if username else User.objects.all()
         products = Product.objects.all()
 
-        # Fetch users with optional filtering by username
-        if username:
-            users = User.objects.filter(username=username)
-        else:
-            users = User.objects.all()
+        # Serialize data
+        page_view_data = PageViewSerializer(page_views, many=True).data
+        completed_order_data = ReservationSerializer(completed_orders, many=True).data
+        reservation_data = ReservationSerializer(reservations, many=True).data
+        user_data = UserSerializer(users, many=True).data
 
-        # Serialize the user data
-        user_serializer = UserSerializer(users, many=True)
-        user_data = user_serializer.data
-        # Convert serialized data to DataFrame
+        # Convert serialized data to DataFrames
         page_view_df = pd.DataFrame(page_view_data)
-        new_user_df = pd.DataFrame(new_user_data)
         completed_order_df = pd.DataFrame(completed_order_data)
         reservation_df = pd.DataFrame(reservation_data)
+        product_df = pd.DataFrame(list(products.values()))
+        user_df = pd.DataFrame(user_data)
 
-        # Create a Pandas Excel writer using XlsxWriter as the engine
+        # Ensure timezone-unaware datetimes
+        for df in [page_view_df, completed_order_df, reservation_df, product_df, user_df]:
+            for col in df.select_dtypes(include=['datetime64[ns, UTC]', 'datetime64[ns]']).columns:
+                df[col] = df[col].dt.tz_localize(None)
+
+        # Calculate most reserved products statistics
+        now = timezone.now()
+        period = request.query_params.get('period', 'all')
+
+        if period == 'daily':
+            most_reserved = Product.objects.annotate(total_reserved=Sum('reserved')).order_by('-total_reserved')[:5]
+        elif period == 'weekly':
+            most_reserved = Product.objects.annotate(total_reserved=Sum('reserved')).order_by('-total_reserved')[:5]
+        elif period == 'monthly':
+            most_reserved = Product.objects.annotate(total_reserved=Sum('reserved')).order_by('-total_reserved')[:5]
+        elif period == 'annually':
+            most_reserved = Product.objects.annotate(total_reserved=Sum('reserved')).order_by('-total_reserved')[:5]
+        else:
+            most_reserved_daily = Product.objects.annotate(total_reserved=Sum('reserved')).order_by('-total_reserved')[:5]
+            most_reserved_weekly = Product.objects.annotate(total_reserved=Sum('reserved')).order_by('-total_reserved')[:5]
+            most_reserved_monthly = Product.objects.annotate(total_reserved=Sum('reserved')).order_by('-total_reserved')[:5]
+            most_reserved_annually = Product.objects.annotate(total_reserved=Sum('reserved')).order_by('-total_reserved')[:5]
+
+        # Convert these stats to DataFrames
+        if period == 'all':
+            most_reserved_df_daily = pd.DataFrame(list(most_reserved_daily.values('name')))
+            most_reserved_df_weekly = pd.DataFrame(list(most_reserved_weekly.values('name')))
+            most_reserved_df_monthly = pd.DataFrame(list(most_reserved_monthly.values('name')))
+            most_reserved_df_annually = pd.DataFrame(list(most_reserved_annually.values('name')))
+        else:
+            most_reserved_df = pd.DataFrame(list(most_reserved.values('name')))
+
+        # Add stats to `product_df`
+        if period == 'all':
+            product_df['Most Reserved Daily'] = [most_reserved_df_daily['name'].tolist() if not most_reserved_df_daily.empty else None] * len(product_df)
+            product_df['Most Reserved Weekly'] = [most_reserved_df_weekly['name'].tolist() if not most_reserved_df_weekly.empty else None] * len(product_df)
+            product_df['Most Reserved Monthly'] = [most_reserved_df_monthly['name'].tolist() if not most_reserved_df_monthly.empty else None] * len(product_df)
+            product_df['Most Reserved Annually'] = [most_reserved_df_annually['name'].tolist() if not most_reserved_df_annually.empty else None] * len(product_df)
+        else:
+            product_df['Most Reserved'] = [most_reserved_df['name'].tolist() if not most_reserved_df.empty else None] * len(product_df)
+
+        # Create an Excel writer and add DataFrames to different sheets
         output = BytesIO()
-        writer = pd.ExcelWriter(output, engine='xlsxwriter')
-
-        # Write each DataFrame to a different sheet
-        page_view_df.to_excel(writer, sheet_name='PageViews', index=False)
-        new_user_df.to_excel(writer, sheet_name='NewUsers', index=False)
-        completed_order_df.to_excel(writer, sheet_name='CompletedOrders', index=False)
-        reservation_df.to_excel(writer, sheet_name='Reservations', index=False)
-        pd.DataFrame(list(products.values())).to_excel(writer, sheet_name='Products', index=False)
-        pd.DataFrame(user_data).to_excel(writer, sheet_name='Users', index=False)
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            page_view_df.to_excel(writer, sheet_name='PageViews', index=False)
+            completed_order_df.to_excel(writer, sheet_name='CompletedOrders', index=False)
+            reservation_df.to_excel(writer, sheet_name='Reservations', index=False)
+            product_df.to_excel(writer, sheet_name='Products', index=False)
+            user_df.to_excel(writer, sheet_name='Users', index=False)
 
         output.seek(0)
 
@@ -91,9 +115,6 @@ class ExportDataView(APIView):
         response['Content-Disposition'] = 'attachment; filename=data.xlsx'
 
         return response
-
-
-
 
 
 
@@ -243,10 +264,11 @@ class getCompletedOrdersEachMonth(APIView):
         total_completed_orders = sum(sorted_completed_orders_by_month.values())
 
         return Response(
-          {  "sorted":sorted_completed_orders_by_month,
+        {  "sorted":sorted_completed_orders_by_month,
             "total":total_completed_orders,}
         )
-     
+    
+
 
 class getTotalNewUsersEachMonth(APIView):
     permission_classes = [IsAuthenticated]

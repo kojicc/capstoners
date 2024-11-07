@@ -309,10 +309,6 @@ const ProductAddPage = () => {
                               <b>Product Description:</b> {product.description}
                             </Text>
                             <Text>
-                              <b>Product Price (₱): </b>
-                              {product.price}
-                            </Text>
-                            <Text>
                               <b>Quantity:</b> {product.quantity}
                             </Text>
                           </Stack>
@@ -325,6 +321,14 @@ const ProductAddPage = () => {
                             w={500}
                           />
                         </Group>
+                        <Text mt="md" color="dimmed">
+                          <b>Product Price (₱): </b>
+                          {product.price}
+                        </Text>
+                        <Text mt="md" color="dimmed">
+                          Reservees will only be charged if items are broken. See Terms of Service
+                          for more information.
+                        </Text>
                       </Card>
                     ))
                   ) : (

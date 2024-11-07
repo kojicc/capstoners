@@ -65,6 +65,7 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
     { label: `Total Reservations: ${product.reserved}`, icon: IconGauge },
     { label: `Available Stock: ${product.quantity}`, icon: IconManualGearbox },
     { label: `Product ID: ${product.productId}`, icon: IconGasStation },
+    { label: `Product Price per broken item(₱): ${product.price}`, icon: IconGasStation },
   ];
 
   const { data, error } = useSWR<{ images: Product[]; message: string }>('getImages/', fetcher, {
@@ -167,10 +168,17 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
               <Group gap={30}>
                 <div>
                   <Text fz="xl" fw={700} style={{ lineHeight: 1 }}>
-                    ₱{product.price}
+                    Available Stock: {product.quantity}
                   </Text>
-                  <Text fz="sm" c="dimmed" fw={500} style={{ lineHeight: 1 }} mt={3}>
-                    per broken item
+                  <Text fz="xs" c="dimmed" fw={500} style={{ lineHeight: 1 }} mt={3}>
+                    You will only be charged if items are broken. See{' '}
+                    <a
+                      href="/terms-of-service"
+                      style={{ color: '#592f55', textDecoration: 'underline' }}
+                    >
+                      Terms of Service
+                    </a>{' '}
+                    for more information.
                   </Text>
                 </div>
 

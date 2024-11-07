@@ -5,10 +5,14 @@ import {
   Burger,
   Button,
   Divider,
+  Flex,
   Grid,
   Group,
   NavLink,
+  Popover,
   ScrollArea,
+  Select,
+  Stack,
   Title,
 } from '@mantine/core';
 import { useDisclosure, useLocalStorage } from '@mantine/hooks';
@@ -33,8 +37,16 @@ import Cookies from 'js-cookie';
 import { useAuth } from '@/utils/auth';
 import { ColorSchemeToggle } from '@/components/ColorSchemeToggle/ColorSchemeToggle';
 import { ActionToggle } from '@/components/darkorlightMode';
+import { DateTimePicker } from '@mantine/dates';
+import axios from '@/utils/axiosInstance';
+import { notifications } from '@mantine/notifications';
 
 export function NavbarSection() {
+  const [popoverOpened, setPopoverOpened] = useState(false);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [period, setPeriod] = useState<string | null>('all');
+
   const [opened, { toggle }] = useDisclosure();
   const [activeMain, setActiveMain] = useState('Dashboard');
   const [activeSub, setActiveSub] = useState('');
@@ -45,6 +57,31 @@ export function NavbarSection() {
     defaultValue: false,
   });
   const { username, role } = useAuth();
+
+  const handleExport = async () => {
+    try {
+      const response = await axios.get('exportData/', {
+        responseType: 'blob',
+        params: {
+          start_date: startDate?.toISOString(),
+          end_date: endDate?.toISOString(),
+          period: period,
+        },
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'data.xlsx');
+      document.body.appendChild(link);
+      link.click();
+
+      notifications.show({ message: 'Export successful!', color: 'green' });
+      setPopoverOpened(false); // Close the popover after export
+    } catch (error) {
+      notifications.show({ message: 'Export failed.', color: 'red' });
+    }
+  };
 
   const router = useRouter();
   const handleLogout = async () => {
@@ -189,20 +226,22 @@ export function NavbarSection() {
           <Title order={1} size="xl" c="white">
             Welcome {username}!
           </Title>
-          <Button
-            component="a"
-            onClick={handleLogout}
-            variant="outline"
-            color="white"
-            fw={700}
-            // className={classes.btn}
-          >
-            Logout
-          </Button>
-          <NotificationButton />
 
-          <CartIcon />
-          <ActionToggle />
+          <Group visibleFrom="sm">
+            <Button
+              component="a"
+              onClick={handleLogout}
+              variant="outline"
+              color="white"
+              fw={700}
+              // className={classes.btn}
+            >
+              Logout
+            </Button>
+            <NotificationButton />
+            <CartIcon />
+            <ActionToggle />
+          </Group>
         </Group>
       </AppShell.Header>
 
@@ -217,12 +256,54 @@ export function NavbarSection() {
         </AppShell.Section>
         <AppShell.Section>
           <Divider my="md" />
-          <NavLink
-            w={'100%'}
-            href="/"
-            label="Go to Landing Page"
-            leftSection={<IconHomeFilled size="1rem" stroke={1.5} />}
-          />
+
+          <Stack justify="center" mt="xl">
+            <NavLink
+              w={'100%'}
+              href="/"
+              label="Go to Landing Page"
+              leftSection={<IconHomeFilled size="1rem" stroke={1.5} />}
+            />
+            <Popover
+              opened={popoverOpened}
+              onClose={() => setPopoverOpened(false)}
+              trapFocus
+              closeOnClickOutside
+              position="bottom"
+              withArrow
+            >
+              <Popover.Target>
+                <Button onClick={() => setPopoverOpened((o) => !o)}>Export Data</Button>
+              </Popover.Target>
+              <Popover.Dropdown>
+                <Flex
+                  direction={{ base: 'column', sm: 'row' }}
+                  gap={{ base: 'sm', sm: 'lg' }}
+                  justify={{ sm: 'center' }}
+                >
+                  <DateTimePicker label="Start Date" value={startDate} onChange={setStartDate} />
+                  <DateTimePicker label="End Date" value={endDate} onChange={setEndDate} />
+                  <Select
+                    label="Period"
+                    placeholder="Select period"
+                    value={period}
+                    onChange={setPeriod}
+                    data={[
+                      { value: 'daily', label: 'Daily' },
+                      { value: 'weekly', label: 'Weekly' },
+                      { value: 'monthly', label: 'Monthly' },
+                      { value: 'annually', label: 'Annually' },
+                      { value: 'all', label: 'All' },
+                    ]}
+                  />
+                  <Button mt={25} onClick={handleExport}>
+                    Export
+                  </Button>
+                </Flex>
+              </Popover.Dropdown>
+            </Popover>
+          </Stack>
+          <Divider my="md" />
         </AppShell.Section>
         <AppShell.Section hiddenFrom="sm">
           <Divider my="md" />

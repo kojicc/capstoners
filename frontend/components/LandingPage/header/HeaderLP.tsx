@@ -485,8 +485,8 @@ export default function Header() {
                 <Button
                   component="a"
                   onClick={handleLogout}
-                  variant="outline"
-                  color="white"
+                  variant="filled"
+                  color="blue"
                   fw={700}
                   className={classes.btn}
                 >
@@ -500,8 +500,8 @@ export default function Header() {
                 <Button
                   component="a"
                   href="login/"
-                  variant="outline"
-                  color="white"
+                  variant="filled"
+                  color="blue"
                   fw={700}
                   className={classes.btn}
                 >
@@ -509,6 +509,7 @@ export default function Header() {
                 </Button>
               </>
             )}
+            <ActionToggle />
           </Group>
         </ScrollArea>
       </Drawer>
