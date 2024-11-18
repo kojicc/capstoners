@@ -38,8 +38,7 @@ from django.core.mail import send_mail
 import json
 
 # pangview ng total reservations
-# class ReservationTotalAPIView(APIView):
-#         reservations = get_object_or_404(Reservation,reservation_9)
+
 
 class ReservationImportExportView(APIView):
     def get(self, request):
@@ -180,7 +179,6 @@ class ReservationImportExportView(APIView):
 class ReservationCartAPIView(APIView):
     # permission_classes = [IsAuthenticated]
 
-# pangshow ng mga items sa cart
     def get(self, request):
         try:
             # Get the username from the request
@@ -210,7 +208,6 @@ class ReservationCartAPIView(APIView):
                 'message': f'An error occurred: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-# pangadd to cart
     def post(self, request):
         try:
             # Get the data from the request
@@ -249,14 +246,23 @@ class ReservationCartAPIView(APIView):
                 if quantity > product.quantity:
                     return Response({
                         'message': f'Not enough stock available for product {product_id}'
-                    }, status=400)
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
-                # Add the product to the cart or update if it already exists
-                cart_item, created = Cart.objects.update_or_create(
-                    user=user,
-                    product=product,
-                    defaults={'quantity': quantity}
-                )
+                # Check if the product is already in the cart
+                cart_item = Cart.objects.filter(user=user, product=product).first()
+                if cart_item:
+                    # Check if the total quantity in the cart exceeds the available stock
+                    if cart_item.quantity + quantity > product.quantity:
+                        return Response({
+                            'message': f'Adding {quantity} of product {product_id} exceeds available stock'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        # Update the quantity in the cart
+                        cart_item.quantity += quantity
+                        cart_item.save()
+                else:
+                    # Add the product to the cart
+                    Cart.objects.create(user=user, product=product, quantity=quantity)
 
             return Response({
                 'message': 'Products added to cart successfully'
@@ -267,7 +273,6 @@ class ReservationCartAPIView(APIView):
                 'message': f'An error occurred: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-# pangdelete sa cart
     def delete(self, request):
         try:
             # Get the data from the request
@@ -312,7 +317,6 @@ class ReservationCartAPIView(APIView):
                 'message': f'An error occurred: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-# pangupdate sa cart
     def put(self, request):
         try:
             # Get the data from the request
@@ -351,9 +355,9 @@ class ReservationCartAPIView(APIView):
                 if quantity > product.quantity:
                     return Response({
                         'message': f'Not enough stock available for product {product_id}'
-                    }, status=400)
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
-                # Update the product in the cart
+                # Update the quantity in the cart
                 cart_item = get_object_or_404(Cart, user=user, product=product)
                 cart_item.quantity = quantity
                 cart_item.save()
@@ -381,7 +385,6 @@ class ReservationCartAPIView(APIView):
             return Response({
                 'message': f'An error occurred: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class ClassScheduleCRUDAPIView(APIView):
@@ -610,6 +613,12 @@ class ReservationCreateUpdateAPIView(APIView):
 
                     for product_id, quantity in zip(product_ids, quantities):
                         product = get_object_or_404(Product, productId=product_id)
+                        if product.quantity < quantity:
+                            print(f"Not enough stock for product: {product_id}")
+                            return Response({
+                                'message': f'Not enough stock for product: {product_id}'
+                            }, status=status.HTTP_400_BAD_REQUEST)
+
                         try:
                             reservation_item = ReservationItem.objects.get(reservation=reservation, product=product)
                             original_quantity = reservation_item.quantity
@@ -702,6 +711,21 @@ class ReservationCreateUpdateAPIView(APIView):
 
                     print(f"Creating reservation with ID: {reservation_id} for user: {username}")
 
+                    # Check stock availability before creating the reservation
+                    for product_id, quantity in zip(product_ids, quantities):
+                        product = get_object_or_404(Product, productId=product_id)
+
+                        # Lock the product row to prevent race conditions
+                        product = Product.objects.select_for_update().get(productId=product_id)
+
+                        if product.quantity < quantity:
+                            print(f"Not enough stock for product: {product_id}")
+                            transaction.set_rollback(True)
+                            return Response({
+                                'message': f'Not enough stock for product: {product_id}'
+                            }, status=status.HTTP_400_BAD_REQUEST)
+
+                    # Create the reservation after stock check
                     reservation = Reservation(
                         user=user,
                         user_class_section=user.class_section,
@@ -719,6 +743,7 @@ class ReservationCreateUpdateAPIView(APIView):
 
                     for product_id, quantity in zip(product_ids, quantities):
                         product = get_object_or_404(Product, productId=product_id)
+
                         try:
                             cart_item = Cart.objects.get(user=user, product=product)
 
@@ -788,7 +813,6 @@ class ReservationCreateUpdateAPIView(APIView):
                 'message': 'An error occurred',
                 'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
-
 
 #updating the reservations as admin
 class AdminUpdateReservationStatusAPIView(APIView):

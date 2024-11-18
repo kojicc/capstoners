@@ -243,6 +243,12 @@ export function AuthenticationForm(props: PaperProps) {
               message: 'Your account is locked. Please contact support.',
               color: 'red',
             });
+          } else if (detail === 'An error occurred') {
+            notifications.show({
+              title: 'Account Not Found',
+              message: 'No active account found with the given credentials',
+              color: 'red',
+            });
           } else if (detail === 'User account is not active. Please verify your email.') {
             notifications.show({
               title: 'Account Not Active',

@@ -107,21 +107,23 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
   const currentProducts = paginatedProducts[activePage - 1] || [];
 
   const addTocart = async (productId: string, quantity: number, productName: string) => {
-    const response = await axios.post('reservationsCart/', {
-      productId,
-      quantity,
-      username,
-    });
-    if (response.status === 200) {
-      notifications.show({
-        title: 'Success',
-        message: `${quantity} ${productName}(s) added to cart`,
-        color: 'green',
+    try {
+      const response = await axios.post('reservationsCart/', {
+        productId,
+        quantity,
+        username,
       });
-    } else {
+      if (response.status === 200) {
+        notifications.show({
+          title: 'Success',
+          message: `${quantity} ${productName}(s) added to cart`,
+          color: 'green',
+        });
+      }
+    } catch (error) {
+      const errorMessage = (error as any).response?.data?.message || 'Something went wrong.';
       notifications.show({
-        title: 'Error',
-        message: `Error adding ${productName} to cart`,
+        message: errorMessage,
         color: 'red',
       });
     }

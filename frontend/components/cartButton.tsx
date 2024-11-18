@@ -283,8 +283,11 @@ export function CartIcon() {
       setSubject('');
       mutate(`reservationsCart/?username=${username}`);
     } catch (error) {
-      console.error(error);
-      notifications.show({ title: 'Error', message: 'Checkout failed', color: 'red' });
+      const errorMessage = (error as any).response?.data?.message || 'Something went wrong.';
+      notifications.show({
+        message: errorMessage,
+        color: 'red',
+      });
     } finally {
       setCheckoutModalOpen(false);
     }

@@ -242,7 +242,7 @@ class getCompletedOrdersEachMonth(APIView):
 
         # Populate the dictionary with order counts by month
         for order in completed_orders:
-            month = order.reservation_date_end.strftime("%B")
+            month = order.reservation_date.strftime("%B")
             if month in completed_orders_by_month:
                 completed_orders_by_month[month] += 1
             else:
