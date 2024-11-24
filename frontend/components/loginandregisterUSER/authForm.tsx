@@ -145,7 +145,7 @@ export function AuthenticationForm(props: PaperProps) {
   const handleForgotPassword = async () => {
     setLoading(true);
     try {
-      const response = await axios.post('forgetPasswordEmail/', { forgotEmail });
+      const response = await axios.post('forgetPasswordEmail/', { email: forgotEmail });
       notifications.show({
         title: 'Password Reset Email Sent',
         message: 'Please check your email for further instructions.',
@@ -209,7 +209,7 @@ export function AuthenticationForm(props: PaperProps) {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const response = await axios.post('login/', { username, password });
+      const response = await axios.post('login/', { username: username, password: password });
 
       const { role, username: fetchedUsername } = (await fetchDecodedAccessTokenRole()) as {
         role: string;
@@ -288,6 +288,19 @@ export function AuthenticationForm(props: PaperProps) {
   const handleRegister = async () => {
     try {
       setLoading(true);
+
+      // Check if the email is from the @dlsud.edu.ph domain
+      if (!email.endsWith('@dlsud.edu.ph')) {
+        notifications.show({
+          title: 'Invalid Email',
+          message: 'Please use your @dlsud.edu.ph email address.',
+          color: 'red',
+        });
+        form.setFieldError('email', 'Please use your @dlsud.edu.ph email address.');
+        setLoading(false);
+        return;
+      }
+
       const response = await axios.post('register/', {
         username,
         password,
@@ -309,13 +322,37 @@ export function AuthenticationForm(props: PaperProps) {
       toggle1(); // Switch to login form
     } catch (err) {
       console.error('Register error:', err);
-      setError('Invalid username or password');
-      form.setFieldError('email', 'Invalid email or password!');
-      form.setFieldError('username', 'Invalid email or password!');
-      form.setFieldError('password', 'Invalid email or password!');
-      form.setFieldError('firstName', 'Invalid email or password!');
-      form.setFieldError('lastName', 'Invalid email or password!');
-      form.setFieldError('classSection', 'Invalid class section!');
+      if (err instanceof AxiosError && err.response) {
+        const { data } = err.response;
+        if (data && data.message === 'Email is already in use.') {
+          notifications.show({
+            title: 'Registration Error',
+            message: 'Email is already in use.',
+            color: 'red',
+          });
+          form.setFieldError('email', 'Email is already in use!');
+        } else if (data && data.message === 'Username is already in use.') {
+          notifications.show({
+            title: 'Registration Error',
+            message: 'Username is already in use.',
+            color: 'red',
+          });
+          form.setFieldError('username', 'Username is already in use!');
+        } else {
+          const errorMessage = data.message || 'An error occurred, please try again later.';
+          notifications.show({
+            title: 'Registration Error',
+            message: errorMessage,
+            color: 'red',
+          });
+        }
+      } else {
+        notifications.show({
+          title: 'Registration Error',
+          message: 'An unexpected error occurred. Please try again later.',
+          color: 'red',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -410,7 +447,7 @@ export function AuthenticationForm(props: PaperProps) {
               <TextInput
                 required
                 label="Email"
-                placeholder="hello@mantine.dev"
+                placeholder="yourname@dlsud.edu.ph"
                 value={form.values.email}
                 onChange={(event) => {
                   form.setFieldValue('email', event.currentTarget.value);
@@ -424,8 +461,8 @@ export function AuthenticationForm(props: PaperProps) {
 
           <TextInput
             required
-            label="Username"
-            placeholder="Enter your username"
+            label="Username or Email"
+            placeholder="Enter your username or email"
             value={form.values.username}
             onChange={(event) => {
               form.setFieldValue('username', event.currentTarget.value);
@@ -544,6 +581,7 @@ export function AuthenticationForm(props: PaperProps) {
               <Popover.Dropdown>
                 <Stack>
                   <TextInput
+                    autoComplete="new-password"
                     required
                     label="Email"
                     placeholder="Enter your email"

@@ -204,22 +204,30 @@ class forgetPasswordView(APIView):
 # API view para sa pag-register ng user
 class RegisterView(APIView):
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        try:
+            serializer = UserSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
 
-        # Send verification email
-        verification_link = f"{settings.FRONTEND_URL}/verification/{user.verification_token}"
-        # verification_link = f"{settings.FRONTEND_URL}/"
-        send_mail(
-            'Verify your email',
-            f'Click the link to verify your email: {verification_link}',
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            fail_silently=False,
-        )
+            # Send verification email
+            verification_link = f"{settings.FRONTEND_URL}/verification/{user.verification_token}"
+            # verification_link = f"{settings.FRONTEND_URL}/"
+            send_mail(
+                'Verify your email',
+                f'Click the link to verify your email: {verification_link}',
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
 
-        return Response({'message': 'Registration successful. Please check your email to verify your account.'}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'Registration successful. Please check your email to verify your account.'}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            if 'email' in str(e):
+                return Response({'message': 'Email is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
+            if 'username' in str(e):
+                return Response({'message': 'Username is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class VerifyEmailView(APIView):
@@ -231,9 +239,9 @@ class VerifyEmailView(APIView):
             user.save()
             return Response({'message': 'Email verified successfully'}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     
 # API view para kunin ang details ng user gamit ang JWT token
@@ -275,7 +283,8 @@ class UserView(APIView):
 class MyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         try:
-            user = get_object_or_404(User, username=request.data['username'])
+            # Check if the user exists with the provided username or email
+            user = get_object_or_404(User, Q(username=request.data['username']) | Q(email=request.data['username']))
 
             if user.locked_out:
                 return Response({'detail': 'User account is locked'}, status=status.HTTP_403_FORBIDDEN)
@@ -283,7 +292,14 @@ class MyTokenObtainPairView(TokenObtainPairView):
             if not user.is_active:
                 return Response({'detail': 'User account is not active. Please verify your email.'}, status=status.HTTP_403_FORBIDDEN)
 
+            original_username = request.data['username']
+            if user.email == request.data['username']:
+                request.data['username'] = user.username
+
             response = super().post(request, *args, **kwargs)
+
+            # Restore the original username in the request data
+            request.data['username'] = original_username
 
             if 'access' in response.data:
                 access_token = response.data['access']
@@ -316,7 +332,6 @@ class MyTokenObtainPairView(TokenObtainPairView):
             return Response({'detail': str(e)}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'detail': 'An error occurred', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 class LogoutView(APIView):
     def get(self, request):
         response = Response()

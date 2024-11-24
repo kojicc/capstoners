@@ -15,10 +15,9 @@ from pathlib import Path
 from datetime import datetime, timedelta
 # from dotenv import load_dotenv
 import os
-import django_on_heroku
-# import dj_database_url
-
-# DATABASE_URL = os.environ.get('DATABASE_URL')
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,7 +30,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
+
 
 ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000','capstoners-665f8af6ebcf.herokuapp.com','127.0.0.1','.vercel.app']
 
@@ -227,18 +228,15 @@ STORAGES = {
 }
 
 
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_QUERYSTRING_AUTH = os.getenv('AWS_QUERYSTRING_AUTH', 'False') == 'True'
+AWS_S3_SIGNATURE_VERSION = os.getenv('AWS_S3_SIGNATURE_VERSION', 's3v4')
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'ap-southeast-1')
+AWS_S3_FILE_OVERWRITE = os.getenv('AWS_S3_FILE_OVERWRITE', 'False') == 'True'
 
-AWS_ACCESS_KEY_ID  = 'AKIAQ4NXQJTCSQ4WLC6A'
-AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'capstonecthmbucket'
-# AWS_DEFAULT_ACL='public-read'
-AWS_QUERYSTRING_AUTH = False
-AWS_S3_SIGNATURE_VERSION  = 's3v4'
-AWS_S3_REGION_NAME = 'ap-southeast-1'
-AWS_S3_FILE_OVERWRITE = False  # Ensures files with the same name don't overwrite
-AWS_HEADERS = {
-    'Access-Control-Allow-Origin': 'https://capstoners.vercel.app'
-}
+
 
 # S3FILE_STORAGE_OPTIONS = {
 #     'bucket_name': AWS_STORAGE_BUCKET_NAME,
@@ -253,38 +251,4 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = f'https://capstonecthmbucket.s3.ap-southeast-1.amazonaws.com/media/'
 MEDIA_ROOT = None
 
-django_on_heroku.settings(locals(), staticfiles=False)
 
-# Debugging in heroku live
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': ('%(asctime)s [%(process)d] [%(levelname)s] ' +
-                       'pathname=%(pathname)s lineno=%(lineno)s ' +
-                       'funcname=%(funcName)s %(message)s'),
-            'datefmt': '%Y-%m-%d %H:%M:%S'
-        },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        }
-    },
-    'handlers': {
-        'null': {
-            'level': 'DEBUG',
-            'class': 'logging.NullHandler',
-        },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
-        }
-    },
-    'loggers': {
-        'testlogger': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        }
-    }
-}

@@ -61,10 +61,10 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
   }, [categoryID, searchQuery]);
 
   const productData = (product: Product) => [
-    { label: `Category ID: ${product.category}`, icon: IconUsers },
+    // { label: `Category ID: ${product.category}`, icon: IconUsers },
     { label: `Total Reservations: ${product.reserved}`, icon: IconGauge },
     { label: `Available Stock: ${product.quantity}`, icon: IconManualGearbox },
-    { label: `Product ID: ${product.productId}`, icon: IconGasStation },
+    // { label: `Product ID: ${product.productId}`, icon: IconGasStation },
     { label: `Product Price per broken item(₱): ${product.price}`, icon: IconGasStation },
   ];
 
@@ -145,7 +145,7 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
             <Group justify="space-between" mt="md">
               <div>
                 <Text fw={500}>{product.name}</Text>
-                <Text fz="xs" c="dimmed">
+                <Text size="md" c="dimmed">
                   {product.description}
                 </Text>
               </div>
@@ -160,14 +160,14 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
                 {productData(product).map((feature) => (
                   <Center key={feature.label}>
                     <feature.icon size="1.05rem" className={classes.icon} stroke={1.5} />
-                    <Text size="xs">{feature.label}</Text>
+                    <Text size="md">{feature.label}</Text>
                   </Center>
                 ))}
               </Stack>
             </Card.Section>
 
             <Card.Section className={classes.section}>
-              <Group gap={30}>
+              <Group grow gap={30}>
                 <div>
                   <Text fz="xl" fw={700} style={{ lineHeight: 1 }}>
                     Available Stock: {product.quantity}
@@ -207,7 +207,7 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
                           )
                         }
                       >
-                        Rent now
+                        Reserve
                       </Button>
                     </Popover.Target>
                     <Popover.Dropdown>

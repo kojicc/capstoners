@@ -86,6 +86,8 @@ const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 export function CartIcon() {
   // #region useStates
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [opened, setOpened] = useState(false);
   const { username, class_section } = useAuth();
   const [selectedSubject, setSelectedSubject] = useState('');
@@ -206,18 +208,21 @@ export function CartIcon() {
     );
   };
 
-  const handleDelete = async (productId: string) => {
+  const handleDelete = async (productIds: string[]) => {
+    setDeleteLoading(true);
     try {
       await axios.delete('reservationsCart/', {
-        data: { username, productIds: [productId] },
+        data: { username, productIds },
       });
 
       mutate(`reservationsCart/?username=${username}`);
-      notifications.show({ message: 'Item deleted from cart', color: 'green' });
-      setSelectedItems((prev) => prev.filter((id) => id !== productId));
+      notifications.show({ message: 'Items deleted from cart', color: 'green' });
+      setSelectedItems((prev) => prev.filter((id) => !productIds.includes(id)));
     } catch (error) {
-      notifications.show({ message: 'Failed to delete item', color: 'red' });
+      notifications.show({ message: 'Failed to delete items', color: 'red' });
       console.error(error);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -231,6 +236,7 @@ export function CartIcon() {
   const confirmCheckout = async () => {
     try {
       //#region Checkout
+      setCheckoutLoading(true);
       let productIds = selectedItems;
       let quantities = selectedItems.map(
         (productId) =>
@@ -290,6 +296,7 @@ export function CartIcon() {
       });
     } finally {
       setCheckoutModalOpen(false);
+      setCheckoutLoading(false);
     }
   };
 
@@ -375,6 +382,15 @@ export function CartIcon() {
   // Generate selectable dates for the next 10 weeks (or any number you choose)
   const selectableDates = getSelectableDates(allClassDays, 10);
 
+  const handleSelectAll = () => {
+    const allProductIds = data.cart_items.map((item) => item.product.productId);
+    setSelectedItems(allProductIds);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedItems([]);
+  };
+
   return (
     <>
       <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -421,56 +437,68 @@ export function CartIcon() {
         {data.cart_items.length === 0 ? (
           <Title>No items in cart</Title>
         ) : (
-          <Stack gap="md">
-            {data.cart_items
-              .filter((item) => item.product.quantity > 0)
-              .map((item, index) => (
-                <Paper key={item.product.productId} p="md" shadow="xs" radius="md" withBorder>
-                  <Group align="flex-start">
-                    <Checkbox
-                      checked={selectedItems.includes(item.product.productId)}
-                      onChange={() => handleCheckboxChange(item.product.productId)}
-                    />
-                    <img
-                      src={`${item.product.image}`}
-                      alt={item.product.name}
-                      style={{ width: 50, height: 50, objectFit: 'cover' }}
-                    />
-                    <Box>
-                      <Text w={500}>{item.product.name}</Text>
-                      <Text size="sm" color="dimmed">
-                        Qty in Cart: {item.quantity}
-                      </Text>
-                      <Text size="sm">Price: ₱{item.product.price}</Text>
-                      <Text size="xs" color="dimmed">
-                        Available Stock: {item.product.quantity}
-                      </Text>
-                    </Box>
-                    <Button
-                      variant="light"
-                      color="blue"
-                      onClick={() => {
-                        setSelectedItem(item);
-                        setModalOpen(true);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="light"
-                      color="red"
-                      onClick={() => handleDelete(item.product.productId)}
-                    >
-                      Delete
-                    </Button>
-                  </Group>
-                </Paper>
-              ))}
-          </Stack>
+          <>
+            <Group justify="apart" mb="md">
+              <Button variant="light" color="blue" onClick={handleSelectAll}>
+                Select All
+              </Button>
+              <Button variant="light" color="blue" onClick={handleDeselectAll}>
+                Deselect All
+              </Button>
+            </Group>
+            <Stack gap="md">
+              {data.cart_items
+                .filter((item) => item.product.quantity > 0)
+                .map((item, index) => (
+                  <Paper key={item.product.productId} p="md" shadow="xs" radius="md" withBorder>
+                    <Group align="flex-start">
+                      <Checkbox
+                        checked={selectedItems.includes(item.product.productId)}
+                        onChange={() => handleCheckboxChange(item.product.productId)}
+                      />
+                      <img
+                        src={`${item.product.image}`}
+                        alt={item.product.name}
+                        style={{ width: 50, height: 50, objectFit: 'cover' }}
+                      />
+                      <Box>
+                        <Text w={500}>{item.product.name}</Text>
+                        <Text size="sm" color="dimmed">
+                          Qty in Cart: {item.quantity}
+                        </Text>
+                        <Text size="sm">Price: ₱{item.product.price}</Text>
+                        <Text size="xs" color="dimmed">
+                          Available Stock: {item.product.quantity}
+                        </Text>
+                      </Box>
+                      <Button
+                        variant="light"
+                        color="blue"
+                        onClick={() => {
+                          setSelectedItem(item);
+                          setModalOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="light"
+                        color="red"
+                        onClick={() => handleDelete([item.product.productId])}
+                      >
+                        Delete
+                      </Button>
+                    </Group>
+                  </Paper>
+                ))}
+            </Stack>
+          </>
         )}
         <Divider my="md" />
         <Group justify="apart" mt="md">
-          <Text w={500}>Total: ₱{totalPrice.toFixed(2)}</Text>
+          <Text size="md" w={500}>
+            Total Price to be paid if broken: ₱{totalPrice.toFixed(2)}
+          </Text>
           <Text size="xs" color="dimmed">
             You will only be charged if items are broken. See{' '}
             <Anchor href="/tos">Terms of Service</Anchor> for more information.
@@ -480,8 +508,9 @@ export function CartIcon() {
         <Group justify="right" mt="md">
           <Button
             color="red"
-            onClick={() => handleDelete(selectedItems[0])}
+            onClick={() => handleDelete(selectedItems)}
             disabled={selectedItems.length === 0}
+            loading={deleteLoading}
           >
             Delete Selected ({selectedItems.length} items)
           </Button>
@@ -490,6 +519,7 @@ export function CartIcon() {
               handleCheckout();
               setOpened(false);
             }}
+            loading={checkoutLoading}
             disabled={selectedItems.length === 0}
           >
             Checkout ({selectedItems.length} items)
@@ -521,7 +551,7 @@ export function CartIcon() {
                     <Button
                       variant="light"
                       color="red"
-                      onClick={() => handleDelete(item.product.productId)}
+                      onClick={() => handleDelete([item.product.productId])}
                     >
                       Delete
                     </Button>
@@ -570,7 +600,7 @@ export function CartIcon() {
           Are you sure you want to delete this item from your cart?
         </Text>
         <Group>
-          <Button variant="light" color="red" onClick={() => handleDelete(selectedItems[0])}>
+          <Button variant="light" color="red" onClick={() => handleDelete([selectedItems[0]])}>
             Confirm
           </Button>
           <Button variant="light" color="gray" onClick={() => setConfirmationModalOpen(false)}>

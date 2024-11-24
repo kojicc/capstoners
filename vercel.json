@@ -1,0 +1,8 @@
+{
+    "crons": [
+      {
+        "path": "/api/cron/banjob",
+        "schedule": "0 16 * * *"
+      }
+    ]
+}

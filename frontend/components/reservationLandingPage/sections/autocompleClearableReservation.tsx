@@ -23,7 +23,7 @@ import {
   Chip,
 } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
-import router from 'next/router';
+import { useRouter } from 'next/router';
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
@@ -41,7 +41,6 @@ const useData = () => {
 
 interface AutocompleteClearableProps {
   setSearchQuery: Dispatch<SetStateAction<string>>;
-
   setCategoryID: Dispatch<SetStateAction<string>>;
 }
 
@@ -49,23 +48,28 @@ export function AutocompleteClearable({
   setSearchQuery,
   setCategoryID,
 }: AutocompleteClearableProps) {
+  const [value, setValue] = useState('');
+  const [activeChip, setActiveChip] = useState<string | null>(null);
+  const router = useRouter();
+
+  const { categories, products, isLoading, error } = useData();
+
   useEffect(() => {
     if (router.query.searchQuery) {
       setSearchQuery(router.query.searchQuery as string);
+      setActiveChip(router.query.searchQuery as string);
     } else {
       setSearchQuery('');
+      setActiveChip(null);
     }
   }, [router.query.searchQuery]);
-  const { categories, products, isLoading, error } = useData();
-
-  const [value, setValue] = useState('');
 
   if (isLoading) return <Loader />;
   if (error) return <div>Error loading data</div>;
 
   const categoryItems = categories.map((category: any) => ({
     value: category.categoryId,
-    label: `${category.name} - ${category.categoryId}`,
+    label: `${category.name}`,
   }));
 
   const productItems = products.map((product: any) => ({
@@ -92,6 +96,7 @@ export function AutocompleteClearable({
                 onClick={() => {
                   setValue('');
                   setSearchQuery('');
+                  setActiveChip(null);
                 }}
                 aria-label="Clear value"
               />
@@ -116,9 +121,11 @@ export function AutocompleteClearable({
             <Tooltip label="Click to view all products" position="bottom" withArrow>
               <Chip
                 value="all"
+                checked={activeChip === null}
                 onClick={() => {
                   setSearchQuery('');
                   setCategoryID('');
+                  setActiveChip(null);
                 }}
               >
                 All Products
@@ -139,17 +146,19 @@ export function AutocompleteClearable({
                     | undefined;
                 }) => (
                   <Tooltip
-                    label="Click to view products for this category"
+                    key={category.value}
+                    label={`Click to view products for this category ${category.value}`}
                     position="bottom"
                     withArrow
                   >
                     <Chip
                       key={category.value}
                       value={category.value?.toString() || ''}
+                      checked={activeChip === category.value?.toString()}
                       onClick={() => {
-                        console.log('category.value', category.value);
                         setSearchQuery(category.value?.toString() || '');
                         setCategoryID(category.value?.toString() || '');
+                        setActiveChip(category.value?.toString() || '');
                       }}
                     >
                       {category.label}

@@ -1,0 +1,4 @@
+export const dynamic = 'force-dynamic';
+
+
+// NEED MALAMAN PANO MACONNECT YUNG API FROM DJANGO TO HERE FOR CRONJOB
