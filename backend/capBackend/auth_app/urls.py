@@ -1,6 +1,6 @@
 # urls.py (app auth level)
 from django.urls import path
-from .views import RegisterView, UserView, LogoutView,MyTokenObtainPairView,get_access_token,RefreshTokenView,adminUpdateUsersView,forgetPasswordView,ExportImportUserView,VerifyEmailView,sendForgetPasswordEmailView
+from .views import RegisterView, UserView, LogoutView,MyTokenObtainPairView,get_access_token,RefreshTokenView,adminUpdateUsersView,forgetPasswordView,ExportImportUserView,VerifyEmailView,sendForgetPasswordEmailView, SendResetCodeView, VerifyResetCodeView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
@@ -14,7 +14,9 @@ urlpatterns = [
     path('forgetPassword/', forgetPasswordView.as_view()),
     path('exportimportUser/', ExportImportUserView.as_view()),
     path('verify-email/<uuid:token>/', VerifyEmailView.as_view(), name='verify-email'),
-    path('forgetPasswordEmail/', sendForgetPasswordEmailView.as_view())
+    path('forgetPasswordEmail/', sendForgetPasswordEmailView.as_view()),
+    path('send_reset_code/', SendResetCodeView.as_view(), name='send_reset_code'),
+    path('verify_reset_code/', VerifyResetCodeView.as_view(), name='verify_reset_code'),
 
 
 

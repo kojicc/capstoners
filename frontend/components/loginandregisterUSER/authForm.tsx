@@ -28,6 +28,7 @@ import {
   Autocomplete,
   Popover,
   Progress,
+  PinInput,
 } from '@mantine/core';
 import axios from '../../utils/axiosInstance';
 import { useRouter } from 'next/router';
@@ -41,6 +42,7 @@ import Header from '../LandingPage/header/HeaderLP';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AxiosError } from 'axios';
+import { sendResetCode, verifyResetCode, resetPassword } from '@/utils/auth';
 
 interface ClassSchedule {
   class_section: string;
@@ -138,6 +140,11 @@ export function AuthenticationForm(props: PaperProps) {
   const [forgotEmailError, setForgotEmailError] = useState('');
   const [forgotEmail, setForgotEmail] = useState('');
 
+  const [resetStep, setResetStep] = useState(1); // 1: email, 2: verification, 3: new password
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
   // #endregion
 
   const router = useRouter();
@@ -172,17 +179,6 @@ export function AuthenticationForm(props: PaperProps) {
     }
   };
 
-  const options = groceries.map((item, index) => (
-    <Combobox.Option
-      value={item}
-      key={item}
-      className={cx({ [classes.animateOption]: animating })}
-      style={{ animationDelay: `${index * 30}ms` }}
-    >
-      {item}
-    </Combobox.Option>
-  ));
-
   const form = useForm({
     initialValues: {
       username: '',
@@ -196,10 +192,65 @@ export function AuthenticationForm(props: PaperProps) {
     },
   });
 
-  const { data: classSchedules, error: classSchedError } = useSWR<ClassSchedule[]>(
-    'classScheduleCRUD/',
-    fetcher
-  );
+  // Add these handler functions
+  const handleSendResetCode = async () => {
+    setIsResetting(true);
+    try {
+      await sendResetCode(resetEmail);
+      notifications.show({
+        title: 'Reset Code Sent',
+        message: 'Please check your email for the verification code',
+        color: 'teal',
+      });
+      setResetStep(2);
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to send reset code',
+        color: 'red',
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    setIsResetting(true);
+    try {
+      await verifyResetCode(resetEmail, resetCode);
+      setResetStep(3);
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Invalid verification code',
+        color: 'red',
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    setIsResetting(true);
+    try {
+      await resetPassword(resetEmail, newPassword);
+      notifications.show({
+        title: 'Success',
+        message: 'Password reset successful',
+        color: 'teal',
+      });
+      setForgotPasswordPopoverOpened(false);
+      setResetStep(1);
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to reset password',
+        color: 'red',
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   const strength = getStrength(password);
   const meetsRequirements =
@@ -433,14 +484,14 @@ export function AuthenticationForm(props: PaperProps) {
                 radius="md"
               />
 
-              <Autocomplete
-                data={classSchedules ? classSchedules.map((cs) => cs.class_section) : []}
+              <TextInput
+                required
                 label="Class Section"
                 placeholder="Select class section"
                 value={form.values.classSection}
-                onChange={(value) => {
-                  form.setFieldValue('classSection', value);
-                  setClassSection(value);
+                onChange={(event) => {
+                  form.setFieldValue('classSection', event.currentTarget.value);
+                  setClassSection(event.currentTarget.value);
                 }}
               />
 
@@ -566,10 +617,11 @@ export function AuthenticationForm(props: PaperProps) {
               opened={forgotPasswordPopoverOpened}
               onClose={() => {
                 setForgotPasswordPopoverOpened(false);
-                setForgotEmailError('');
-                setForgotEmail('');
+                setResetStep(1);
+                setResetEmail('');
+                setResetCode('');
+                setNewPassword('');
               }}
-              trapFocus
               position="bottom"
               withArrow
             >
@@ -580,21 +632,58 @@ export function AuthenticationForm(props: PaperProps) {
               </Popover.Target>
               <Popover.Dropdown>
                 <Stack>
-                  <TextInput
-                    autoComplete="new-password"
-                    required
-                    label="Email"
-                    placeholder="Enter your email"
-                    value={forgotEmail}
-                    onChange={(event) => setForgotEmail(event.currentTarget.value)}
-                  />
-                  <Button
-                    radius="xl"
-                    onClick={handleForgotPassword}
-                    style={{ backgroundColor: '#592f55', color: '#fff' }}
-                  >
-                    Reset Password
-                  </Button>
+                  <LoadingOverlay visible={isResetting} />
+
+                  {resetStep === 1 && (
+                    <>
+                      <TextInput
+                        required
+                        label="Email"
+                        placeholder="yourname@dlsud.edu.ph"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                      />
+                      <Button
+                        onClick={handleSendResetCode}
+                        style={{ backgroundColor: '#592f55', color: '#fff' }}
+                      >
+                        Send Reset Code
+                      </Button>
+                    </>
+                  )}
+
+                  {resetStep === 2 && (
+                    <>
+                      <Text size="sm">Enter the verification code:</Text>
+                      <Center>
+                        <PinInput type="number" value={resetCode} onChange={setResetCode} />
+                      </Center>
+                      <Button
+                        onClick={handleVerifyCode}
+                        style={{ backgroundColor: '#592f55', color: '#fff' }}
+                      >
+                        Verify Code
+                      </Button>
+                    </>
+                  )}
+
+                  {resetStep === 3 && (
+                    <>
+                      <PasswordInput
+                        required
+                        label="New Password"
+                        placeholder="Enter new password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                      />
+                      <Button
+                        onClick={handleResetPassword}
+                        style={{ backgroundColor: '#592f55', color: '#fff' }}
+                      >
+                        Reset Password
+                      </Button>
+                    </>
+                  )}
                 </Stack>
               </Popover.Dropdown>
             </Popover>

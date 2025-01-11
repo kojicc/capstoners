@@ -93,3 +93,23 @@ export const isLoggedIn = async () => {
     return false;
   }
 };
+
+export const sendResetCode = async (email) => {
+  const response = await axios.post('send_reset_code/', { email });
+  return response.data;
+};
+
+export const verifyResetCode = async (email, resetCode) => {
+  const response = await axios.post('verify_reset_code/', {
+    email,
+    reset_code: resetCode,
+  });
+  return response.data;
+};
+export const resetPassword = async (email, newPassword) => {
+  const response = await axios.put('forgetPassword/', {
+    email,
+    password: newPassword,
+  });
+  return response.data;
+};

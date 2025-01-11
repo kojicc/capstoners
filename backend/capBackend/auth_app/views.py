@@ -24,8 +24,7 @@ import pandas as pd
 from django.http import HttpResponse
 from django.core.mail import send_mail
 from uuid import uuid4
-
-
+import random
 
 # Excel import export here
 class ExportImportUserView(APIView):
@@ -275,6 +274,46 @@ class UserView(APIView):
             'role': user.role,
         })
 
+class SendResetCodeView(APIView):
+    def post(self, request, format=None):
+        email = request.data.get('email')
+        if not email:
+            return Response({'message': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        reset_code = random.randint(1000, 9999)
+        user.reset_code = reset_code
+        user.save()
+        
+        send_mail(
+            'Password Reset Code',
+            f'Your password reset code is {reset_code}',
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=False,
+        )
+        
+        return Response({'message': 'Reset code sent to email'}, status=status.HTTP_200_OK)
+
+
+class VerifyResetCodeView(APIView):
+    def post(self, request, format=None):
+        email = request.data.get('email')
+        reset_code = request.data.get('reset_code')
+        
+        if not email or not reset_code:
+            return Response({'message': 'Email and reset code are required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = User.objects.get(email=email, reset_code=reset_code)
+        except User.DoesNotExist:
+            return Response({'message': 'Invalid reset code'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({'message': 'Reset code verified'}, status=status.HTTP_200_OK)
 
 
 
@@ -283,7 +322,6 @@ class UserView(APIView):
 class MyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         try:
-            # Check if the user exists with the provided username or email
             user = get_object_or_404(User, Q(username=request.data['username']) | Q(email=request.data['username']))
 
             if user.locked_out:
@@ -297,8 +335,6 @@ class MyTokenObtainPairView(TokenObtainPairView):
                 request.data['username'] = user.username
 
             response = super().post(request, *args, **kwargs)
-
-            # Restore the original username in the request data
             request.data['username'] = original_username
 
             if 'access' in response.data:
@@ -308,11 +344,11 @@ class MyTokenObtainPairView(TokenObtainPairView):
                 payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=['HS256'])
                 payload['role'] = user.role
                 payload['username'] = user.username
-
-                if user.class_section:
-                    class_section_value = user.class_section.class_section
-                    payload['class_section'] = class_section_value
-                else:
+                
+                # Handle class_section safely
+                try:
+                    payload['class_section'] = user.class_section if user.class_section else None
+                except AttributeError:
                     payload['class_section'] = None
 
                 new_access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
@@ -322,16 +358,12 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
             return response
 
-        except User.DoesNotExist:
-            return Response({'detail': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-        except jwt.ExpiredSignatureError:
-            return Response({'detail': 'Token has expired'}, status=status.HTTP_401_UNAUTHORIZED)
-        except jwt.InvalidTokenError:
-            return Response({'detail': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
-        except AuthenticationFailed as e:
-            return Response({'detail': str(e)}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'detail': 'An error occurred', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'detail': 'An error occurred',
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
 class LogoutView(APIView):
     def get(self, request):
         response = Response()
