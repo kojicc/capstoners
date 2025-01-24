@@ -31,7 +31,7 @@ import UserAccountsManage from '../manageUserAccounts/userAccountsManageTabs';
 import { useRouter } from 'next/router';
 import ClassroomCrud from '../classManagement/classCrud';
 import NotificationButton from '@/components/NotificationButton';
-import { CartIcon } from '@/components/cartButton';
+import { CartIcon } from '@/components/cartButtonComponent/cartButton';
 import axiosInstance from '@/utils/axiosInstance';
 import Cookies from 'js-cookie';
 import { useAuth } from '@/utils/auth';
@@ -110,11 +110,11 @@ export function NavbarSection() {
       icon: IconGauge,
       component: <Dashboard />, // Component for Dashboard
     },
-    {
-      label: 'Classroom Management',
-      icon: IconEdit,
-      component: <ClassroomCrud />,
-    },
+    // {
+    //   label: 'Classroom Management',
+    //   icon: IconEdit,
+    //   component: <ClassroomCrud />,
+    // },
     {
       label: 'Transactions',
       icon: IconHistory,

@@ -8,7 +8,6 @@ from django.conf import settings
 from django.core.mail import send_mail
 # Create your models here.
 
-
 class ClassSchedule(models.Model):
     class_section = models.CharField(max_length=100, primary_key=True)
     class_name = models.CharField(max_length=100)
@@ -21,17 +20,20 @@ class ClassSchedule(models.Model):
 
 class Reservation(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field='username')
-    user_class_section = models.ForeignKey(ClassSchedule, on_delete=models.CASCADE, to_field='class_section', null=True, blank=True)
+    same_day_reservation = models.BooleanField(default=False)
+    user_class_section = models.CharField(max_length=100)
     reservation_id = models.CharField(primary_key=True, max_length=100, unique=True, editable=False)
-    reserved_date = models.DateTimeField(default=timezone.now)
+    reserved_date = models.DateTimeField()
     reservation_day = models.CharField(max_length=100)
-    reservation_date = models.DateTimeField()
-    reservation_date_end = models.DateTimeField()
+    reservation_date = models.TimeField()
+    reservation_date_end = models.TimeField()
     reservation_purpose = models.CharField(max_length=100, blank=True)
     status = models.CharField(max_length=80, default='PENDING')
     is_group = models.BooleanField(default=False)
     group_members = models.JSONField(default=list, blank=True, null=True)  # Ensure this is present
     subject = models.CharField(max_length=200, blank=True, null=True)
+    reservation_made_at = models.DateTimeField(auto_now_add=True, null=True)
+    remarks = models.TextField(blank=True, null=True)
     # status_updated_at = models.DateTimeField(auto_now=True)
     
     def add_group_member(self, member):

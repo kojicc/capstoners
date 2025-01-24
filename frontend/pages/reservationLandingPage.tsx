@@ -12,7 +12,7 @@ import {
   Title,
 } from '@mantine/core';
 import CartItems from './cartReservations';
-import { CartIcon } from '@/components/cartButton';
+import { CartIcon } from '@/components/cartButtonComponent/cartButton';
 import { AutocompleteClearable } from '@/components/reservationLandingPage/sections/autocompleClearableReservation';
 import { useState, useEffect, useRef } from 'react';
 import useSWR from 'swr';
@@ -51,6 +51,8 @@ const ReservationLandingPage = () => {
     if (router.isReady && searchFromHeader) {
       scrollIntoView({ alignment: 'start' });
     }
+    setCategoryID(searchFromHeader as string);
+
   }, [router.isReady, searchFromHeader, scrollIntoView]);
 
   return (

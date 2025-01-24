@@ -21,6 +21,7 @@ import {
   PasswordInput,
   Popover,
   Progress,
+  Stack,
 } from '@mantine/core';
 import { useDisclosure, useHeadroom, useLocalStorage } from '@mantine/hooks';
 import { IconChevronDown, IconHanger2, IconSettings, IconCalendar } from '@tabler/icons-react';
@@ -34,7 +35,7 @@ import { useEffect, useState } from 'react';
 import { isLoggedIn, useAuth } from '@/utils/auth';
 import Cookies from 'js-cookie';
 import NotificationButton from '@/components/NotificationButton';
-import { CartIcon } from '@/components/cartButton';
+import { CartIcon } from '@/components/cartButtonComponent/cartButton';
 import useSWR from 'swr';
 import { notifications } from '@mantine/notifications';
 import { ActionToggle } from '@/components/darkorlightMode';
@@ -103,6 +104,7 @@ export default function Header() {
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
   const [linksOpened, { toggle: toggleLinks }] = useDisclosure(false);
   const [popoverOpened, setPopoverOpened] = useState(false);
+  const [supportButtonOpened, { toggle: toggleSupportButton }] = useDisclosure(false);
 
   const theme = useMantineTheme();
 
@@ -146,7 +148,7 @@ export default function Header() {
     router
       .push({
         pathname: '/reservationLandingPage',
-        query: { searchQuery: `${name} - ${categoryId}` },
+        query: { searchQuery: `${categoryId}` },
       })
       .then(() => {
         console.log('Navigation successful');
@@ -290,7 +292,7 @@ export default function Header() {
             <span style={{ fontWeight: 700, color: '#f3c565', paddingRight: -100 }}>.</span>
           </Text>
 
-          <Group h="100%" gap={0} visibleFrom="sm">
+          <Group h="100%" gap={0} visibleFrom="md">
             <Text component="a" href="/" className={classes.link}>
               Home
             </Text>
@@ -378,9 +380,9 @@ export default function Header() {
             </Text>
           </Group>
 
-          <Group visibleFrom="sm">
+          <Group>
             {isAuthenticated ? (
-              <>
+              <Group gap={10}>
                 <Button
                   component="a"
                   onClick={handleLogout}
@@ -388,14 +390,15 @@ export default function Header() {
                   color="white"
                   fw={700}
                   className={classes.btn}
+                  visibleFrom="sm"
                 >
                   Logout
                 </Button>
                 <NotificationButton />
                 <CartIcon />
-              </>
+              </Group>
             ) : (
-              <>
+              <Group gap={10}>
                 <Button
                   component="a"
                   href="login/"
@@ -406,13 +409,13 @@ export default function Header() {
                 >
                   Login
                 </Button>
-              </>
+              </Group>
             )}
 
             <ActionToggle />
           </Group>
 
-          <Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="sm" />
+          <Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="md" />
         </Group>
       </header>
 
@@ -422,7 +425,7 @@ export default function Header() {
         size="100%"
         padding="md"
         title="CTHM"
-        hiddenFrom="sm"
+        hiddenFrom="md"
         zIndex={1000000}
         className={classes.drawer}
       >
@@ -453,33 +456,36 @@ export default function Header() {
                 Admin Dashboard
               </Text>
             ) : (
-              <Menu trigger="click-hover" withArrow position="bottom-start">
-                <Menu.Target>
-                  <Text component="a" className={classes.link} style={{ cursor: 'pointer' }}>
-                    Support
-                  </Text>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item
-                    leftSection={<IconSettings size={14} />}
-                    onClick={() => setModalOpen(true)}
-                  >
-                    Change Password
-                  </Menu.Item>
-                  <Menu.Item
-                    leftSection={<IconCalendar size={14} />}
-                    onClick={() => router.push('transactionsUser')}
-                  >
-                    Transaction History
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
+              <>
+                <UnstyledButton className={classes.link} onClick={toggleSupportButton}>
+                  <Text style={{ cursor: 'pointer' }}>Support</Text>
+                </UnstyledButton>
+                <Collapse ml={50} in={supportButtonOpened}>
+                  <Stack>
+                    <UnstyledButton className={classes.subLink} onClick={() => setModalOpen(true)}>
+                      <Group wrap="nowrap">
+                        <IconSettings size={14} />
+                        <Text>Change Password</Text>
+                      </Group>
+                    </UnstyledButton>
+                    <UnstyledButton
+                      className={classes.subLink}
+                      onClick={() => router.push('transactionsUser')}
+                    >
+                      <Group wrap="nowrap">
+                        <IconCalendar size={14} />
+                        <Text>Transaction History</Text>
+                      </Group>
+                    </UnstyledButton>
+                  </Stack>
+                </Collapse>
+              </>
             )
           ) : null}
 
           <Divider my="sm" />
 
-          <Group justify="center" grow pb="xl" px="md">
+          <Stack justify="center" pb="xl" px="md">
             {isAuthenticated ? (
               <>
                 <Button
@@ -492,8 +498,12 @@ export default function Header() {
                 >
                   Logout
                 </Button>
-                {/* <NotificationButton />
-                <CartIcon /> */}
+                {/* <Group justify="center" gap={10}>
+                  {' '}
+                  <NotificationButton />
+                  <CartIcon />
+                  <ActionToggle />
+                </Group> */}
               </>
             ) : (
               <>
@@ -509,8 +519,7 @@ export default function Header() {
                 </Button>
               </>
             )}
-            <ActionToggle />
-          </Group>
+          </Stack>
         </ScrollArea>
       </Drawer>
 
@@ -519,6 +528,7 @@ export default function Header() {
         onClose={() => setModalOpen(false)}
         title="Change Password"
         centered
+        zIndex={1000000}
       >
         <Popover
           opened={popoverOpened}

@@ -290,3 +290,172 @@ class getTotalPageViews(APIView):
         # total_page_views = PageView.objects.filter(url=urls).count()
         total_page_views = PageView.objects.count()
         return Response({"total_page_views": total_page_views})
+    
+
+class DashboardStatsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_date_range(self, period):
+        now = timezone.now()
+        if period == 'daily':
+            start_date = now - timedelta(days=1)
+        elif period == 'weekly':
+            start_date = now - timedelta(weeks=1)
+        elif period == 'monthly':
+            # Get first day of 5 months ago
+            current_month = now.replace(day=1)
+            start_date = current_month - timedelta(days=150)
+        elif period == 'annually':
+            start_date = now - timedelta(days=365)
+        else:
+            return None, None
+        return start_date, now
+
+    def get(self, request):
+        period = request.GET.get('period', 'all')
+        start_date, end_date = self.get_date_range(period)
+
+        response_data = {}
+
+        # Get most reserved products using reservationitem
+        if start_date and end_date:
+            reserved_products = Product.objects.filter(
+                reservationitem__reservation__reserved_date__range=[start_date, end_date]
+            ).values('productId', 'name').annotate(
+                total_reserved=Sum('reserved')
+            ).order_by('-reserved')[:5]
+        else:
+            reserved_products = Product.objects.values('productId', 'name').annotate(
+                total_reserved=Sum('reserved')
+            ).order_by('-reserved')[:5]
+        response_data['most_reserved_products'] = reserved_products
+
+        # Get total pending orders
+        if start_date and end_date:
+            total_pending = Reservation.objects.filter(
+                status='PENDING',
+                reserved_date__range=[start_date, end_date]
+            ).count()
+        else:
+            total_pending = Reservation.objects.filter(status='PENDING').count()
+        response_data['total_pending_orders'] = total_pending
+
+        # Get total users
+        if start_date and end_date:
+            total_users = User.objects.filter(
+                date_joined__range=[start_date, end_date]
+            ).count()
+        else:
+            total_users = User.objects.count()
+        response_data['total_users'] = total_users
+        
+        # Get total page views
+        if start_date and end_date:
+            total_views = PageView.objects.filter(
+                timestamp__range=[start_date, end_date]
+            ).count()
+        else:
+            total_views = PageView.objects.count()
+        response_data['total_page_views'] = total_views
+        
+        # Get completed orders using reservation_made_at
+        completed_orders_query = Reservation.objects.filter(status='COMPLETED')
+        if start_date and end_date:
+            completed_orders_query = completed_orders_query.filter(
+                reservation_made_at__range=[start_date, end_date]
+            )
+
+        print(f"Found orders: {completed_orders_query.count()}")  # Debug
+
+
+        completed_orders_by_period = {}
+        total_completed = 0
+
+        if period == 'daily':
+            for h in range(24):
+                completed_orders_by_period[f"{h:02d}:00"] = 0
+
+            for order in completed_orders_query:
+                local_time = timezone.localtime(order.reservation_made_at)
+                hour = local_time.strftime("%H:00")
+                completed_orders_by_period[hour] += 1
+                total_completed += 1
+                print(f"Daily - Order: {order.reservation_id}, Time: {local_time}, Hour: {hour}")  # Debug
+
+        elif period == 'weekly':
+            days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+            for day in days:
+                completed_orders_by_period[day] = 0
+
+            for order in completed_orders_query:
+                local_time = timezone.localtime(order.reservation_made_at)
+                day = local_time.strftime("%A")
+                completed_orders_by_period[day] += 1
+                total_completed += 1
+                print(f"Weekly - Order: {order.reservation_id}, Time: {local_time}, Day: {day}")  # Debug
+
+        elif period == 'monthly':
+            # Get the last 5 months data
+            now = timezone.now()
+            five_months_ago = now - timedelta(days=150)
+            
+            # Filter orders first
+            completed_orders_query = completed_orders_query.filter(
+                reservation_made_at__gte=five_months_ago,
+                reservation_made_at__lte=now
+            )
+            
+            print(f"Query range: {five_months_ago} to {now}")
+            print(f"Found orders: {completed_orders_query.count()}")
+
+            # Get list of last 5 months
+            months_list = []
+            for i in range(4, -1, -1):  # 4 to 0, to get current month and 4 previous
+                month_date = now - timedelta(days=30 * i)
+                months_list.append(month_date.strftime("%B"))
+
+            # Initialize months with zero
+            completed_orders_by_period = {month: 0 for month in months_list}
+            
+            # Count orders by month
+            for order in completed_orders_query:
+                month = timezone.localtime(order.reservation_made_at).strftime("%B")
+                if month in completed_orders_by_period:
+                    completed_orders_by_period[month] += 1
+                    total_completed += 1
+                    print(f"Order counted: {order.reservation_id} in {month}")
+
+            # Keep chronological order (most recent last)
+            completed_orders_by_period = {
+                month: completed_orders_by_period[month]
+                for month in months_list
+            }
+
+            print(f"Final monthly data: {completed_orders_by_period}")
+        
+        
+        else:  # annually or all
+            months_order = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December']
+            for month in months_order:
+                completed_orders_by_period[month] = 0
+
+            for order in completed_orders_query:
+                local_time = timezone.localtime(order.reservation_made_at)
+                month = local_time.strftime("%B")
+                completed_orders_by_period[month] += 1
+                total_completed += 1
+                print(f"Annual - Order: {order.reservation_id}, Time: {local_time}, Month: {month}")  # Debug
+
+            # Keep only months with data
+            completed_orders_by_period = {k: v for k, v in completed_orders_by_period.items() if v > 0}
+
+        print(f"Final data: {completed_orders_by_period}")  # Debug
+        
+        response_data['completed_orders'] = {
+            "sorted": completed_orders_by_period,
+            "total": total_completed,
+            "period": period
+        }
+
+        return Response(response_data)

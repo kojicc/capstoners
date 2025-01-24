@@ -1,5 +1,5 @@
 // components/ProgressProducts.tsx
-import { useEffect, useState } from 'react';
+import { AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, useEffect, useState } from 'react';
 import axios from '@/utils/axiosInstance';
 import { ColorSwatch, Group, Paper, Progress, Tooltip, Text, LoadingOverlay } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -20,20 +20,22 @@ interface Totals {
   total: number;
 }
 
-export function ProgressProducts() {
+const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+
+export function ProgressProducts({ period }: { period: string }) {
+  const { data: dashboardStats } = useSWR(`dashboard-stats/?period=${period}`, fetcher);
   // const [categoryStatuses, setCategoryStatuses] = useState<CategoryStatus[] | null>(null);
   // const [totals, setTotals] = useState<Totals | null>(null);
   const [visible, { toggle }] = useDisclosure(false);
 
-  const fetcher = (url: string) => axios.get(url).then((res) => res.data);
-  const { data, error } = useSWR<{ categories: CategoryStatus[]; totals: Totals }>(
-    'totalStocks/',
-    fetcher,
-    { refreshInterval: 1000 }
-  );
+  // const { data, error } = useSWR<{ categories: CategoryStatus[]; totals: Totals }>(
+  //   'totalStocks/',
+  //   fetcher,
+  //   { refreshInterval: 1000 }
+  // );
   // walang interval pero nagrereturn data during window focus and out of focus
   // const { data, error } = useSWR<{ categories: CategoryStatus[], totals: Totals }>('totalStocks/', fetcher);
-  const { categories: categoryStatuses, totals } = data || {};
+  // const { categories: categoryStatuses, totals } = data || {};
 
   // useEffect(() => {
   //   const fetchStatus = async () => {
@@ -48,10 +50,10 @@ export function ProgressProducts() {
   //   fetchStatus();
   // }, []);
 
-  if (!categoryStatuses || !totals)
-    return (
-      <LoadingOverlay visible={visible} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
-    );
+  // if (!categoryStatuses || !totals)
+  //   return (
+  //     <LoadingOverlay visible={visible} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
+  //   );
 
   return (
     <Paper withBorder p="xl" shadow="xl" style={{ height: 'auto' }}>
@@ -92,7 +94,7 @@ export function ProgressProducts() {
       //   </Tooltip>
       // </Progress.Root> */}
 
-      {categoryStatuses.map((categoryStatus) => (
+      {dashboardStats.map((categoryStatus: { category: string; in_stock: number; total: number; reserved: number; broken_damaged: number; }) => (
         <div key={categoryStatus.category} style={{ marginBottom: '20px' }}>
           <Text w={500} size="lg">
             {categoryStatus.category}

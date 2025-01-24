@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import getMostReservedProducts,getTotalPageViews,getTotalNewUsersEachMonth,getCompletedOrdersEachMonth,TotalStocksPerCategoryAPIView,TotalStocksPerCategoryAPIView,getTotalPendingOrders,getTotalUsers,RecordPageView,ExportDataView
+from .views import getMostReservedProducts,getTotalPageViews,getTotalNewUsersEachMonth,getCompletedOrdersEachMonth,TotalStocksPerCategoryAPIView,TotalStocksPerCategoryAPIView,getTotalPendingOrders,getTotalUsers,RecordPageView,ExportDataView, DashboardStatsView
 
 urlpatterns = [
     
@@ -12,6 +12,8 @@ urlpatterns = [
     path('total-users/', getTotalUsers.as_view()),
     path('record-page-view/', RecordPageView.as_view(), name='record-page-view'),
     path('exportData/', ExportDataView.as_view(), name='export-data'),
+    path('dashboard-stats/', DashboardStatsView.as_view(), name='dashboard-stats'),
+
 
 
 ]

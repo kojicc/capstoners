@@ -80,6 +80,7 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
     searchQuery.trim().split(' - ')[1]?.toLowerCase() ||
     searchQuery.trim().split('-')[1]?.toLowerCase() ||
     '';
+  console.log('searchQuery:', searchValue);
 
   const filteredProducts = data.images.filter((product: Product) => {
     const lowerSearchValue = searchValue.toLowerCase();
@@ -93,7 +94,7 @@ export function ProductCards({ categoryID, searchQuery }: ProductCardsProps) {
         (product.category && product.category.toLowerCase().includes(lowerSearchValue))
       );
     }
-    if (categoryID) {
+    if (categoryID || searchQuery) {
       return (
         product.category === categoryID &&
         (product.productId.toLowerCase().includes(lowerSearchValue) ||

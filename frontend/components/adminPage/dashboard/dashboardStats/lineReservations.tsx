@@ -1,5 +1,5 @@
 import { LineChart } from '@mantine/charts';
-import { Paper } from '@mantine/core';
+import { LoadingOverlay, Paper, Title, Text} from '@mantine/core';
 import useSWR from 'swr';
 import axios from '@/utils/axiosInstance';
 import { useEffect, useState } from 'react';
@@ -12,42 +12,35 @@ interface MonthlyDataWithTotal {
   sorted: MonthlyData;
   total: number;
 }
+
+interface CompletedOrdersData {
+  sorted: { [key: string]: number };
+  total: number;
+  period: 'daily' | 'weekly' | 'monthly' | 'annually' | 'all';
+}
 const dataReserved: { date: string; reservations: number }[] = [];
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
-export function LineReservations() {
-  const { data: completedOrdersData, error: completedOrdersDataError } =
-    useSWR<MonthlyDataWithTotal>('total-completed-orders/', fetcher, { refreshInterval: 1000 });
+export function LineReservations({ period }: { period: string }) {
+  const { data: dashboardStats, error } = useSWR(`dashboard-stats/?period=${period}`, fetcher);
 
-  if (completedOrdersDataError) {
-    return <div>Error loading data</div>;
-  }
+  if (error) return <div>Error loading data</div>;
+  if (!dashboardStats) return <LoadingOverlay visible={true} />;
 
-  if (!completedOrdersData) {
-    return null;
-  }
-  const total = completedOrdersData.total;
-  const sortedData = completedOrdersData.sorted;
+  const completedOrders = dashboardStats?.completed_orders as CompletedOrdersData;
 
-  // Transform sortedData to the format required for dataReserved
-  const formattedData = Object.keys(sortedData).map((month) => ({
-    date: month,
-    reservations: sortedData[month],
+  // Transform data for chart
+  const formattedData = Object.entries(completedOrders?.sorted || {}).map(([key, value]) => ({
+    date: key,
+    reservations: value,
   }));
 
-  // const completedOrdersMonths = Object.keys(completedOrdersData ?? {});
-  // console.log("useSWR data",completedOrdersMonths);
-  // const data = Object.keys(completedOrdersData);
+  const yMax = Math.max(...formattedData.map(d => d.reservations), 5);
 
-  //   data.forEach((key) => {
-  //     dataReserved.push({ date: key, reservations: completedOrdersData
-  //     [key] });
-  //   }
-
-  console.log('dataReserved', dataReserved);
   return (
     <Paper withBorder p="xl" shadow="xl" style={{ height: 'auto' }}>
+      <Title order={2} mb="md">Completed Reservations</Title>
       <LineChart
         h={300}
         data={formattedData}
@@ -62,10 +55,27 @@ export function LineReservations() {
           { offset: 80, color: 'cyan.5' },
           { offset: 100, color: 'blue.5' },
         ]}
-        strokeWidth={5}
-        curveType="natural"
-        yAxisProps={{ domain: [0, total] }}
-        valueFormatter={(value) => `${value}`}
+        strokeWidth={3}
+        curveType="monotone"
+        yAxisProps={{
+          domain: [0, yMax + Math.ceil(yMax * 0.1)],
+          tickCount: 5,
+        }}
+        xAxisProps={{
+          angle: period === 'monthly' ? -45 : 0,
+        }}
+        tooltipProps={{
+          content: ({ payload }) => {
+            if (payload && payload.length > 0) {
+              return (
+                <Paper p="xs" withBorder>
+                  <Text size="sm">{`${payload[0].payload.date}: ${payload[0].value} reservations`}</Text>
+                </Paper>
+              );
+            }
+            return null;
+          },
+        }}
       />
     </Paper>
   );

@@ -24,6 +24,8 @@ import {
   Title,
   Table,
   Flex,
+  rem,
+  Tooltip,
 } from '@mantine/core';
 import { IconShoppingCart, IconClock } from '@tabler/icons-react';
 import axios from '@/utils/axiosInstance'; // Adjust this import to your Axios setup
@@ -31,7 +33,8 @@ import { useAuth } from '@/utils/auth';
 import { notifications } from '@mantine/notifications';
 import { useRouter } from 'next/router';
 import dayjs from 'dayjs';
-import { DateInput } from '@mantine/dates';
+import { DateInput, TimeInput } from '@mantine/dates';
+import classes from './cart.module.css';
 
 interface Product {
   productId: string;
@@ -90,6 +93,7 @@ export function CartIcon() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [opened, setOpened] = useState(false);
   const { username, class_section } = useAuth();
+  const [class_section_new, setClassSectionNew] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const router = useRouter();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -110,19 +114,33 @@ export function CartIcon() {
   const [users, setUsers] = useState<Users[]>([]);
   const [cthmSubjects, setCthmSubjects] = useState<string[]>([]);
   const [cartItemCount, setCartItemCount] = useState<number>(0);
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [isSameDay, setIsSameDay] = useState(false);
+  const [showSameDayModal, setShowSameDayModal] = useState(false);
 
-  const { data: usersData, error: usersError } = useSWR<Users[]>(
-    `adminupdateUsers/?class_section=${class_section}`,
-    fetcher,
-    {
-      // refreshInterval: 1000,
-      onSuccess: (data) => {
-        setUsers(data);
-      },
-    }
-  );
+  // const { data: usersData, error: usersError } = useSWR<Users[]>(
+  //   `adminupdateUsers/?class_section=${class_section}`,
+  //   fetcher,
+  //   {
+  //     // refreshInterval: 1000,
+  //     onSuccess: (data) => {
+  //       setUsers(data);
+  //     },
+  //   }
+  // );
 
   //#endregion
+
+  // Add function to check if selected date is today
+  const checkIfSameDay = (date: Date) => {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
 
   const { data, error } = useSWR<ApiResponse>(`reservationsCart/?username=${username}`, fetcher, {
     refreshInterval: 1000,
@@ -134,59 +152,14 @@ export function CartIcon() {
   // Filter items with 0 stock
   const outOfStockItems = data?.cart_items.filter((item) => item.product.quantity === 0);
 
-  // const { data: classSchedules } = useSWR<ClassSchedule[]>(
-  //   `classScheduleCRUD/?class_section=${class_section}`,
-  //   fetcher,
-  //   {
-  //     onSuccess: (data) => {
-  //       setCthmSubjects(data.map((user) => user.class_name));
-  //     },
-  //   }
-  // );
-
-  const { data: classSchedules } = useSWR<ClassSchedule[]>(
-    `classScheduleCRUD/?class_section=${class_section}`,
-    fetcher,
-    {
-      onSuccess: (data) => {
-        const subjects = data.flatMap((schedule) =>
-          Object.values(schedule.class_days)
-            .flat()
-            .map((day) => day.subject)
-        );
-        setCthmSubjects(subjects); // Store subjects
-      },
-    }
-  );
-
   useEffect(() => {
     const isFormValid =
       reservationPurpose.trim() !== '' &&
       selectedDate !== null &&
-      selectedClassTime.trim() !== '' &&
       selectedSubject.trim() !== '' &&
       (!isGroupCheckout || selectedUsers.length > 0);
 
-    const isTimeValid = () => {
-      if (!selectedDate || !classSchedules) return false;
-
-      const selectedDay = selectedDate ? dayjs(selectedDate).format('dddd').toUpperCase() : '';
-      const today = dayjs();
-
-      const classTimes = classSchedules.flatMap(
-        (schedule) => schedule.class_days[selectedDay]?.map((time) => time.end) || []
-      );
-
-      return classTimes.every((endTime) =>
-        today.isBefore(
-          dayjs(selectedDate)
-            .set('hour', parseInt(endTime.split(':')[0]))
-            .set('minute', parseInt(endTime.split(':')[1]))
-        )
-      );
-    };
-
-    setDisabledCheckoutButton(!isFormValid || !isTimeValid());
+    setDisabledCheckoutButton(!isFormValid);
   }, [
     reservationPurpose,
     selectedDate,
@@ -194,7 +167,6 @@ export function CartIcon() {
     selectedSubject,
     isGroupCheckout,
     selectedUsers,
-    classSchedules,
   ]);
 
   const totalPrice = selectedItems.reduce((total, productId) => {
@@ -235,33 +207,34 @@ export function CartIcon() {
 
   const confirmCheckout = async () => {
     try {
-      //#region Checkout
       setCheckoutLoading(true);
-      let productIds = selectedItems;
-      let quantities = selectedItems.map(
+
+      // Validate required fields
+      if (!selectedDate || !startTime || !endTime || !reservationPurpose || !selectedSubject) {
+        notifications.show({
+          title: 'Error',
+          message: 'Please fill in all required fields',
+          color: 'red',
+        });
+        return;
+      }
+
+      // Format the date and times
+      const day = dayjs(selectedDate).format('dddd');
+
+      // Format times as HH:mm:ss
+      const formattedStartTime = startTime.includes(':') ? startTime : `${startTime}:00`;
+      const formattedEndTime = endTime.includes(':') ? endTime : `${endTime}:00`;
+
+      // Get selected items and quantities
+      const productIds = selectedItems;
+      const quantities = selectedItems.map(
         (productId) =>
           data.cart_items.find((item) => item.product.productId === productId)?.quantity || 0
       );
 
-      const [day] = selectedClassTime.split(' ');
-      const startTime = selectedClassTime.split(' ')[1];
-      const endTime = selectedClassTime.split(' ')[3];
-
-      const reservation_date = dayjs(selectedDate)
-        .set('hour', parseInt(startTime.split(':')[0]))
-        .set('minute', parseInt(startTime.split(':')[1]))
-        .set('second', parseInt(startTime.split(':')[2]))
-        .format();
-
-      const reservation_date_end = dayjs(selectedDate)
-        .set('hour', parseInt(endTime.split(':')[0]))
-        .set('minute', parseInt(endTime.split(':')[1]))
-        .set('second', 0)
-        .format();
-
-      //#endregion
-
-      const response = await axios.post('reservationsCreateUpdate/', {
+      // Create payload
+      const payload = {
         username,
         productIds,
         quantities,
@@ -270,26 +243,41 @@ export function CartIcon() {
         group_members: isGroupCheckout ? selectedUsers : [],
         subject: selectedSubject,
         reservation_day: day,
-        reservation_date: reservation_date,
-        reservation_date_end: reservation_date_end,
-      });
+        reservation_date: formattedStartTime,
+        reservation_date_end: formattedEndTime,
+        reserved_date: selectedDate,
+        status: 'PENDING',
+        user_class_section: class_section_new ? class_section_new : class_section,
+        same_day_reservation: isSameDay, // Add this line
+      };
 
-      notifications.show({
-        title: 'Success',
-        message: `Checkout successful and your reservation ID is ${response.data.reservation_id}`,
-        color: 'green',
-      });
+      console.log('Sending payload:', payload); // Debug log
 
-      setSelectedItems([]);
-      setReservationPurpose('');
-      setReservationStatus('PENDING');
-      setIsGroupCheckout(false);
-      setSelectedUsers([]);
-      setSelectedClassTime('');
-      setSubject('');
-      mutate(`reservationsCart/?username=${username}`);
+      const response = await axios.post('reservationsCreateUpdate/', payload);
+
+      if (response.data) {
+        notifications.show({
+          title: 'Success',
+          message: `Checkout successful! Reservation ID: ${response.data.reservation_id}`,
+          color: 'green',
+        });
+
+        // Reset form
+        setSelectedItems([]);
+        setReservationPurpose('');
+        setReservationStatus('PENDING');
+        setIsGroupCheckout(false);
+        setSelectedUsers([]);
+        setStartTime('');
+        setEndTime('');
+        setSelectedSubject('');
+        setSelectedDate(null);
+        mutate(`reservationsCart/?username=${username}`);
+      }
     } catch (error) {
-      const errorMessage = (error as any).response?.data?.message || 'Something went wrong.';
+      console.error('Checkout error:', error);
+      const errorMessage =
+        (error as any).response?.data?.message || 'An error occured, please try again later.';
       notifications.show({
         message: errorMessage,
         color: 'red',
@@ -322,65 +310,6 @@ export function CartIcon() {
       setModalOpen(false);
     }
   };
-  const selectedDay = selectedDate ? dayjs(selectedDate).format('dddd').toUpperCase() : '';
-
-  const filteredClassTimeOptions =
-    selectedDate && classSchedules
-      ? classSchedules
-          .filter((schedule) => schedule.class_section === class_section) // Filter by class section
-          .flatMap((schedule) =>
-            Object.entries(schedule.class_days)
-              .filter(([day]) => day.toUpperCase() === selectedDay)
-              .flatMap(([day, times]) =>
-                times.map((time) => ({
-                  value: `${day} ${time.start} - ${time.end}`,
-                  label: `${time.subject} (${day} ${time.start} - ${time.end})`,
-                  subject: time.subject, // Include the subject in the option
-                }))
-              )
-          )
-      : [];
-
-  const getSelectableDates = (days: string[], weeksToConsider: number = 10) => {
-    const daysOfWeek = [
-      'SUNDAY',
-      'MONDAY',
-      'TUESDAY',
-      'WEDNESDAY',
-      'THURSDAY',
-      'FRIDAY',
-      'SATURDAY',
-    ];
-    const today = new Date();
-    const dates = [];
-
-    for (let weekOffset = 0; weekOffset < weeksToConsider; weekOffset++) {
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() + weekOffset * 7);
-
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(startOfWeek);
-        date.setDate(startOfWeek.getDate() + i);
-        if (days.includes(daysOfWeek[date.getDay()])) {
-          dates.push(date);
-        }
-      }
-    }
-    return dates;
-  };
-
-  const allClassDays = classSchedules
-    ? Array.from(
-        new Set(
-          classSchedules.flatMap((schedule) =>
-            Object.keys(schedule.class_days).map((day) => day.toUpperCase())
-          )
-        )
-      )
-    : [];
-
-  // Generate selectable dates for the next 10 weeks (or any number you choose)
-  const selectableDates = getSelectableDates(allClassDays, 10);
 
   const handleSelectAll = () => {
     const allProductIds = data.cart_items.map((item) => item.product.productId);
@@ -452,25 +381,32 @@ export function CartIcon() {
                 .map((item, index) => (
                   <Paper key={item.product.productId} p="md" shadow="xs" radius="md" withBorder>
                     <Group align="flex-start">
-                      <Checkbox
+                      <Checkbox.Card
+                        className={classes.root}
+                        radius="md"
                         checked={selectedItems.includes(item.product.productId)}
-                        onChange={() => handleCheckboxChange(item.product.productId)}
-                      />
-                      <img
-                        src={`${item.product.image}`}
-                        alt={item.product.name}
-                        style={{ width: 50, height: 50, objectFit: 'cover' }}
-                      />
-                      <Box>
-                        <Text w={500}>{item.product.name}</Text>
-                        <Text size="sm" color="dimmed">
-                          Qty in Cart: {item.quantity}
-                        </Text>
-                        <Text size="sm">Price: ₱{item.product.price}</Text>
-                        <Text size="xs" color="dimmed">
-                          Available Stock: {item.product.quantity}
-                        </Text>
-                      </Box>
+                        onClick={() => handleCheckboxChange(item.product.productId)}
+                      >
+                        <Group wrap="nowrap" align="flex-start">
+                          <Checkbox.Indicator />
+                          <img
+                            src={`${item.product.image}`}
+                            alt={item.product.name}
+                            style={{ width: 50, height: 50, objectFit: 'cover' }}
+                          />
+                          <Box>
+                            <Text w={500}>{item.product.name}</Text>
+                            <Text size="sm" color="dimmed">
+                              Qty in Cart: {item.quantity}
+                            </Text>
+                            <Text size="sm">Price: ₱{item.product.price}</Text>
+                            <Text size="xs" color="dimmed">
+                              Available Stock: {item.product.quantity}
+                            </Text>
+                          </Box>
+                        </Group>
+                      </Checkbox.Card>
+
                       <Button
                         variant="light"
                         color="blue"
@@ -688,113 +624,69 @@ export function CartIcon() {
                 </Paper>
 
                 <Paper shadow="xl" radius="lg" withBorder p="xl">
-                  <Divider label="Reservation Details" p={10} />
                   <Stack>
-                    <Checkbox
-                      label="Is this a group checkout?"
-                      checked={isGroupCheckout}
-                      onChange={(e) => setIsGroupCheckout(e.currentTarget.checked)}
+                    <Tooltip label="Enter new class section or leave blank to keep current class section">
+                      <TextInput
+                      label={`Current Class Section - ${class_section}`}
+                      placeholder={`Leave blank for old section`}
+                      value={class_section_new}
+                      onChange={(e) => setClassSectionNew(e.target.value)}
                       mb="md"
-                    />
-                    {isGroupCheckout && (
-                      <TagsInput
-                        label="Group Members"
-                        placeholder="Add users"
-                        value={selectedUsers}
-                        onChange={setSelectedUsers}
-                        mb="md"
-                        data={Object.entries(
-                          users.reduce(
-                            (acc, user) => {
-                              if (!acc[user.class_section]) {
-                                acc[user.class_section] = [];
-                              }
-                              acc[user.class_section].push({
-                                value: user.username,
-                                label: user.username,
-                              });
-                              return acc;
-                            },
-                            {} as Record<string, { value: string; label: string }[]>
-                          )
-                        ).map(([classSection, items]) => ({
-                          group: classSection || 'Unknown Section',
-                          items,
-                        }))}
-                        required
                       />
-                    )}
+                    </Tooltip>
                     <TextInput
                       label="Reservation Purpose"
+                      placeholder="Enter reservation purpose"
                       value={reservationPurpose}
                       onChange={(e) => setReservationPurpose(e.target.value)}
                       mb="md"
                     />
+
                     <DateInput
-                      hideOutsideDates
-                      clearable
-                      minDate={selectableDates.length > 0 ? selectableDates[0] : undefined}
-                      maxDate={
-                        selectableDates.length > 0
-                          ? selectableDates[selectableDates.length - 1]
-                          : undefined
-                      }
+                      minDate={new Date()}
                       label="Date input"
-                      placeholder="Date input"
+                      placeholder="Pick a date"
                       value={selectedDate}
-                      onChange={setSelectedDate}
-                      excludeDate={(date) => {
-                        const selectedDay = dayjs(date).format('dddd').toUpperCase();
-                        const today = dayjs();
-                        const classTimes = classSchedules?.flatMap(
-                          (schedule) =>
-                            schedule.class_days[selectedDay]?.map((time) => time.end) || []
-                        );
-
-                        const isCurrentWeek = selectableDates.some((d) =>
-                          dayjs(d).isSame(date, 'day')
-                        );
-                        const isNextWeek = selectableDates.some((d) =>
-                          dayjs(d).isSame(dayjs(date).add(7, 'day'), 'day')
-                        );
-
-                        return (
-                          (!isCurrentWeek && !isNextWeek) || // Exclude if not in current or next week
-                          today.isAfter(date, 'day') || // Exclude past dates
-                          (classTimes?.some((endTime) =>
-                            today.isAfter(
-                              dayjs(date)
-                                .set('hour', parseInt(endTime.split(':')[0]))
-                                .set('minute', parseInt(endTime.split(':')[1]))
-                            )
-                          ) ??
-                            false)
-                        );
+                      onChange={(date) => {
+                        if (date && checkIfSameDay(date)) {
+                          setShowSameDayModal(true);
+                          setIsSameDay(true);
+                        } else {
+                          setIsSameDay(false);
+                        }
+                        setSelectedDate(date);
                       }}
+                      mb="md"
+                      clearable
+                    />
+
+                    <TimeInput
+                      label="Start Time"
+                      placeholder="Enter start time"
+                      leftSection={
+                        <IconClock style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                      }
+                      value={startTime}
+                      onChange={(event) => setStartTime(event.currentTarget.value)}
                       mb="md"
                     />
 
-                    <Select
-                      label="Class Schedule"
-                      placeholder="Select your class schedule"
-                      data={filteredClassTimeOptions}
-                      value={selectedDate ? selectedClassTime : null}
-                      onChange={(value) => {
-                        setSelectedClassTime(value || '');
-                        const selectedOption = filteredClassTimeOptions.find(
-                          (option) => option.value === value
-                        );
-                        setSelectedSubject(selectedOption ? selectedOption.subject : '');
-                      }}
-                      disabled={!selectedDate}
+                    <TimeInput
+                      label="End Time"
+                      placeholder="Enter end time"
+                      leftSection={
+                        <IconClock style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                      }
+                      value={endTime}
+                      onChange={(event) => setEndTime(event.currentTarget.value)}
                       mb="md"
-                      required
                     />
+
                     <TextInput
                       label="Subject"
-                      placeholder="Subject will be set based on class schedule"
+                      placeholder="Enter subject"
                       value={selectedSubject}
-                      disabled
+                      onChange={(event) => setSelectedSubject(event.currentTarget.value)}
                       mb="md"
                     />
                   </Stack>
@@ -804,9 +696,9 @@ export function CartIcon() {
             <Grid.Col span={{ base: 12, md: 12, lg: 'auto' }}>
               <Paper shadow="xl" radius="lg" withBorder p="xl">
                 <Stack>
-                  <Divider label="Total Prices" />
+                  <Divider label="Items Being Borrowed" />
                   <Title order={3} w={700}>
-                    Prices
+                    Selected Equipment
                   </Title>
                   {selectedItems.map((productId) => {
                     const item = data.cart_items.find(
@@ -815,22 +707,22 @@ export function CartIcon() {
                     return (
                       <Group key={productId} justify="apart">
                         <Text>{item?.product.name}</Text>
-                        <Text>
-                          ₱
-                          {((item?.quantity ?? 0) * parseFloat(item?.product.price ?? '0')).toFixed(
-                            2
-                          )}
+                        <Text size="sm" c="dimmed">
+                          Qty: {item?.quantity}
                         </Text>
                       </Group>
                     );
                   })}
                   <Divider />
+                  <Title order={4} c="red">
+                    Penalty Charges (Only if items are broken/damaged)
+                  </Title>
                   <Group justify="apart">
-                    <Text>Total</Text>
-                    <Text>₱{totalPrice.toFixed(2)}</Text>
+                    <Text>Total potential penalty:</Text>
+                    <Text c="red">₱{totalPrice.toFixed(2)}</Text>
                   </Group>
-                  <Text size="xs" color="dimmed">
-                    You will only be charged if items are broken. See{' '}
+                  <Text size="xs" c="dimmed">
+                    Note: These charges only apply if equipment is damaged or broken. See{' '}
                     <Anchor href="/tos">Terms of Service</Anchor> for more information.
                   </Text>
                   <Button
@@ -838,6 +730,7 @@ export function CartIcon() {
                     disabled={disabledCheckoutButton}
                     color="green"
                     onClick={confirmCheckout}
+                    loading={checkoutLoading}
                   >
                     Confirm Checkout
                   </Button>
@@ -846,6 +739,24 @@ export function CartIcon() {
             </Grid.Col>
           </Grid>
         </Paper>
+      </Modal>
+
+      <Modal
+        opened={showSameDayModal}
+        onClose={() => { setShowSameDayModal(false); setSelectedDate(null); }}
+        title="Same Day Reservation"
+        centered
+      >
+        <Text>
+          Warning: This will be marked as a same-day reservation. Making same-day reservations will
+          result in grade deductions for the subject and professor specified in your reservation.
+          Are you sure you want to continue?
+        </Text>
+        <Group mt="md" justify="flex-end">
+          <Button variant="light" color="red" onClick={() => setShowSameDayModal(false)}>
+            Continue
+          </Button>
+        </Group>
       </Modal>
     </>
   );

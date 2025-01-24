@@ -32,6 +32,7 @@ import {
   TableScrollContainer,
   TagsInput,
   Paper,
+  Image,
 } from '@mantine/core';
 import {
   IconSelector,
@@ -43,6 +44,7 @@ import {
   IconDownload,
   IconUpload,
   IconX,
+  IconClock,
 } from '@tabler/icons-react';
 import classes from '@/components/modules.css/TableSort.module.css';
 import { notifications } from '@mantine/notifications';
@@ -53,6 +55,7 @@ import {
   DatesProvider,
   DateTimePicker,
   MonthPickerInput,
+  TimeInput,
 } from '@mantine/dates';
 import styles from '@/components/modules.css/TableSort.module.css';
 import { useRouter } from 'next/router';
@@ -103,6 +106,10 @@ interface Reservation {
   message: string;
   user: string;
   user_class_section: string;
+  user_email: string;
+  reservation_made_at: string;
+  remarks: string;
+  same_day_reservation: boolean;
 }
 interface ClassSchedule {
   class_section: string;
@@ -425,30 +432,15 @@ export default function TransactionHistory() {
   const handleEdit = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
 
-    //#region date
     if (!selectedReservation) {
       console.error('No reservation selected');
       return;
     }
 
-    const [day] = selectedClassTime.split(' ');
-    const startTime = selectedClassTime.split(' ')[1];
-    const endTime = selectedClassTime.split(' ')[3];
+    // Split class time string into components
+    const day = dayjs(selectedReservation.reserved_date).format('dddd');
 
-    const reservation_date = dayjs(selectedDate)
-      .set('hour', parseInt(startTime.split(':')[0]))
-      .set('minute', parseInt(startTime.split(':')[1]))
-      .set('second', parseInt(startTime.split(':')[2]))
-      .format();
-
-    const reservation_date_end = dayjs(selectedDate)
-      .set('hour', parseInt(endTime.split(':')[0]))
-      .set('minute', parseInt(endTime.split(':')[1]))
-      .set('second', 0)
-      .format();
-
-    //#endregion
-
+    // Create payload with separate date and time fields
     const data = {
       username: selectedReservation.reservation_id.split('_')[0],
       reservationId: selectedReservation.reservation_id,
@@ -458,22 +450,20 @@ export default function TransactionHistory() {
       quantities: quantity.map((item) => item),
       subject: selectedReservation.subject,
       reservation_day: day,
-      reservation_date: reservation_date,
-      reservation_date_end: reservation_date_end,
+      reservation_date: selectedReservation.reservation_date, // Send time as HH:mm:ss
+      reservation_date_end: selectedReservation.reservation_date_end, // Send time as HH:mm:ss
       is_group: selectedReservation.is_group,
       group_members: selectedReservation.group_members ? selectedReservation.group_members : [],
+      reserved_date: selectedReservation.reserved_date,
+      user_class_section: selectedReservation.user_class_section,
+      remarks: selectedReservation.remarks,
     };
-    console.log('Data:', data);
+
     try {
       setLoader(true);
-      await axiosInstance.post('adminUpdateReservationStatus/', data, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
+      await axiosInstance.post('adminUpdateReservationStatus/', data);
       handleCloseModal();
-      mutate(); // Re-fetch data after successful update
+      mutate();
       notifications.show({
         title: 'Success',
         message: 'Reservation updated successfully.',
@@ -481,6 +471,11 @@ export default function TransactionHistory() {
       });
     } catch (error) {
       console.error('Error updating reservation:', error);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to update reservation.',
+        color: 'red',
+      });
     } finally {
       setIsGroupCheckout(false);
       setSelectedUsers([]);
@@ -490,24 +485,6 @@ export default function TransactionHistory() {
 
   const selectedDay = selectedDate ? dayjs(selectedDate).format('dddd').toUpperCase() : '';
 
-  const filteredClassTimeOptions =
-    selectedDate && selectedReservation
-      ? classSchedules
-          ?.filter((schedule) => schedule.class_section === selectedReservation.user_class_section) // Filter by selected class section
-          .flatMap((schedule) =>
-            Object.entries(schedule.class_days)
-              .filter(([day]) => day.toUpperCase() === selectedDay)
-              .flatMap(([day, times]) =>
-                times.map((time) => ({
-                  value: `${day} ${time.start} - ${time.end}`,
-                  label: `${schedule.class_name} (${day} ${time.start} - ${time.end})`,
-                }))
-              )
-          )
-      : [];
-
-  console.log('Selected Date:', selectedDay);
-
   const cthmSubjects = [
     'Hospitality Management',
     'Tourism Management',
@@ -515,83 +492,6 @@ export default function TransactionHistory() {
     'Hotel Administration',
     'Event Management',
   ];
-
-  const getSelectableDates = (days: string[], weeksToConsider: number = 10) => {
-    const daysOfWeek = [
-      'SUNDAY',
-      'MONDAY',
-      'TUESDAY',
-      'WEDNESDAY',
-      'THURSDAY',
-      'FRIDAY',
-      'SATURDAY',
-    ];
-    const today = new Date();
-    const dates = [];
-
-    for (let weekOffset = 0; weekOffset < weeksToConsider; weekOffset++) {
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() + weekOffset * 7);
-
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(startOfWeek);
-        date.setDate(startOfWeek.getDate() + i);
-        if (days.includes(daysOfWeek[date.getDay()])) {
-          dates.push(date);
-        }
-      }
-    }
-    return dates;
-  };
-
-  const allClassDays = classSchedules
-    ? Array.from(
-        new Set(
-          classSchedules.flatMap((schedule) =>
-            Object.keys(schedule.class_days).map((day) => day.toUpperCase())
-          )
-        )
-      )
-    : [];
-
-  // Generate selectable dates for the next 10 weeks (or any number you choose)
-  const selectableDates = getSelectableDates(allClassDays, 10);
-
-  const handleDateChange = (
-    date: Date | null,
-    field: 'reservation_date' | 'reservation_date_end'
-  ) => {
-    const formattedDate = date ? moment(date).tz('Asia/Manila').format('YYYY-MM-DD HH:mm') : '';
-    setSelectedReservation((prev) => (prev ? { ...prev, [field]: formattedDate } : null));
-  };
-
-  const cards =
-    selectedReservation?.items.map((item) => {
-      const fullImageUrl = `${item.product.image}`;
-
-      return (
-        <Checkbox.Card
-          className={classes.root}
-          radius="md"
-          value={item.product.productId}
-          key={item.product.productId}
-        >
-          <Group wrap="nowrap" align="flex-start">
-            <Checkbox.Indicator />
-            <div>
-              <Text className={classes.label}>Product ID: {item.product.productId}</Text>
-              <Text className={classes.description}>Quantity: {item.quantity}</Text>
-              <img
-                src={fullImageUrl}
-                alt={`Product ${item.product.productId}`}
-                className={classes.image}
-                style={{ width: '100px', height: '100px' }}
-              />
-            </div>
-          </Group>
-        </Checkbox.Card>
-      );
-    }) || [];
 
   useEffect(() => {
     if (selectedReservation?.items) {
@@ -900,6 +800,14 @@ export default function TransactionHistory() {
                                 </Th>
 
                                 <Th
+                                  sorted={sortBy === 'user_email'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('user_email')}
+                                >
+                                  Email
+                                </Th>
+
+                                <Th
                                   sorted={sortBy === 'user_class_section'}
                                   reversed={reverseSortDirection}
                                   onSort={() => handleSort('user_class_section')}
@@ -935,6 +843,15 @@ export default function TransactionHistory() {
                                 >
                                   Reservation Date End
                                 </Th>
+                                <Th
+                                  sorted={sortBy === 'reservation_made_at'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('reservation_made_at')}
+                                >
+                                  {' '}
+                                  Reservation Time
+                                </Th>
+
                                 <Th
                                   sorted={sortBy === 'is_group'}
                                   reversed={reverseSortDirection}
@@ -978,6 +895,21 @@ export default function TransactionHistory() {
                                 >
                                   Status
                                 </Th>
+                                <Th
+                                  sorted={sortBy === 'same_day_reservation'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('same_day_reservation')}
+                                >
+                                  Same Day Reservation
+                                </Th>
+
+                                <Th
+                                  sorted={sortBy === 'remarks'}
+                                  reversed={reverseSortDirection}
+                                  onSort={() => handleSort('remarks')}
+                                >
+                                  Remarks
+                                </Th>
                                 <Th>Actions</Th>
                               </Table.Tr>
                             </Table.Thead>
@@ -1001,6 +933,9 @@ export default function TransactionHistory() {
                                     </Table.Td>
                                     <Table.Td className={styles.td}>{reservation.user}</Table.Td>
                                     <Table.Td className={styles.td}>
+                                      {reservation.user_email}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>
                                       {reservation.user_class_section}
                                     </Table.Td>
                                     <Table.Td className={styles.td}>
@@ -1012,14 +947,19 @@ export default function TransactionHistory() {
                                         .format('YYYY-MM-DD HH:mm')}
                                     </Table.Td>
                                     <Table.Td className={styles.td}>
-                                      {moment(new Date(reservation.reservation_date))
-                                        .tz('Asia/Manila')
-                                        .format('YYYY-MM-DD HH:mm')}
+                                      {moment(reservation.reservation_date, 'HH:mm:ss').format(
+                                        'hh:mm A'
+                                      )}
                                     </Table.Td>
                                     <Table.Td className={styles.td}>
-                                      {moment(new Date(reservation.reservation_date_end))
-                                        .tz('Asia/Manila')
-                                        .format('YYYY-MM-DD HH:mm')}
+                                      {moment(reservation.reservation_date_end, 'HH:mm:ss').format(
+                                        'hh:mm A'
+                                      )}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>
+                                      {moment(reservation.reservation_made_at).format(
+                                        'YYYY-MM-DD HH:mm A'
+                                      )}
                                     </Table.Td>
                                     <Table.Td className={styles.td}>
                                       {' '}
@@ -1035,49 +975,24 @@ export default function TransactionHistory() {
                                     <Table.Td className={styles.td}>{quantities}</Table.Td>
                                     <Table.Td className={styles.td}>{reservation.status}</Table.Td>
                                     <Table.Td className={styles.td}>
+                                      {reservation.remarks
+                                        ? reservation.remarks
+                                        : 'No remarks yet.'}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>
+                                      {reservation.same_day_reservation ? (
+                                        <Text c={'red'}>Yes</Text>
+                                      ) : (
+                                        <Text c={'green'}>No</Text>
+                                      )}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>
                                       <Group gap="xs">
                                         <Tooltip label="Edit Reservation">
                                           <ActionIcon
                                             onClick={() => {
                                               setSelectedReservation(reservation);
                                               setEditModalOpened(true);
-
-                                              // Set the class time based on the selected date
-                                              if (reservation.reservation_date) {
-                                                const selectedDate = new Date(
-                                                  reservation.reservation_date
-                                                );
-                                                setSelectedDate(selectedDate);
-
-                                                const selectedDay = dayjs(selectedDate)
-                                                  .format('dddd')
-                                                  .toUpperCase();
-                                                const selectedStartTime =
-                                                  dayjs(selectedDate).format('HH:mm:ss');
-
-                                                // Find the matching class time based on the selected day and exact start time
-                                                const classTime = classSchedules?.flatMap(
-                                                  (schedule) =>
-                                                    Object.entries(schedule.class_days)
-                                                      .filter(
-                                                        ([day]) => day.toUpperCase() === selectedDay
-                                                      )
-                                                      .flatMap(([day, times]) =>
-                                                        times
-                                                          .filter(
-                                                            (time) =>
-                                                              selectedStartTime === time.start
-                                                          ) // Only return times where the start time matches exactly
-                                                          .map((time) => ({
-                                                            value: `${day} ${time.start} - ${time.end}`,
-                                                            label: `${schedule.class_name} (${day} ${time.start} - ${time.end})`,
-                                                          }))
-                                                      )
-                                                )[0];
-
-                                                console.log('Class Time:', classTime);
-                                                setSelectedClassTime(classTime?.value || '');
-                                              }
                                             }}
                                           >
                                             <IconEdit />
@@ -1160,7 +1075,6 @@ export default function TransactionHistory() {
                     />
 
                     <TextInput
-                      disabled
                       label="User Class Section"
                       value={selectedReservation?.user_class_section || ''}
                       onChange={(event) =>
@@ -1255,57 +1169,53 @@ export default function TransactionHistory() {
                     />
 
                     <DateInput
-                      hideOutsideDates
-                      clearable
-                      minDate={selectableDates.length > 0 ? selectableDates[0] : undefined}
-                      maxDate={
-                        selectableDates.length > 0
-                          ? selectableDates[selectableDates.length - 1]
-                          : undefined
-                      }
                       label="Date input"
-                      placeholder="Date input"
-                      value={selectedDate}
-                      onChange={setSelectedDate}
-                      excludeDate={(date) => {
-                        const selectedDay = dayjs(date).format('dddd').toUpperCase();
-                        const today = dayjs();
-                        const classTimes = classSchedules?.flatMap(
-                          (schedule) =>
-                            schedule.class_days[selectedDay]?.map((time) => time.end) || []
-                        );
-
-                        const isCurrentWeek = selectableDates.some((d) =>
-                          dayjs(d).isSame(date, 'day')
-                        );
-                        const isNextWeek = selectableDates.some((d) =>
-                          dayjs(d).isSame(dayjs(date).add(7, 'day'), 'day')
-                        );
-
-                        return (
-                          (!isCurrentWeek && !isNextWeek) || // Exclude if not in current or next week
-                          today.isAfter(date, 'day') || // Exclude past dates
-                          (classTimes?.some((endTime) =>
-                            today.isAfter(
-                              dayjs(date)
-                                .set('hour', parseInt(endTime.split(':')[0]))
-                                .set('minute', parseInt(endTime.split(':')[1]))
-                            )
-                          ) ??
-                            false)
-                        );
+                      placeholder="Pick a date"
+                      value={
+                        selectedReservation?.reserved_date
+                          ? new Date(selectedReservation.reserved_date)
+                          : null
+                      }
+                      onChange={(date) => {
+                        setSelectedReservation((prev) => {
+                          if (prev) {
+                            return { ...prev, reserved_date: date ? date.toISOString() : '' };
+                          }
+                          return prev;
+                        });
                       }}
                       mb="md"
+                      clearable
                     />
-                    <Select
-                      label="Class Schedule"
-                      placeholder="Select your class schedule"
-                      data={filteredClassTimeOptions}
-                      value={selectedDate ? selectedClassTime : null}
-                      onChange={(value) => setSelectedClassTime(value || '')}
-                      disabled={!selectedDate}
+
+                    <TimeInput
+                      label="Start Time"
+                      placeholder="Enter start time"
+                      leftSection={
+                        <IconClock style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                      }
+                      value={selectedReservation?.reservation_date || ''}
+                      onChange={(event) =>
+                        setSelectedReservation((prev) =>
+                          prev ? { ...prev, reservation_date: event.currentTarget.value } : null
+                        )
+                      }
                       mb="md"
-                      required
+                    />
+
+                    <TimeInput
+                      label="End Time"
+                      placeholder="Enter end time"
+                      leftSection={
+                        <IconClock style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                      }
+                      value={selectedReservation?.reservation_date_end || ''}
+                      onChange={(event) =>
+                        setSelectedReservation((prev) =>
+                          prev ? { ...prev, reservation_date_end: event.currentTarget.value } : null
+                        )
+                      }
+                      mb="md"
                     />
                     <Autocomplete
                       rightSection={
@@ -1339,6 +1249,21 @@ export default function TransactionHistory() {
                       required
                     />
 
+                    <TextInput
+                      label="Remarks"
+                      value={selectedReservation?.remarks || ''}
+                      onChange={(event) => {
+                        const { value } = event.currentTarget;
+                        setSelectedReservation((prev) => {
+                          if (prev) {
+                            return { ...prev, remarks: value };
+                          }
+                          return prev;
+                        });
+                      }}
+                      required
+                    />
+
                     <Checkbox.Group
                       value={value}
                       onChange={handleCheckboxChange}
@@ -1356,6 +1281,7 @@ export default function TransactionHistory() {
                                 className={classes.root}
                                 radius="md"
                                 value={item.product.productId}
+                                p={10}
                               >
                                 <Group wrap="nowrap" align="flex-start">
                                   <Checkbox.Indicator />
@@ -1366,7 +1292,7 @@ export default function TransactionHistory() {
                                     <Text className={classes.description}>
                                       Quantity: {item.quantity}
                                     </Text>
-                                    <img
+                                    <Image
                                       src={fullImageUrl}
                                       alt={`Product ${item.product.productId}`}
                                       className={classes.image}
@@ -1406,6 +1332,7 @@ export default function TransactionHistory() {
               </div>
             </Modal>
 
+            {/* Delete Modal */}
             <Modal
               opened={deleteModalOpened}
               onClose={() => setDeleteModalOpened(false)}

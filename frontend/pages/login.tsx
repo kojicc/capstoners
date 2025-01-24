@@ -13,6 +13,7 @@ import {
   Overlay,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { url } from 'inspector';
 
 export default function LoginPage() {
   const [opened, { toggle }] = useDisclosure();
@@ -26,26 +27,26 @@ export default function LoginPage() {
         padding="md"
         withBorder={false}
       >
-        <BackgroundImage
-          src="/RAFAEL.jpg"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            zIndex: -1,
-          }}
-        />
-
-        <Overlay color="#000" backgroundOpacity={0.85} zIndex={-1} />
         <AppShell.Header bg={'#592f55'}>
           <Header />
         </AppShell.Header>
 
-        <AppShell.Main style={{ height: '100vh' }}>
-          <Center style={{ height: '90vh' }}>
-            <Container>
+        <AppShell.Main
+          style={{
+            backgroundImage: 'url(/RAFAEL.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            zIndex: -1,
+          }}
+          p="xl"
+        >
+          <Overlay color="#000" backgroundOpacity={0.85} zIndex={-1} />
+          <Center style={{ marginTop: '10vh' }}>
+            <Container fluid>
               <AuthenticationForm />
             </Container>
           </Center>

@@ -487,7 +487,7 @@ export function AuthenticationForm(props: PaperProps) {
               <TextInput
                 required
                 label="Class Section"
-                placeholder="Select class section"
+                placeholder="Input your current class section"
                 value={form.values.classSection}
                 onChange={(event) => {
                   form.setFieldValue('classSection', event.currentTarget.value);
@@ -603,7 +603,15 @@ export function AuthenticationForm(props: PaperProps) {
               )}
 
               <Checkbox
-                label="I accept terms and conditions"
+                
+                label={
+                  <>
+                    I accept{' '}
+                    <Anchor href="/tos" target="_blank" inherit>
+                      terms and conditions
+                    </Anchor>
+                  </>
+                }
                 checked={form.values.terms}
                 onChange={(event) => form.setFieldValue('terms', event.currentTarget.checked)}
               />

@@ -36,7 +36,7 @@ from rest_framework.parsers import MultiPartParser
 from datetime import datetime
 from django.core.mail import send_mail
 import json
-
+from django.utils.timezone import now, timedelta
 # pangview ng total reservations
 
 
@@ -77,10 +77,12 @@ class ReservationImportExportView(APIView):
         serializer = ReservationSerializer(reservations, many=True)
         data = serializer.data
 
-        # Add reservation items to the serialized data
+        # Add simplified reservation items to the serialized data
         for reservation in data:
             reservation_items = ReservationItem.objects.filter(reservation__reservation_id=reservation['reservation_id'])
-            reservation['items'] = ReservationItemSerializer(reservation_items, many=True).data
+            # Simplify items to just product ID and quantity
+            simplified_items = [{"product_id": item.product.productId, "quantity": item.quantity} for item in reservation_items]
+            reservation['items'] = simplified_items
 
         print(f"Serialized data: {data}")
 
@@ -581,6 +583,8 @@ class ReservationCreateUpdateAPIView(APIView):
             group_members = request.data.get('group_members', [])
             subject = request.data.get('subject', None)
             reservation_day = request.data.get('reservation_day', None)
+            reserved_date = request.data.get('reserved_date', None)
+            user_class_section = request.data.get('user_class_section', None)
             #endregion
 
             print(f"Reservation data received: Product IDs: {product_ids}, Quantities: {quantities}, Group members: {group_members}")
@@ -597,10 +601,16 @@ class ReservationCreateUpdateAPIView(APIView):
                 reservation = get_object_or_404(Reservation, reservation_id=reservation_id)
                 if reservation_status:
                     reservation.status = reservation_status
+                    # start ng reservation time
                 if reservation_date:
                     reservation.reservation_date = reservation_date
+                    # end ng reservation time
+                if reservation_date_end:
+                    reservation.reservation_date_end = reservation_date_end
                 if reservation_day:
                     reservation.reservation_day = reservation_day
+                if reserved_date:
+                    reservation.reserved_date = reserved_date
 
                 reservation.save()
 
@@ -726,9 +736,11 @@ class ReservationCreateUpdateAPIView(APIView):
                             }, status=status.HTTP_400_BAD_REQUEST)
 
                     # Create the reservation after stock check
+                    # In ReservationCreateUpdateAPIView
                     reservation = Reservation(
                         user=user,
-                        user_class_section=user.class_section,
+                        user_class_section=user_class_section,
+                        reserved_date=reserved_date,
                         reservation_id=reservation_id,
                         reservation_date=reservation_date,
                         reservation_date_end=reservation_date_end,
@@ -737,7 +749,8 @@ class ReservationCreateUpdateAPIView(APIView):
                         group_members=group_members,
                         subject=subject,
                         status=reservation_status or 'PENDING',
-                        reservation_day=reservation_day
+                        reservation_day=reservation_day,
+                        same_day_reservation=request.data.get('same_day_reservation', False)  # Add this line
                     )
                     reservation.save()
 
@@ -856,6 +869,9 @@ class AdminUpdateReservationStatusAPIView(APIView):
             reservation_date_end = request.data.get('reservation_date_end')
             is_group = request.data.get('is_group', False)
             group_members = request.data.get('group_members', [])
+            reserved_date = request.data.get('reserved_date', None)
+            user_class_section = request.data.get('user_class_section', None)
+            remarks = request.data.get('remarks', None)
 
             print(f"Reservation data received: Product IDs: {product_ids}, Quantities: {quantities}")
 
@@ -864,7 +880,7 @@ class AdminUpdateReservationStatusAPIView(APIView):
 
             if reservation_id:
 
-                 # Ensure group_members is a list
+                # Ensure group_members is a list
 
                 reservation = get_object_or_404(Reservation, reservation_id=reservation_id)
                 notification_message = ""
@@ -885,12 +901,26 @@ class AdminUpdateReservationStatusAPIView(APIView):
                     if reservation_date_end is not None:
                         reservation.reservation_date_end = reservation_date_end
                     notification_message = f'Your reservation`s schedule for {reservation_id} has been updated by {usernameAdmin}.'
+                        
+                if reserved_date is not None:
+                    reservation.reserved_date = reserved_date
+                    print(f"Reserved date updated to: {reserved_date}")
+                    
+                    notification_message = f'Your reservation`s schedule for {reservation_id} has been updated by {usernameAdmin}.'
 
                 if is_group:
                     reservation.is_group = is_group
+                    
 
                 if group_members:
                     reservation.group_members = group_members
+                
+                if user_class_section:
+                    reservation.user_class_section = user_class_section
+                
+                if remarks:
+                    reservation.remarks = remarks
+                    notification_message = f'Your reservation`s remarks for {reservation_id} has been updated by {usernameAdmin}.'
 
                 reservation.save()
 
@@ -1038,6 +1068,9 @@ class AdminReservationDetailAPIView(APIView):
             combined_data = []
             for reservation in reservations:
                 reservation_data = ReservationSerializer(reservation).data
+                
+                # Add user email
+                reservation_data['user_email'] = reservation.user.email
 
                 # Fetch and serialize reservation items
                 reserved_items = ReservationItem.objects.filter(reservation=reservation)
@@ -1236,7 +1269,45 @@ class ReservationSearchView(APIView):
                 'message': f'An error occurred: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
         
+class SendReminderEmailsView(APIView):
+    def get(self, request, *args, **kwargs):
+        try:
+            # Get the current date and time
+            current_date = timezone().date()
+            one_day_later = current_date + timedelta(days=1)
 
+            # Query reservations ending tomorrow
+            reservations = Reservation.objects.filter(
+                reservation_date_end__date=one_day_later,
+                status="PENDING"
+            )
+
+            # Send emails for each reservation
+            for reservation in reservations:
+                email_content = f"""
+                Hello {reservation.user.username},
+
+                This is a reminder that your reservation with ID {reservation.reservation_id}
+                is scheduled to end tomorrow at {reservation.reservation_date_end}.
+                
+                Purpose: {reservation.reservation_purpose}
+                Date: {reservation.reserved_date.strftime('%Y-%m-%d')}
+                
+                Failure to do so will result to your portal to be locked.
+
+                Thank you.
+                """
+                send_mail(
+                    subject="Reservation Reminder",
+                    message=email_content,
+                    from_email="no-reply@yourdomain.com",
+                    recipient_list=[reservation.user.email],
+                )
+
+            return JsonResponse({"message": "Reminder emails sent successfully"}, status=200)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
 
 # class ReservationListCreateAPIView(APIView):
 #     def post(self, request):

@@ -46,6 +46,7 @@ import {
   IconBox,
   IconCash,
   IconCircleX,
+  IconBasketPause,
 } from '@tabler/icons-react';
 import classes from '../components/modules.css/transactionsUser.module.css';
 import { notifications } from '@mantine/notifications';
@@ -76,6 +77,7 @@ interface Reservation {
   reservation_id: string;
   reservation_date: string;
   reservation_date_end: string;
+  reservation_day: string;
   status: string;
   product_ids: string;
   quantities: string;
@@ -84,6 +86,13 @@ interface Reservation {
   is_group: boolean;
   group_members: string[];
   subject: string;
+  message: string;
+  user: string;
+  user_class_section: string;
+  user_email: string;
+  reservation_made_at: string;
+  remarks: string;
+  same_day_reservation: boolean;
 }
 
 function filterData(data: Reservation[] | undefined, search: string): Reservation[] {
@@ -389,12 +398,17 @@ export default function TransactionHistoryUser() {
               ) : error ? (
                 <Text color="red">{error}</Text>
               ) : (
-                <>
+                <Container fluid mb={20}>
                   <Tabs
                     value={activeMainTab}
                     onChange={(value) => {
                       setActiveMainTab(value || 'TRANSACTIONS');
-                      setActiveTab('PENDING');
+                      // Reset to default tabs when switching between main tabs
+                      if (value === 'TRANSACTIONS') {
+                        setActiveTab('PENDING');
+                      } else if (value === 'RETURNS') {
+                        setActiveTab('CANCELLED');
+                      }
                       setSearchQuery('');
                     }}
                     color="blue"
@@ -417,7 +431,7 @@ export default function TransactionHistoryUser() {
                       </Tabs.Tab>
                     </Tabs.List>
 
-                    <Tabs.Panel value={activeMainTab}>
+                    <Tabs.Panel value={activeMainTab} mt={20}>
                       <Tabs
                         value={activeTab}
                         onChange={(value) => {
@@ -432,7 +446,7 @@ export default function TransactionHistoryUser() {
                               <Tabs.Tab
                                 className={classes.tab}
                                 value="PENDING"
-                                leftSection={<IconClock size={14} />}
+                                leftSection={<IconBasketPause size={14} />}
                               >
                                 Pending ({pendingCount})
                               </Tabs.Tab>
@@ -500,290 +514,343 @@ export default function TransactionHistoryUser() {
 
                         <Tabs.Panel value={activeTab}>
                           <Stack mt={10}>
-                            {paginatedData.map((reservation) => {
-                              const products = reservation.items
-                                .map((item: { product: any }) => item.product.productId)
-                                .join(', ');
-                              const quantities = reservation.items
-                                .map((item: { quantity: any }) => item.quantity)
-                                .join(', ');
+                            {paginatedData.length === 0 ? (
+                              <Paper shadow="xl" radius="md" withBorder p="xl">
+                                <Center>
+                                  <Stack align="center" gap="md">
+                                    <Title order={2}>
+                                      No {activeTab.toLowerCase()} reservations!
+                                    </Title>
+                                    <Anchor href="/reservationLandingPage">
+                                      <Button
+                                        component="a"
+                                        variant="filled"
+                                        color="blue"
+                                        leftSection={<IconBox size={14} />}
+                                      >
+                                        Order Now
+                                      </Button>
+                                    </Anchor>
+                                  </Stack>
+                                </Center>
+                              </Paper>
+                            ) : (
+                              <>
+                                {paginatedData.map((reservation) => {
+                                  const products = reservation.items
+                                    .map((item: { product: any }) => item.product.productId)
+                                    .join(', ');
+                                  const quantities = reservation.items
+                                    .map((item: { quantity: any }) => item.quantity)
+                                    .join(', ');
 
-                              const totalPrice = reservation.items.reduce(
-                                (total, item) => total + item.product.price * item.quantity,
-                                0
-                              );
+                                  const totalPrice = reservation.items.reduce(
+                                    (total, item) => total + item.product.price * item.quantity,
+                                    0
+                                  );
 
-                              return (
-                                <Paper
-                                  key={reservation.reservation_id}
-                                  shadow="xl"
-                                  radius="md"
-                                  withBorder
-                                  p="xl"
-                                >
-                                  <Accordion classNames={classes} p={10} order={5}>
-                                    <Accordion.Item value={reservation.reservation_id}>
-                                      <Accordion.Control style={{ height: 'auto' }}>
-                                        <Group>
-                                          <Group>
-                                            <Text w={500}>Product Image:</Text>
-                                            {reservation.items.map((item) => (
-                                              <Avatar
-                                                key={item.product.productId}
-                                                src={`${item.product.image}`}
-                                                alt={item.product.productId}
-                                                size={80}
-                                                radius="md"
-                                              />
-                                            ))}
-                                          </Group>
-                                          <Group>
-                                            <Text w={500}>Reservation ID:</Text>
-                                            <Text>{reservation.reservation_id}</Text>
-                                          </Group>
-                                        </Group>
-                                      </Accordion.Control>
-                                      <Accordion.Panel>
-                                        <Divider label={'Reservation Details:'} m={10} p={20} />
-
-                                        {[
-                                          'DAMAGED/LOST/PARTIALLY_COMPLETED',
-                                          'AWAITING PAYMENT',
-                                          'RESOLVED',
-                                        ].includes(reservation.status) ? (
-                                          <Stepper active={getStatusStep(reservation.status)}>
-                                            <Stepper.Step
-                                              label="Damaged/Lost"
-                                              description="Item is damaged or lost"
-                                              icon={<IconX />}
-                                              completedIcon={
-                                                getStatusStep(reservation.status) === 5 ? (
-                                                  <IconCircleX
-                                                    style={{ width: rem(20), height: rem(20) }}
-                                                  />
-                                                ) : null
-                                              }
-                                              color={getStatusColor(reservation.status)}
-                                            />
-                                            <Stepper.Step
-                                              label="Awaiting Payment"
-                                              description="Awaiting payment for damages"
-                                              icon={<IconCash />}
-                                              completedIcon={
-                                                getStatusStep(reservation.status) === 5 ? (
-                                                  <IconCircleX
-                                                    style={{ width: rem(20), height: rem(20) }}
-                                                  />
-                                                ) : null
-                                              }
-                                              color={getStatusColor(reservation.status)}
-                                            />
-                                            <Stepper.Step
-                                              label="Resolved/Paid"
-                                              description="Issue resolved or payment made"
-                                              icon={<IconCheck />}
-                                              completedIcon={
-                                                getStatusStep(reservation.status) === 5 ? (
-                                                  <IconCircleX
-                                                    style={{ width: rem(20), height: rem(20) }}
-                                                  />
-                                                ) : null
-                                              }
-                                              color={getStatusColor(reservation.status)}
-                                            />
-                                          </Stepper>
-                                        ) : (
-                                          <Stepper active={getStatusStep(reservation.status)}>
-                                            <Stepper.Step
-                                              label="Pending"
-                                              description="Reservation is pending"
-                                              icon={<IconClock />}
-                                              completedIcon={
-                                                getStatusStep(reservation.status) === 5 ? (
-                                                  <IconCircleX
-                                                    style={{ width: rem(20), height: rem(20) }}
-                                                  />
-                                                ) : null
-                                              }
-                                              color={getStatusColor(reservation.status)}
-                                            />
-                                            <Stepper.Step
-                                              label="Approved"
-                                              description="Reservation is approved"
-                                              icon={<IconCheck />}
-                                              completedIcon={
-                                                getStatusStep(reservation.status) === 5 ? (
-                                                  <IconCircleX
-                                                    style={{ width: rem(20), height: rem(20) }}
-                                                  />
-                                                ) : null
-                                              }
-                                              color={getStatusColor(reservation.status)}
-                                            />
-                                            <Stepper.Step
-                                              label="Awaiting Return"
-                                              description="Picked up and awaiting return"
-                                              icon={<IconTruck />}
-                                              completedIcon={
-                                                getStatusStep(reservation.status) === 5 ? (
-                                                  <IconCircleX
-                                                    style={{ width: rem(20), height: rem(20) }}
-                                                  />
-                                                ) : null
-                                              }
-                                              color={getStatusColor(reservation.status)}
-                                            />
-                                            <Stepper.Step
-                                              label="Completed"
-                                              description="Reservation is completed"
-                                              icon={<IconBox />}
-                                              completedIcon={
-                                                getStatusStep(reservation.status) === 5 ? (
-                                                  <IconCircleX
-                                                    style={{ width: rem(20), height: rem(20) }}
-                                                  />
-                                                ) : null
-                                              }
-                                              color={getStatusColor(reservation.status)}
-                                            />
-                                            {reservation.status === 'CANCELLED' && (
-                                              <Stepper.Step
-                                                label="Cancelled"
-                                                description="Reservation is cancelled"
-                                                icon={<IconX />}
-                                                completedIcon={
-                                                  getStatusStep(reservation.status) === 5 ? (
-                                                    <IconCircleX
-                                                      style={{ width: rem(20), height: rem(20) }}
-                                                    />
-                                                  ) : null
-                                                }
-                                                color={getStatusColor(reservation.status)}
-                                              />
-                                            )}
-                                            <Stepper.Completed>
-                                              <Center>
-                                                <Title order={1} mt={25}>
-                                                  {reservation.status === 'CANCELLED'
-                                                    ? 'Order Cancelled'
-                                                    : 'Order Delivered'}
-                                                </Title>
-                                              </Center>
-                                            </Stepper.Completed>
-                                          </Stepper>
-                                        )}
-
-                                        <Stack mt={50}>
-                                          <Group>
-                                            <Text w={500}>Reserved Date:</Text>
-                                            <Text>
-                                              {moment(new Date(reservation.reserved_date))
-                                                .tz('Asia/Manila')
-                                                .format('YYYY-MM-DD HH:mm')}
-                                            </Text>
-                                          </Group>
-                                          <Group>
-                                            <Text w={500}>Reservation Date Start:</Text>
-                                            <Text>
-                                              {moment(new Date(reservation.reservation_date))
-                                                .tz('Asia/Manila')
-                                                .format('YYYY-MM-DD HH:mm')}
-                                            </Text>
-                                          </Group>
-                                          <Group>
-                                            <Text w={500}>Reservation Date End:</Text>
-                                            <Text>
-                                              {moment(new Date(reservation.reservation_date_end))
-                                                .tz('Asia/Manila')
-                                                .format('YYYY-MM-DD HH:mm')}
-                                            </Text>
-                                          </Group>
-                                          <Group>
-                                            <Text w={500}>By Group:</Text>
-                                            <Text>
-                                              {reservation.is_group
-                                                ? `Yes - ${reservation.group_members}`
-                                                : 'No'}
-                                            </Text>
-                                          </Group>
-                                          <Group>
-                                            <Text w={500}>Subject:</Text>
-                                            <Text>{reservation.subject}</Text>
-                                          </Group>
-                                          <Group>
-                                            <Text w={500}>Purpose:</Text>
-                                            <Text>{reservation.reservation_purpose}</Text>
-                                          </Group>
-                                          <Group>
-                                            <Text w={500}>Products:</Text>
-                                            <Text>{products}</Text>
-                                          </Group>
-                                          <Group>
-                                            <Text w={500}>Quantities:</Text>
-                                            <Text>{quantities}</Text>
-                                          </Group>
-                                          <Group>
-                                            <Text w={500}>Status:</Text>
-                                            <Badge color={getStatusColor(reservation.status)}>
-                                              {reservation.status}
-                                            </Badge>
-                                          </Group>
-                                          <Divider label={'Products:'} m={10} p={20} />
-                                          <Center>
-                                            <Stack>
-                                              {reservation.items.map((item) => (
-                                                <Group key={item.product.productId} align="center">
-                                                  <Image
+                                  return (
+                                    <Paper
+                                      key={reservation.reservation_id}
+                                      shadow="xl"
+                                      radius="md"
+                                      withBorder
+                                      p="xl"
+                                    >
+                                      <Accordion classNames={classes} p={10} order={5}>
+                                        <Accordion.Item value={reservation.reservation_id}>
+                                          <Accordion.Control style={{ height: 'auto' }}>
+                                            <Group>
+                                              <Group>
+                                                <Text w={500}>Product Image:</Text>
+                                                {reservation.items.map((item) => (
+                                                  <Avatar
+                                                    key={item.product.productId}
                                                     src={`${item.product.image}`}
                                                     alt={item.product.productId}
-                                                    width={180}
-                                                    height={180}
+                                                    size={80}
                                                     radius="md"
                                                   />
-                                                  <Stack gap={0}>
-                                                    <Text>{item.product.name}</Text>
-                                                    <Text>Stock: {item.quantity}</Text>
-                                                  </Stack>
-                                                </Group>
-                                              ))}
-                                            </Stack>
-                                          </Center>
-                                          <Divider label={'Total Price:'} m={10} p={20} />
-                                          <Center>
-                                            <Group>
-                                              <Title order={1}>Total Price:</Title>
-                                              <Title order={1}>₱{totalPrice}</Title>
+                                                ))}
+                                              </Group>
+                                              <Group>
+                                                <Text w={500}>Reservation ID:</Text>
+                                                <Text>{reservation.reservation_id}</Text>
+                                              </Group>
                                             </Group>
-                                          </Center>
-                                          <Center>
-                                            <Text size="xs" color="dimmed">
-                                              You will only be charged if items are broken. See{' '}
-                                              <Anchor href="/tos">Terms of Service</Anchor> for more
-                                              information.
-                                            </Text>
-                                          </Center>
-                                          {activeTab === 'PENDING' && (
-                                            <Center>
-                                              <Tooltip
-                                                label="This action is not reversible"
-                                                withArrow
-                                              >
-                                                <Button
-                                                  color="red"
-                                                  onClick={() => handleCancelClick(reservation)}
-                                                >
-                                                  Cancel Reservation
-                                                </Button>
-                                              </Tooltip>
-                                            </Center>
-                                          )}
-                                        </Stack>
-                                      </Accordion.Panel>
-                                    </Accordion.Item>
-                                  </Accordion>
-                                </Paper>
-                              );
-                            })}
+                                          </Accordion.Control>
+                                          <Accordion.Panel>
+                                            <Divider label={'Reservation Details:'} m={10} p={20} />
+
+                                            {[
+                                              'DAMAGED/LOST/PARTIALLY_COMPLETED',
+                                              'AWAITING PAYMENT',
+                                              'RESOLVED',
+                                            ].includes(reservation.status) ? (
+                                              <Stepper active={getStatusStep(reservation.status)}>
+                                                <Stepper.Step
+                                                  label="Damaged/Lost"
+                                                  description="Item is damaged or lost"
+                                                  icon={<IconX />}
+                                                  completedIcon={
+                                                    getStatusStep(reservation.status) === 5 ? (
+                                                      <IconCircleX
+                                                        style={{ width: rem(20), height: rem(20) }}
+                                                      />
+                                                    ) : null
+                                                  }
+                                                  color={getStatusColor(reservation.status)}
+                                                />
+                                                <Stepper.Step
+                                                  label="Awaiting Payment"
+                                                  description="Awaiting payment for damages"
+                                                  icon={<IconCash />}
+                                                  completedIcon={
+                                                    getStatusStep(reservation.status) === 5 ? (
+                                                      <IconCircleX
+                                                        style={{ width: rem(20), height: rem(20) }}
+                                                      />
+                                                    ) : null
+                                                  }
+                                                  color={getStatusColor(reservation.status)}
+                                                />
+                                                <Stepper.Step
+                                                  label="Resolved/Paid"
+                                                  description="Issue resolved or payment made"
+                                                  icon={<IconCheck />}
+                                                  completedIcon={
+                                                    getStatusStep(reservation.status) === 5 ? (
+                                                      <IconCircleX
+                                                        style={{ width: rem(20), height: rem(20) }}
+                                                      />
+                                                    ) : null
+                                                  }
+                                                  color={getStatusColor(reservation.status)}
+                                                />
+                                              </Stepper>
+                                            ) : (
+                                              <Stepper active={getStatusStep(reservation.status)}>
+                                                <Stepper.Step
+                                                  label="Pending"
+                                                  description="Reservation is pending"
+                                                  icon={<IconClock />}
+                                                  completedIcon={
+                                                    getStatusStep(reservation.status) === 5 ? (
+                                                      <IconCircleX
+                                                        style={{ width: rem(20), height: rem(20) }}
+                                                      />
+                                                    ) : null
+                                                  }
+                                                  color={getStatusColor(reservation.status)}
+                                                />
+                                                <Stepper.Step
+                                                  label="Approved"
+                                                  description="Reservation is approved"
+                                                  icon={<IconCheck />}
+                                                  completedIcon={
+                                                    getStatusStep(reservation.status) === 5 ? (
+                                                      <IconCircleX
+                                                        style={{ width: rem(20), height: rem(20) }}
+                                                      />
+                                                    ) : null
+                                                  }
+                                                  color={getStatusColor(reservation.status)}
+                                                />
+                                                <Stepper.Step
+                                                  label="Awaiting Return"
+                                                  description="Picked up and awaiting return"
+                                                  icon={<IconTruck />}
+                                                  completedIcon={
+                                                    getStatusStep(reservation.status) === 5 ? (
+                                                      <IconCircleX
+                                                        style={{ width: rem(20), height: rem(20) }}
+                                                      />
+                                                    ) : null
+                                                  }
+                                                  color={getStatusColor(reservation.status)}
+                                                />
+                                                <Stepper.Step
+                                                  label="Completed"
+                                                  description="Reservation is completed"
+                                                  icon={<IconBox />}
+                                                  completedIcon={
+                                                    getStatusStep(reservation.status) === 5 ? (
+                                                      <IconCircleX
+                                                        style={{ width: rem(20), height: rem(20) }}
+                                                      />
+                                                    ) : null
+                                                  }
+                                                  color={getStatusColor(reservation.status)}
+                                                />
+                                                {reservation.status === 'CANCELLED' && (
+                                                  <Stepper.Step
+                                                    label="Cancelled"
+                                                    description="Reservation is cancelled"
+                                                    icon={<IconX />}
+                                                    completedIcon={
+                                                      getStatusStep(reservation.status) === 5 ? (
+                                                        <IconCircleX
+                                                          style={{
+                                                            width: rem(20),
+                                                            height: rem(20),
+                                                          }}
+                                                        />
+                                                      ) : null
+                                                    }
+                                                    color={getStatusColor(reservation.status)}
+                                                  />
+                                                )}
+                                                <Stepper.Completed>
+                                                  <Center>
+                                                    <Title order={1} mt={25}>
+                                                      {reservation.status === 'CANCELLED'
+                                                        ? 'Order Cancelled'
+                                                        : 'Order Delivered'}
+                                                    </Title>
+                                                  </Center>
+                                                </Stepper.Completed>
+                                              </Stepper>
+                                            )}
+
+                                            <Stack mt={50}>
+                                              <Group grow>
+                                                <Text w={500}>Reservation ID:</Text>
+                                                <Text>{reservation.reservation_id}</Text>
+                                              </Group>
+                                              <Group grow>
+                                                <Text w={500}>Reserved Date:</Text>
+                                                <Text>
+                                                  {moment(new Date(reservation.reserved_date))
+                                                    .tz('Asia/Manila')
+                                                    .format('YYYY-MM-DD HH:mm')}
+                                                </Text>
+                                              </Group>
+                                              <Group grow>
+                                                <Text w={500}>Reservation Date Start:</Text>
+                                                <Text>
+                                                  {moment(reservation.reservation_date, 'HH:mm:ss')
+                                                    .tz('Asia/Manila')
+                                                    .format('hh:mm A')}
+                                                </Text>
+                                              </Group>
+                                              <Group grow>
+                                                <Text w={500}>Reservation Date End:</Text>
+                                                <Text>
+                                                  {moment(
+                                                    reservation.reservation_date_end,
+                                                    'HH:mm:ss'
+                                                  )
+                                                    .tz('Asia/Manila')
+                                                    .format('hh:mm A')}
+                                                </Text>
+                                              </Group>
+                                              <Group grow>
+                                                <Text w={500}>By Group:</Text>
+                                                <Text>
+                                                  {reservation.is_group
+                                                    ? `Yes - ${reservation.group_members}`
+                                                    : 'No'}
+                                                </Text>
+                                              </Group>
+                                              <Group grow>
+                                                <Text w={500}>Subject:</Text>
+                                                <Text>{reservation.subject}</Text>
+                                              </Group>
+                                              <Group grow>
+                                                <Text w={500}>Purpose:</Text>
+                                                <Text>{reservation.reservation_purpose}</Text>
+                                              </Group>
+                                              <Group grow>
+                                                <Text w={500}>Products:</Text>
+                                                <Text>{products}</Text>
+                                              </Group>
+                                              <Group grow>
+                                                <Text w={500}>Quantities:</Text>
+                                                <Text>{quantities}</Text>
+                                              </Group>
+                                              <Group grow>
+                                                <Text w={500}>Status:</Text>
+                                                <Badge color={getStatusColor(reservation.status)}>
+                                                  {reservation.status}
+                                                </Badge>
+                                              </Group>
+                                              <Group grow>
+                                                <Text w={500}>Remarks:</Text>
+                                                <Text>
+                                                  {reservation.remarks
+                                                    ? reservation.remarks
+                                                    : 'No remarks.'}
+                                                </Text>
+                                              </Group>
+                                              <Divider label={'Products:'} m={10} p={20} />
+                                              <Center>
+                                                <Stack>
+                                                  {reservation.items.map((item) => (
+                                                    <Group
+                                                      key={item.product.productId}
+                                                      align="center"
+                                                    >
+                                                      <Image
+                                                        src={`${item.product.image}`}
+                                                        alt={item.product.productId}
+                                                        width={180}
+                                                        height={180}
+                                                        radius="md"
+                                                      />
+                                                      <Stack gap={0}>
+                                                        <Text>{item.product.name}</Text>
+                                                        <Text>Stock: {item.quantity}</Text>
+                                                      </Stack>
+                                                    </Group>
+                                                  ))}
+                                                </Stack>
+                                              </Center>
+                                              <Divider
+                                                label={'Potential Damage Charges'}
+                                                m={10}
+                                                p={20}
+                                              />
+                                              <Stack gap="xs" align="center" justify="center">
+                                                <Group>
+                                                  <Title order={1}>Total Damage Cost:</Title>
+                                                  <Title order={1}>₱{totalPrice}</Title>
+                                                </Group>
+                                                <Text ta={'center'} size="sm" color="red" w={500}>
+                                                  Important: This is NOT an upfront payment
+                                                </Text>
+                                                <Text size="xs" color="dimmed">
+                                                  This amount will ONLY be charged if items are
+                                                  returned damaged or broken.{' '}
+                                                  <Anchor href="/tos" w={500}>
+                                                    See Terms of Service
+                                                  </Anchor>{' '}
+                                                  for damage assessment details.
+                                                </Text>
+                                              </Stack>
+                                              {activeTab === 'PENDING' && (
+                                                <Center>
+                                                  <Tooltip
+                                                    label="This action is not reversible"
+                                                    withArrow
+                                                  >
+                                                    <Button
+                                                      color="red"
+                                                      onClick={() => handleCancelClick(reservation)}
+                                                    >
+                                                      Cancel Reservation
+                                                    </Button>
+                                                  </Tooltip>
+                                                </Center>
+                                              )}
+                                            </Stack>
+                                          </Accordion.Panel>
+                                        </Accordion.Item>
+                                      </Accordion>
+                                    </Paper>
+                                  );
+                                })}
+                              </>
+                            )}
                           </Stack>
                         </Tabs.Panel>
                       </Tabs>
@@ -798,7 +865,7 @@ export default function TransactionHistoryUser() {
                       color="blue"
                     />
                   </Flex>
-                </>
+                </Container>
               )}
             </Container>
           </Flex>

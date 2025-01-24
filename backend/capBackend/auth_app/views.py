@@ -407,14 +407,9 @@ class RefreshTokenView(APIView):
             payload['role'] = user.role
             payload['username'] = user.username
             
-            # Check if the user has a class_section assigned and print it for debugging
-            if user.class_section:
-                class_section_value = user.class_section.class_section  # Adjust to the right field
-                print(f"Class section value: {class_section_value}")  # Debugging line
-                payload['class_section'] = class_section_value
-            else:
-                payload['class_section'] = None
-                print("User has no class_section")  # Debugging line
+            # Directly use class_section value without attribute access
+            payload['class_section'] = user.class_section if user.class_section else None
+            print(f"Class section value: {user.class_section}")  # Debugging line
 
             # Encode the new access token with the updated payload
             new_access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
@@ -429,4 +424,5 @@ class RefreshTokenView(APIView):
             return response
 
         except Exception as e:
+            print(f"Error in RefreshTokenView: {str(e)}")  # Add debug logging
             return Response({'error': str(e)}, status=400)
