@@ -13,8 +13,10 @@
       ]
     }
   ],
-  "crons": {
-    "path": "/api/send-reminder.js",
-    "schedule": "0 0 * * *"
-  }
+  "crons": [
+    {
+      "path": "/api/send-reminder.js",
+      "schedule": "0 0 * * *"
+    }
+  ]
 }
