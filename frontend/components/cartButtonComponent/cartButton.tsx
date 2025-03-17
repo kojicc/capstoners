@@ -627,11 +627,11 @@ export function CartIcon() {
                   <Stack>
                     <Tooltip label="Enter new class section or leave blank to keep current class section">
                       <TextInput
-                      label={`Current Class Section - ${class_section}`}
-                      placeholder={`Leave blank for old section`}
-                      value={class_section_new}
-                      onChange={(e) => setClassSectionNew(e.target.value)}
-                      mb="md"
+                        label={`Current Class Section - ${class_section}`}
+                        placeholder={`Leave blank for old section`}
+                        value={class_section_new}
+                        onChange={(e) => setClassSectionNew(e.target.value)}
+                        mb="md"
                       />
                     </Tooltip>
                     <TextInput
@@ -743,7 +743,10 @@ export function CartIcon() {
 
       <Modal
         opened={showSameDayModal}
-        onClose={() => { setShowSameDayModal(false); setSelectedDate(null); }}
+        onClose={() => {
+          setShowSameDayModal(false);
+          setSelectedDate(null);
+        }}
         title="Same Day Reservation"
         centered
       >

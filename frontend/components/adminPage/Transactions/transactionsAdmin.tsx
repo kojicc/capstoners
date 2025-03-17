@@ -177,6 +177,7 @@ export default function TransactionHistory() {
   const [loading, setLoading] = useState(false);
   const [selectedClassTime, setSelectedClassTime] = useState('');
   const [subject, setSubject] = useState('');
+  const [buttonLoading, setButtonLoading] = useState(false);
 
   const [isGroupCheckout, setIsGroupCheckout] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
@@ -246,6 +247,7 @@ export default function TransactionHistory() {
 
   const handleExport = async () => {
     try {
+      setButtonLoading(true);
       setLoadingImportExport(true);
       let formattedDate = null;
       if (selectedDate) {
@@ -279,6 +281,7 @@ export default function TransactionHistory() {
       setOpenedExport(false);
       setSelectedDate(null);
       setSelectedMonthYear(null);
+      setButtonLoading(false);
     }
   };
 
@@ -606,15 +609,15 @@ export default function TransactionHistory() {
                 {/* Export Users Button */}
                 <Popover
                   opened={openedExport}
-                  onChange={setOpenedExport}
+                  onClose={() => setOpenedExport(false)}
                   withArrow
                   shadow="md"
                   position="bottom"
                   trapFocus={false}
-                  // closeOnClickOutside={false}
+                  closeOnClickOutside={false}
                 >
                   <Popover.Target>
-                    <Tooltip label="Export User Information">
+                    <Tooltip label="Export Transaction Information">
                       <ActionIcon
                         onClick={() => setOpenedExport((o) => !o)}
                         disabled={loading}
@@ -625,13 +628,7 @@ export default function TransactionHistory() {
                       </ActionIcon>
                     </Tooltip>
                   </Popover.Target>
-                  <Popover.Dropdown>
-                    {/* <TextInput
-                    placeholder="Enter username to filter"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    mb="md"
-                  /> */}
+                  <Popover.Dropdown onClick={(e) => e.stopPropagation()}>
                     <Autocomplete
                       autoComplete="new-password"
                       placeholder="Input username to filter"
@@ -663,7 +660,11 @@ export default function TransactionHistory() {
                       placeholder="Select Date"
                       label="Pick Date"
                       value={selectedDate}
-                      onChange={setSelectedDate}
+                      onChange={(date) => {
+                        setSelectedDate(date);
+                        // Prevent closing the popover
+                        setTimeout(() => setOpenedExport(true), 0);
+                      }}
                       clearable
                       disabled={!!selectedMonthYear} // Disable if MonthPickerInput has a value
                     />
@@ -673,29 +674,39 @@ export default function TransactionHistory() {
                       label="Pick Month and Year"
                       placeholder="Pick date"
                       value={selectedMonthYear}
-                      onChange={setSelectedMonthYear}
+                      onChange={(date) => {
+                        setSelectedMonthYear(date);
+                        // Prevent closing the popover
+                        setTimeout(() => setOpenedExport(true), 0);
+                      }}
                       disabled={!!selectedDate} // Disable if DatePickerInput has a value
                       clearable
                     />
                     <Divider orientation="horizontal" my="md" />
 
-                    <Button onClick={handleExport} disabled={loading} fullWidth>
-                      {loading ? <Loader size="xs" /> : 'Export'}
-                    </Button>
+                    <Group justify="apart" mt="md">
+                      <Button onClick={handleExport} disabled={loading} loading={buttonLoading}>
+                        {loading ? <Loader size="xs" /> : 'Export'}
+                      </Button>
+                      <Button variant="outline" onClick={() => setOpenedExport(false)}>
+                        Close
+                      </Button>
+                    </Group>
                   </Popover.Dropdown>
                 </Popover>
+
                 {/* Import Users Button with Popover */}
                 <Popover
                   opened={openedImportExport}
-                  onChange={setOpenedImportExport}
+                  onClose={() => setOpenedImportExport(false)}
                   withArrow
                   shadow="md"
                   position="bottom"
-                  trapFocus={false} // Allow interaction with the file explorer
-                  // closeOnClickOutside={false} // Keep the popover open when clicking outside
+                  trapFocus={false}
+                  closeOnClickOutside={false}
                 >
                   <Popover.Target>
-                    <Tooltip label="Import User Information">
+                    <Tooltip label="Import Transaction Information">
                       <ActionIcon
                         onClick={() => setOpenedImportExport((o) => !o)}
                         disabled={loading}
@@ -706,21 +717,21 @@ export default function TransactionHistory() {
                       </ActionIcon>
                     </Tooltip>
                   </Popover.Target>
-                  <Popover.Dropdown>
+                  <Popover.Dropdown onClick={(e) => e.stopPropagation()}>
                     <FileInput
                       placeholder="Choose file"
                       onChange={(selectedFile) => setFile(selectedFile)}
                       accept=".xlsx"
                       required
                     />
-                    <Button
-                      mt="md"
-                      onClick={handleImport}
-                      disabled={loading || !file} // Disable the button if no file is selected
-                      fullWidth
-                    >
-                      {loading ? <Loader size="xs" /> : 'Upload'}
-                    </Button>
+                    <Group justify="apart" mt="md">
+                      <Button onClick={handleImport} disabled={loading || !file}>
+                        {loading ? <Loader size="xs" /> : 'Upload'}
+                      </Button>
+                      <Button variant="outline" onClick={() => setOpenedImportExport(false)}>
+                        Close
+                      </Button>
+                    </Group>
                   </Popover.Dropdown>
                 </Popover>
               </Group>

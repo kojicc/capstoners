@@ -407,7 +407,7 @@ const UpdateCrudProductsAdmin = () => {
       <Flex justify="center" align="center" direction="row" wrap="wrap" className={classes.inner}>
         <Container fluid>
           <Group>
-            <Title my={20} c={'white'} order={2}>
+            <Title my={20} order={2}>
               Product History - Admin
             </Title>
             <Tooltip label="Export Products">

@@ -46,7 +46,7 @@ export function NavbarSection() {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [period, setPeriod] = useState<string | null>('all');
-
+  const [buttonLoading, setButtonLoading] = useState(false);
   const [opened, { toggle }] = useDisclosure();
   const [activeMain, setActiveMain] = useState('Dashboard');
   const [activeSub, setActiveSub] = useState('');
@@ -60,6 +60,7 @@ export function NavbarSection() {
 
   const handleExport = async () => {
     try {
+      setButtonLoading(true);
       const response = await axios.get('exportData/', {
         responseType: 'blob',
         params: {
@@ -78,6 +79,8 @@ export function NavbarSection() {
 
       notifications.show({ message: 'Export successful!', color: 'green' });
       setPopoverOpened(false); // Close the popover after export
+      setButtonLoading(false);
+
     } catch (error) {
       notifications.show({ message: 'Export failed.', color: 'red' });
     }
@@ -268,21 +271,28 @@ export function NavbarSection() {
               opened={popoverOpened}
               onClose={() => setPopoverOpened(false)}
               trapFocus
-              closeOnClickOutside
+              closeOnEscape={false}
+              closeOnClickOutside={false}
               position="bottom"
               withArrow
             >
               <Popover.Target>
                 <Button onClick={() => setPopoverOpened((o) => !o)}>Export Data</Button>
               </Popover.Target>
-              <Popover.Dropdown>
-                <Flex
-                  direction={{ base: 'column', sm: 'row' }}
-                  gap={{ base: 'sm', sm: 'lg' }}
-                  justify={{ sm: 'center' }}
-                >
-                  <DateTimePicker label="Start Date" value={startDate} onChange={setStartDate} />
-                  <DateTimePicker label="End Date" value={endDate} onChange={setEndDate} />
+              <Popover.Dropdown onClick={(e) => e.stopPropagation()}>
+                <Group grow>
+                  <DateTimePicker
+                    label="Start Date"
+                    value={startDate}
+                    onChange={setStartDate}
+                    dropdownType="modal"
+                  />
+                  <DateTimePicker
+                    label="End Date"
+                    value={endDate}
+                    onChange={setEndDate}
+                    dropdownType="modal"
+                  />
                   <Select
                     label="Period"
                     placeholder="Select period"
@@ -296,10 +306,13 @@ export function NavbarSection() {
                       { value: 'all', label: 'All' },
                     ]}
                   />
-                  <Button mt={25} onClick={handleExport}>
+                  <Button loading={buttonLoading} onClick={handleExport}>
                     Export
                   </Button>
-                </Flex>
+                  <Button variant="outline" onClick={() => setPopoverOpened(false)}>
+                    Close
+                  </Button>
+                </Group>
               </Popover.Dropdown>
             </Popover>
           </Stack>

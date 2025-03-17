@@ -381,7 +381,7 @@ const ActionsGridViewAdmin = () => {
         <Stack>
           <TextInput
             label="Category ID"
-            placeholder="Enter category ID"
+            placeholder="Enter category ID - 3 LETTERS ONLY (e.g. ABC)"
             required
             value={undefined}
             onChange={(event) => setCreateCategoryID(event.currentTarget.value)}
