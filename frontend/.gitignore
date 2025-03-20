@@ -135,3 +135,5 @@ dist
 node_modules/
 client-production 0.pack
 next-swc.win32-x64-msvc.node
+backend/capBackend/.env
+

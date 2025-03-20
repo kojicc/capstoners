@@ -4,5 +4,6 @@ node_modules/
 client-production 0.pack
 next-swc.win32-x64-msvc.node
 .env.local
-backend/capBackend/localEnv
+backend/capBackend/venv
 backend/capBackend/.env
+.env
