@@ -642,19 +642,26 @@ class UploadProduct(APIView):
 
 
 def create_presigned_post(bucket_name, object_name, fields=None, conditions=None, expiration=3600):
-    """Generate a presigned URL S3 POST request to upload a file"""
     s3_client = boto3.client(
         's3',
+        endpoint_url=f"https://s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com",  # <-- ADD THIS
         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         region_name=settings.AWS_S3_REGION_NAME
     )
     try:
-        response = s3_client.generate_presigned_post(bucket_name, object_name, Fields=fields, Conditions=conditions, ExpiresIn=expiration)
+        response = s3_client.generate_presigned_post(
+            bucket_name,
+            object_name,
+            Fields=fields,
+            Conditions=conditions,
+            ExpiresIn=expiration
+        )
     except ClientError as e:
         logging.error(e)
         return None
     return response
+
 
 class GeneratePresignedUrl(APIView):
     permission_classes = [IsAuthenticated]

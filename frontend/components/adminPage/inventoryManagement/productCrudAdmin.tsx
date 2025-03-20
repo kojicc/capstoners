@@ -272,66 +272,79 @@ const UpdateCrudProductsAdmin = () => {
   // };
 
   const handleEdit = async () => {
-    const formData = new FormData();
-    formData.append('productId', selectedProducts?.productId || '');
-    formData.append('name', selectedProducts?.name || '');
-    formData.append('description', selectedProducts?.description || '');
-    formData.append('price', selectedProducts?.price.toString() || '');
-    formData.append('quantity', selectedProducts?.quantity.toString() || '');
-
-    if (files.length > 0) {
-      const file = files[0];
-      try {
-        // Get presigned URL from the backend
-        const presignedUrlResponse = await axiosInstance.post('generate-presigned-url/', {
-          file_name: file.name,
-          file_type: file.type,
-        });
-
-        console.log('Presigned URL Response:', presignedUrlResponse.data);
-
-        const { url, fields } = presignedUrlResponse.data;
-
-        // Upload the file to S3 using the presigned URL
-        const uploadData = new FormData();
-        Object.entries(fields).forEach(([key, value]) => {
-          uploadData.append(key, value as string);
-        });
-        uploadData.append('file', file);
-
-        await axiosInstance.post(url, uploadData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-
-        // Adjust file URL if necessary
-        // const fileUrl = `${url}${fields.key}`;
-        formData.append('image', file.name);
-        // formData.append('image', file.name);
-        // console.log('File URL:', fileUrl);
-      } catch (error) {
-        console.error('Error uploading image:', error);
-        return;
-      }
-    }
-
-    formData.append('type', selectedProducts?.type || '');
-
     try {
       setLoading(true);
-      await axiosInstance.put('updateProduct/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      mutate('getadminProductDetail/');
-      handleCloseModal();
-      notifications.show({
-        title: 'Success',
-        message: 'Product updated successfully.',
-        color: 'green',
-      });
+      const formData = new FormData();
+      formData.append('productId', selectedProducts?.productId || '');
+      formData.append('name', selectedProducts?.name || '');
+      formData.append('description', selectedProducts?.description || '');
+      formData.append('price', selectedProducts?.price.toString() || '');
+      formData.append('quantity', selectedProducts?.quantity.toString() || '');
+      formData.append('type', selectedProducts?.type || '');
+
+      // Handle file upload separately if files exist
+      if (files.length > 0) {
+        const file = files[0];
+        try {
+          // Get presigned URL from backend
+          const presignedResponse = await axiosInstance.post('generate-presigned-url/', {
+            file_name: file.name,
+            file_type: file.type,
+          });
+
+          const { url, fields } = presignedResponse.data;
+
+          // Create form data for S3 upload
+          const s3FormData = new FormData();
+          Object.entries(fields).forEach(([key, value]) => {
+            s3FormData.append(key, value as string);
+          });
+          s3FormData.append('file', file);
+
+          // Use fetch for S3 upload to handle redirects properly
+          const uploadResponse = await fetch(url, {
+            method: 'POST',
+            body: s3FormData,
+            // Don't set Content-Type header, let browser set it with boundary
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.status}`);
+          }
+
+          // After successful upload, use the file name in your product update
+          formData.append('image', file.name);
+        } catch (error) {
+          console.error('Error uploading to S3:', error);
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to upload image to S3',
+            color: 'red',
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Update product info in your database
+      const response = await axiosInstance.put('updateProduct/', formData);
+
+      if (response.status === 200) {
+        mutate('getadminProductDetail/');
+        handleCloseModal();
+        notifications.show({
+          title: 'Success',
+          message: 'Product updated successfully',
+          color: 'green',
+        });
+      }
     } catch (error) {
-      console.error('Error updating products:', error);
+      console.error('Error updating product:', error);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to update product',
+        color: 'red',
+      });
     } finally {
       setLoading(false);
     }
@@ -339,10 +352,9 @@ const UpdateCrudProductsAdmin = () => {
 
   const handleCloseModal = () => {
     setEditModalOpened(false);
+    setDeleteModalOpened(false);
     setSelectedProducts(null);
-    setFiles([]);
   };
-
   const paginatedData = sortedData.slice(
     (activePage - 1) * itemsPerPage,
     activePage * itemsPerPage
