@@ -50,7 +50,7 @@ export function Footer() {
         <div className={classes.logo}>
           <Title c={'white'} tt={'uppercase'}>
             {' '}
-            <span style={{}}>cthm laboratory</span>
+            <span style={{}}>CTHM laboratory</span>
             <span style={{ fontWeight: 700, color: '#f3c565', paddingRight: -100 }}>.</span>
           </Title>
           <Text size="xs" c="dimmed" className={classes.description}>

@@ -562,13 +562,14 @@ export default function TransactionHistoryUser() {
                                           <Accordion.Control style={{ height: 'auto' }}>
                                             <Group>
                                               <Group>
-                                                <Text w={500}>Product Image:</Text>
+                                                <Text w={500}> Product Image:</Text>
                                                 {reservation.items.map((item) => (
-                                                  <Avatar
+                                                  <Image
                                                     key={item.product.productId}
                                                     src={`${item.product.image}`}
                                                     alt={item.product.productId}
-                                                    size={80}
+                                                    w={100}
+                                                    h={100}
                                                     radius="md"
                                                   />
                                                 ))}
@@ -798,8 +799,10 @@ export default function TransactionHistoryUser() {
                                                         radius="md"
                                                       />
                                                       <Stack gap={0}>
-                                                        <Text>{item.product.name}</Text>
-                                                        <Text>Stock: {item.quantity}</Text>
+                                                        <Title order={1}>{item.product.name}</Title>
+                                                        <Title order={3}>
+                                                          Stock: {item.quantity}
+                                                        </Title>
                                                       </Stack>
                                                     </Group>
                                                   ))}
@@ -815,9 +818,9 @@ export default function TransactionHistoryUser() {
                                                   <Title order={1}>Total Damage Cost:</Title>
                                                   <Title order={1}>₱{totalPrice}</Title>
                                                 </Group>
-                                                <Text ta={'center'} size="sm" color="red" w={500}>
+                                                <Title order={1} ta={'center'} size="sm" c="red" w={500}>
                                                   Important: This is NOT an upfront payment
-                                                </Text>
+                                                </Title>
                                                 <Text size="xs" color="dimmed">
                                                   This amount will ONLY be charged if items are
                                                   returned damaged or broken.{' '}

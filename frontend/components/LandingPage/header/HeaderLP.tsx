@@ -287,7 +287,7 @@ export default function Header() {
               href="/"
               style={{ fontSize: 35, fontWeight: 700, color: 'white', paddingLeft: 60 }}
             >
-              CTHM
+              Resorvoia
             </Anchor>
             <span style={{ fontWeight: 700, color: '#f3c565', paddingRight: -100 }}>.</span>
           </Text>
@@ -424,7 +424,7 @@ export default function Header() {
         onClose={closeDrawer}
         size="100%"
         padding="md"
-        title="CTHM"
+        title="Resorvoia"
         hiddenFrom="md"
         zIndex={1000000}
         className={classes.drawer}

@@ -26,6 +26,7 @@ import {
   Flex,
   rem,
   Tooltip,
+  Center,
 } from '@mantine/core';
 import { IconShoppingCart, IconClock } from '@tabler/icons-react';
 import axios from '@/utils/axiosInstance'; // Adjust this import to your Axios setup
@@ -605,13 +606,15 @@ export function CartIcon() {
                               <Table.Tr key={productId}>
                                 <Table.Td>{item?.product.name}</Table.Td>
                                 <Table.Td>
-                                  <Image
-                                    src={`${item?.product.image}`}
-                                    alt={item?.product.name}
-                                    width={50}
-                                    height={50}
-                                    radius="md"
-                                  />
+                                  <Center>
+                                    <Image
+                                      src={`${item?.product.image}`}
+                                      alt={item?.product.name}
+                                      w={100}
+                                      h={100}
+                                      radius="md"
+                                    />
+                                  </Center>
                                 </Table.Td>
                                 <Table.Td>{item?.quantity}</Table.Td>
                               </Table.Tr>

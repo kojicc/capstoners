@@ -445,7 +445,7 @@ export function AuthenticationForm(props: PaperProps) {
           textAlign: 'center',
         }}
       >
-        Welcome to CTHM WEBSITE
+        Welcome to Resorvoia
       </Title>
       <Text color="dimmed" size="sm" mt={5} style={{ textAlign: 'center' }}>
         {type === 'register' ? 'Already have an account? ' : "Don't have an account? "}
@@ -603,7 +603,6 @@ export function AuthenticationForm(props: PaperProps) {
               )}
 
               <Checkbox
-                
                 label={
                   <>
                     I accept{' '}

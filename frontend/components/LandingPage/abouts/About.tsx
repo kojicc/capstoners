@@ -50,7 +50,7 @@ export function About() {
             {(styles) => (
               <div style={styles}>
                 <Title order={2} mb={10}>
-                  CTHM LABORATORY.
+                  Resorvoia.
                 </Title>
                 <Text fs="italic">
                   The College of Tourism and Hospitality Management at De La Salle
