@@ -717,7 +717,7 @@ class ReservationCreateUpdateAPIView(APIView):
 
                 with transaction.atomic():
                     user = get_object_or_404(User, username=username)
-                    reservation_id = f'{username}_{timezone.now().strftime("%m-%d-%Y-%H")}_{uuid.uuid4().hex[:8]}'
+                    reservation_id = f'{uuid.uuid4().hex[:8]}'
 
                     print(f"Creating reservation with ID: {reservation_id} for user: {username}")
 

@@ -52,7 +52,8 @@ class Reservation(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.reservation_id:
-            self.reservation_id = f'{self.user.username}_{timezone.now().strftime("%Y%m%d_%H%M%S")}_{uuid.uuid4().hex[:8]}'
+            # self.reservation_id = f'{self.user.username}_{timezone.now().strftime("%Y%m%d_%H%M%S")}_{uuid.uuid4().hex[:8]}'
+            self.reservation_id = f'{uuid.uuid4().hex[:8]}'
         super().save(*args, **kwargs)
 
     
