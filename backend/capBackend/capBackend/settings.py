@@ -34,7 +34,7 @@ SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 
-ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000','https://capstone2-backend.vercel.app','127.0.0.1']
+ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000','capstoners-665f8af6ebcf.herokuapp.com','127.0.0.1','.vercel.app']
 
 
 # Application definition
@@ -177,6 +177,7 @@ CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOWED_ORIGINS = [
     'https://capstoners.vercel.app',  # Replace with your frontend domain
     'http://localhost:3000',
+    'https://capstoners-665f8af6ebcf.herokuapp.com',
     'https://capstoners-backend.vercel.app' # Add this for local development
 ]
 # para maallow frontend maaccess cookies kase naglologin thru cookies
