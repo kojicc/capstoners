@@ -34,7 +34,7 @@ SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 
-ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000','capstoners-665f8af6ebcf.herokuapp.com','127.0.0.1','.vercel.app']
+ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000','https://capstone2-backend.vercel.app','127.0.0.1']
 
 
 # Application definition
