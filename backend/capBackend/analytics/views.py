@@ -32,7 +32,23 @@ class ExportDataView(APIView):
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
         username = request.query_params.get('username', None)
-
+        period = request.query_params.get('period', 'all')
+        
+        # When generating the filename, include current timestamp
+        current_time = timezone.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"Reservoia_Export_{current_time}"
+        
+        # Add date range to filename if available
+        if start_date and end_date:
+            start_str = start_date.split('T')[0] if 'T' in start_date else start_date
+            end_str = end_date.split('T')[0] if 'T' in end_date else end_date
+            filename += f"_{start_str}_to_{end_str}"
+        
+        if period != 'all':
+            filename += f"_{period}"
+        
+        filename += ".xlsx"
+        
         # Filter data based on the date range if provided
         if start_date and end_date:
             page_views = PageView.objects.filter(timestamp__range=[start_date, end_date])
@@ -112,8 +128,7 @@ class ExportDataView(APIView):
         output.seek(0)
 
         response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename=data.xlsx'
-
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
 

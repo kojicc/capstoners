@@ -14,6 +14,7 @@ import {
   Select,
   Stack,
   Title,
+  Text,
 } from '@mantine/core';
 import { useDisclosure, useLocalStorage } from '@mantine/hooks';
 import {
@@ -23,6 +24,11 @@ import {
   IconTablePlus,
   IconUsers,
   IconHomeFilled,
+  IconCloudDownload,
+  IconFilter,
+  IconCalendar,
+  IconCheck,
+  IconX,
 } from '@tabler/icons-react';
 import TransactionHistory from '@/components/adminPage/Transactions/transactionsAdmin'; // Ensure this path is correct
 import { Dashboard } from './dashboardAnalytics';
@@ -57,32 +63,79 @@ export function NavbarSection() {
     defaultValue: false,
   });
   const { username, role } = useAuth();
+  const [exportLoading, setExportLoading] = useState(false);
+  const [showCustomDateRange, setShowCustomDateRange] = useState(false);
+
+  // Update the period onChange handler
+  const handlePeriodChange = (value: string | null) => {
+    setPeriod(value);
+    setShowCustomDateRange(value === 'custom');
+  };
 
   const handleExport = async () => {
     try {
-      setButtonLoading(true);
+      setExportLoading(true);
+      notifications.show({
+        id: 'export-progress',
+        loading: true,
+        title: 'Exporting Data',
+        message: 'Preparing your data file, please wait...',
+        autoClose: false,
+        withCloseButton: false,
+      });
+
+      // Only include date parameters if custom range is selected
+      const params: any = {
+        period: period,
+      };
+
+      if (showCustomDateRange) {
+        params.start_date = startDate?.toISOString();
+        params.end_date = endDate?.toISOString();
+      }
+
       const response = await axios.get('exportData/', {
         responseType: 'blob',
-        params: {
-          start_date: startDate?.toISOString(),
-          end_date: endDate?.toISOString(),
-          period: period,
-        },
+        params,
       });
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'data.xlsx');
+
+      // Use current date as part of filename if not provided by server
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `Reservoia_Export_${date}.xlsx`;
+      link.setAttribute('download', filename);
+
       document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
 
-      notifications.show({ message: 'Export successful!', color: 'green' });
+      // Update notification to success
+      notifications.update({
+        id: 'export-progress',
+        color: 'green',
+        title: 'Export Successful',
+        message: `Your data has been exported as ${filename}`,
+        icon: <IconCheck size="1.2rem" />,
+        autoClose: 5000,
+      });
+
       setPopoverOpened(false); // Close the popover after export
-      setButtonLoading(false);
-
     } catch (error) {
-      notifications.show({ message: 'Export failed.', color: 'red' });
+      console.error('Export error:', error);
+      // Update notification to error
+      notifications.update({
+        id: 'export-progress',
+        color: 'red',
+        title: 'Export Failed',
+        message: 'There was an error exporting your data. Please try again.',
+        icon: <IconX size="1.2rem" />,
+        autoClose: 5000,
+      });
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -269,50 +322,106 @@ export function NavbarSection() {
             />
             <Popover
               opened={popoverOpened}
-              onClose={() => setPopoverOpened(false)}
+              onClose={() => !exportLoading && setPopoverOpened(false)}
               trapFocus
               closeOnEscape={false}
               closeOnClickOutside={false}
               position="bottom"
               withArrow
+              shadow="lg"
+              radius="md"
             >
               <Popover.Target>
-                <Button onClick={() => setPopoverOpened((o) => !o)}>Export Data</Button>
+                <Button
+                  onClick={() => setPopoverOpened((o) => !o)}
+                  leftSection={<IconCloudDownload size="1.2rem" />}
+                  color="blue"
+                >
+                  Export Data
+                </Button>
               </Popover.Target>
-              <Popover.Dropdown onClick={(e) => e.stopPropagation()}>
-                <Group grow>
-                  <DateTimePicker
-                    label="Start Date"
-                    value={startDate}
-                    onChange={setStartDate}
-                    dropdownType="modal"
-                  />
-                  <DateTimePicker
-                    label="End Date"
-                    value={endDate}
-                    onChange={setEndDate}
-                    dropdownType="modal"
-                  />
+              <Popover.Dropdown
+                onClick={(e) => e.stopPropagation()}
+                p="lg"
+                style={{ minWidth: '450px' }}
+              >
+                <Stack gap="md">
+                  <Title order={4}>Export Analytics Data</Title>
+                  <Text size="sm" color="dimmed">
+                    Choose export options for your data
+                  </Text>
+
                   <Select
-                    label="Period"
-                    placeholder="Select period"
+                    label="Time Period"
+                    placeholder="Select data period"
                     value={period}
-                    onChange={setPeriod}
+                    onChange={handlePeriodChange}
                     data={[
-                      { value: 'daily', label: 'Daily' },
-                      { value: 'weekly', label: 'Weekly' },
-                      { value: 'monthly', label: 'Monthly' },
-                      { value: 'annually', label: 'Annually' },
-                      { value: 'all', label: 'All' },
+                      { value: 'daily', label: 'Daily View' },
+                      { value: 'weekly', label: 'Weekly View' },
+                      { value: 'monthly', label: 'Monthly View' },
+                      { value: 'annually', label: 'Annual View' },
+                      { value: 'custom', label: 'Custom Date Range' },
+                      { value: 'all', label: 'All Time Data' },
                     ]}
+                    leftSection={<IconFilter size="1rem" />}
                   />
-                  <Button loading={buttonLoading} onClick={handleExport}>
-                    Export
-                  </Button>
-                  <Button variant="outline" onClick={() => setPopoverOpened(false)}>
-                    Close
-                  </Button>
-                </Group>
+
+                  {showCustomDateRange && (
+                    <Stack gap="xs" mb="md">
+                      <Text size="sm" w={500}>
+                        Custom Date Range
+                      </Text>
+                      <Group grow>
+                        <DateTimePicker
+                          label="Start Date"
+                          placeholder="Select start date"
+                          value={startDate}
+                          onChange={setStartDate}
+                          dropdownType="modal"
+                          leftSection={<IconCalendar size="1rem" />}
+                          clearable
+                          required
+                        />
+                        <DateTimePicker
+                          label="End Date"
+                          placeholder="Select end date"
+                          value={endDate}
+                          onChange={setEndDate}
+                          dropdownType="modal"
+                          leftSection={<IconCalendar size="1rem" />}
+                          clearable
+                          minDate={startDate || undefined}
+                          required
+                        />
+                      </Group>
+                    </Stack>
+                  )}
+
+                  <Text size="xs" color="dimmed" mt="sm">
+                    Data will be exported in Excel format containing page views, reservations,
+                    product information, and user statistics.
+                  </Text>
+
+                  <Group justify="right" gap="sm" mt="md">
+                    <Button
+                      variant="default"
+                      onClick={() => setPopoverOpened(false)}
+                      disabled={exportLoading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleExport}
+                      loading={exportLoading}
+                      disabled={exportLoading || (showCustomDateRange && (!startDate || !endDate))}
+                      color="blue"
+                      leftSection={<IconCloudDownload size="1rem" />}
+                    >
+                      {exportLoading ? 'Exporting...' : 'Export Data'}
+                    </Button>
+                  </Group>
+                </Stack>
               </Popover.Dropdown>
             </Popover>
           </Stack>
