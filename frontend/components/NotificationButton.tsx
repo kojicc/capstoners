@@ -125,17 +125,33 @@ const NotificationButton = () => {
     }
   };
 
-  const toggleMenu = () => {
+  const toggleMenu = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the click from propagating
     setOpened((prevOpened) => !prevOpened);
   };
 
   const paginatedNotifications = chunk(notificationsList, 5);
   const currentNotifications = paginatedNotifications[activePage - 1] || [];
 
+  const closeMenu = () => {
+    setOpened(false);
+  };
+
+  const handleNotificationClick = (notification: Notification) => {
+    modals.closeAll();
+    openModal(notification);
+    closeMenu(); // Close menu after action
+  };
+
   return (
-    <Menu opened={opened} shadow="md" width={300}>
+    <Menu
+      opened={opened}
+      shadow="md"
+      width={300}
+      onClose={closeMenu} // Add this to handle menu close events
+    >
       <Menu.Target>
-        <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+        <div style={{ position: 'relative', display: 'inline-block' }}>
           <ActionIcon variant="outline" size={'lg'} onClick={toggleMenu}>
             <IconBell size={24} />
           </ActionIcon>
@@ -163,7 +179,7 @@ const NotificationButton = () => {
         </div>
       </Menu.Target>
 
-      <Menu.Dropdown ref={ref}>
+      <Menu.Dropdown>
         <Menu.Label>Latest Notifications</Menu.Label>
         <MenuDivider />
         {isLoading ? (
@@ -181,9 +197,8 @@ const NotificationButton = () => {
               }}
               mb={5}
               onClick={() => {
-                if (notification.read) {
-                  modals.closeAll();
-                  openModal(notification);
+                if (!notification.read) {
+                  handleNotificationClick(notification);
                 }
               }}
             >
@@ -202,8 +217,7 @@ const NotificationButton = () => {
                     )
                   );
                   if (isChecked) {
-                    modals.closeAll();
-                    openModal(notification);
+                    handleNotificationClick(notification);
                   }
                 }}
                 label={
@@ -220,6 +234,7 @@ const NotificationButton = () => {
                 }
                 description={moment(notification.timestamp).fromNow()}
                 indeterminate={notification.read}
+                onClick={(e) => e.stopPropagation()}
               />
             </Menu.Item>
           ))
