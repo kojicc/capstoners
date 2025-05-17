@@ -61,6 +61,8 @@ interface Users {
   quantity: number;
   image: string;
   productId: string;
+  isAdmin: boolean;
+  isStudent: boolean;
 }
 
 interface Category {

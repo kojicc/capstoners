@@ -17,7 +17,8 @@ class User(AbstractUser):
     is_active = models.BooleanField(default=False, null=False)  # Boolean field para malaman kung active
     verification_token = models.UUIDField(default=uuid.uuid4, editable=False, null=True, blank=True)  # Add verification token
     reset_code = models.CharField(max_length=6, null=True, blank=True)  # Reset code for password reset
-
+    isAdmin = models.BooleanField(default=False)  # Boolean field para malaman kung admin
+    isStudent = models.BooleanField(default=False)  # Boolean field para malaman kung student
     
 
    

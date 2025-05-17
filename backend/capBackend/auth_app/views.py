@@ -113,29 +113,30 @@ class adminUpdateUsersView(APIView):
     def put(self, request):
         username = request.data.get('username')
         email = request.data.get('email')
-        password = request.data.get('password')  # Get the password from the request
+        password = request.data.get('password')
         locked_account = request.data.get('locked_out')
-        
+
         if username is None or email is None:
             return Response({'error': 'Username and email are required'}, status=400)
-        
+
         try:
             user = User.objects.get(username=username)
+            
             if password:
                 request.data['password'] = make_password(password)
-            
+
+            # Optionally update locked_out
             if locked_account is not None:
                 user.locked_out = locked_account
-                print("Is user locked: ",user.locked_out)
-                
-            
-            serializer = UserSerializer(instance=user, data=request.data, partial=True)  
+
+            serializer = UserSerializer(instance=user, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            
             serializer.save()
+            
             return Response(serializer.data)
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=404)
+
             
 
     def delete(self, request):

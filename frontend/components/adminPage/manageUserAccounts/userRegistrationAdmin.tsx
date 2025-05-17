@@ -167,6 +167,9 @@ export function UserRegAdmin() {
 
       <form onSubmit={form.onSubmit(handleRegister)}>
         <Stack>
+          <Text fw={500} size="sm">
+            Role <span style={{ color: 'red' }}>*</span>
+          </Text>
           <Combobox
             store={combobox}
             withinPortal={false}
