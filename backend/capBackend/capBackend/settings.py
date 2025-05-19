@@ -193,8 +193,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'dektorsu@gmail.com'
-EMAIL_HOST_PASSWORD = 'qovf dpgs lytx kloo'
+EMAIL_HOST_USER = 'reservoiacthm@gmail.com'
+EMAIL_HOST_PASSWORD = 'ussz mccl gkrd bxkw'
 FRONTEND_URL = 'https://capstoners.vercel.app'
 # FRONTEND_URL = 'http://localhost:3000'
 
