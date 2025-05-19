@@ -85,7 +85,7 @@ export function Hero() {
 
       <div className={classes.inner}>
         <Title className={classes.title}>
-          Go Beyond the Limits <br></br>with CHTM.{' '}
+          Go Beyond the Limits <br></br>with CTHM.{' '}
         </Title>
 
         <div className={classes.controls}>
