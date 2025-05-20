@@ -90,6 +90,7 @@ export function UserRegAdmin() {
       password: '',
       terms: true,
       role: '',
+      classSection: '',
     },
   });
 
@@ -126,7 +127,7 @@ export function UserRegAdmin() {
     try {
       setLoading(true);
       const { username, password, firstName, lastName, email, role } = form.values;
-      
+
       // Check if the email is from the @dlsud.edu.ph domain
       if (!email.endsWith('@dlsud.edu.ph')) {
         notifications.show({
@@ -138,7 +139,7 @@ export function UserRegAdmin() {
         setLoading(false);
         return;
       }
-      
+
       const response = await axios.post('register/', {
         username,
         password,
@@ -146,6 +147,7 @@ export function UserRegAdmin() {
         last_name: lastName,
         email,
         role,
+        class_section: form.values.classSection ? form.values.classSection : null,
       });
       console.log('Register response:', response.data);
     } catch (err) {
@@ -233,7 +235,17 @@ export function UserRegAdmin() {
           />
 
           <EmailAutocomplete value={form.values.email} onChange={handleEmailChange} />
-
+          {form.values.role === 'student' && (
+            <TextInput
+              required
+              label="Class Section"
+              placeholder="Input your current class section"
+              value={form.values.classSection}
+              onChange={(event) => {
+                form.setFieldValue('classSection', event.currentTarget.value);
+              }}
+            />
+          )}
           <TextInput
             autoComplete="new-password"
             required
@@ -362,14 +374,14 @@ function EmailAutocomplete({
     //   radius="md"
     // />
     <TextInput
-                    required
-                    label="Email"
-                    placeholder="yourname@dlsud.edu.ph"
-                    value={value}
-                    onChange={(event) => {
-                      handleChange(event.currentTarget.value);
-                    }}
-                    radius="md"
-                  />
+      required
+      label="Email"
+      placeholder="yourname@dlsud.edu.ph"
+      value={value}
+      onChange={(event) => {
+        handleChange(event.currentTarget.value);
+      }}
+      radius="md"
+    />
   );
 }
