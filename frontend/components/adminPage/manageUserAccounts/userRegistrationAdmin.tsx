@@ -26,6 +26,7 @@ import cx from 'clsx';
 import axios from '@/utils/axiosInstance';
 import classes from './DropdownOptionsAnimation.module.css';
 import { IconCheck, IconX } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
 
 const requirements = [
   { re: /[0-9]/, label: 'Includes number' },
@@ -125,6 +126,19 @@ export function UserRegAdmin() {
     try {
       setLoading(true);
       const { username, password, firstName, lastName, email, role } = form.values;
+      
+      // Check if the email is from the @dlsud.edu.ph domain
+      if (!email.endsWith('@dlsud.edu.ph')) {
+        notifications.show({
+          title: 'Invalid Email',
+          message: 'Please use your @dlsud.edu.ph email address.',
+          color: 'red',
+        });
+        form.setFieldError('email', 'Please use your @dlsud.edu.ph email address.');
+        setLoading(false);
+        return;
+      }
+      
       const response = await axios.post('register/', {
         username,
         password,
@@ -337,15 +351,25 @@ function EmailAutocomplete({
   };
 
   return (
-    <Autocomplete
-      value={value}
-      data={data}
-      onChange={handleChange}
-      rightSection={loading ? <Loader size="1rem" /> : null}
-      label="Email"
-      placeholder="hello@mantine.dev"
-      required
-      radius="md"
-    />
+    // <Autocomplete
+    //   value={value}
+    //   data={data}
+    //   onChange={handleChange}
+    //   rightSection={loading ? <Loader size="1rem" /> : null}
+    //   label="Email"
+    //   placeholder="hello@mantine.dev"
+    //   required
+    //   radius="md"
+    // />
+    <TextInput
+                    required
+                    label="Email"
+                    placeholder="yourname@dlsud.edu.ph"
+                    value={value}
+                    onChange={(event) => {
+                      handleChange(event.currentTarget.value);
+                    }}
+                    radius="md"
+                  />
   );
 }
