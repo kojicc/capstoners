@@ -445,7 +445,8 @@ export default function TransactionHistory() {
 
     // Create payload with separate date and time fields
     const data = {
-      username: selectedReservation.reservation_id.split('_')[0],
+      // username: selectedReservation.reservation_id.split('_')[0],
+      username: selectedReservation.user,
       reservationId: selectedReservation.reservation_id,
       status: selectedReservation.status,
       reservation_purpose: selectedReservation.reservation_purpose,
