@@ -147,7 +147,7 @@ export function UserRegAdmin() {
         last_name: lastName,
         email,
         role,
-        class_section: form.values.classSection ? form.values.classSection : null,
+        class_section: form.values.classSection ? form.values.classSection : 'n/a',
       });
       console.log('Register response:', response.data);
     } catch (err) {
