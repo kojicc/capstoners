@@ -62,8 +62,38 @@ class ReservationItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, to_field='productId')
     quantity = models.PositiveIntegerField()
 
+    @property
+    def return_info(self):
+        try:
+            return self.return_info_rel
+        except ReturnedItem.DoesNotExist:
+            return None
+    
     def __str__(self):
         return f'{self.quantity} of {self.product.productId} in Reservation {self.reservation.reservation_id}'
+    
+
+class PaymentProof(models.Model):
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='payment_proofs')
+    image = models.ImageField(upload_to='payment_proofs/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    verified = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"Payment proof for {self.reservation.reservation_id}"
+
+
+class ReturnedItem(models.Model):
+    reservation_item = models.OneToOneField(ReservationItem, on_delete=models.CASCADE, related_name='return_info_rel')
+    quantity_returned = models.PositiveIntegerField(default=0)
+    quantity_damaged = models.PositiveIntegerField(default=0)
+
+    @property
+    def quantity_missing(self):
+        return max(0, self.reservation_item.quantity - self.quantity_returned)
+
+    def __str__(self):
+        return f"Returned: {self.quantity_returned} | Damaged: {self.quantity_damaged} | Missing: {self.quantity_missing}"
 
 
 class Cart(models.Model):

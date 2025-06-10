@@ -1,6 +1,9 @@
+from django.utils import timezone
+from datetime import datetime, timedelta
 from django.shortcuts import render
 from rest_framework.views import APIView
 from .models import Category, Product, ProductType
+from reservations.models import ReservationItem, ReturnedItem
 from .serializers import ProductImageSerializer, CategorySerializer,ProductImageonlySerializer, ProductTypeSerializer
 from rest_framework.response import Response
 import re
@@ -21,7 +24,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse, HttpResponse
-
+from django.db.models import Sum
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+import os
+import zipfile
+from django.conf import settings
 # Create your views here.
 
 
@@ -108,153 +119,158 @@ class ProductTypeCRUD(APIView):
             }, status=status.HTTP_404_NOT_FOUND)
 
 
-#excel import at export here
-# class ExportImportProductView(APIView):
-#     permission_classes = [IsAuthenticated]  # Uncomment if you want to enforce authentication
 
-#     # exporter
-#     def get(self, request):
-#         products = Product.objects.all()
-#         categories = Category.objects.all()
-#         product_types = ProductType.objects.all()
-        
-#         product_serializer = ProductImageSerializer(products, many=True)
-#         category_serializer = CategorySerializer(categories, many=True)
-#         product_type_serializer = ProductTypeSerializer(product_types, many=True)
-        
-#         product_data = product_serializer.data
-#         category_data = category_serializer.data
-#         product_type_data = product_type_serializer.data
-        
-#         # Process image URLs to extract only the path part
-#         for product in product_data:
-#             if 'image' in product and product['image']:
-#                 parsed_url = urlparse(product['image'])
-#                 product['image'] = parsed_url.path
-        
-#         # Convert data to DataFrame
-#         product_df = pd.DataFrame(product_data)
-#         category_df = pd.DataFrame(category_data)
-#         product_type_df = pd.DataFrame(product_type_data)
-        
-#         # Create an in-memory output file for the HTTP response
-#         output = io.BytesIO()
-#         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-#             product_df.to_excel(writer, index=False, sheet_name='Products')
-#             category_df.to_excel(writer, index=False, sheet_name='Categories')
-#             product_type_df.to_excel(writer, index=False, sheet_name='ProductTypes')
-        
-#         output.seek(0)  # Move to the beginning of the BytesIO object
-        
-#         # Create the HTTP response with the Excel file
-#         response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-#         response['Content-Disposition'] = 'attachment; filename="products_and_categories.xlsx"'
-        
-#         return response
-
-#     # importer
-#     def post(self, request):
-#         try:
-#             file = request.FILES['file']
-#             df_products = pd.read_excel(file, sheetname='Products')
-#             df_categories = pd.read_excel(file, sheetname='Categories')
-#             df_product_types = pd.read_excel(file, sheetname='ProductTypes')
-            
-#             categories = df_categories.to_dict(orient='records')
-#             products = df_products.to_dict(orient='records')
-#             product_types = df_product_types.to_dict(orient='records')
-            
-#             # First, update or create categories
-#             for category in categories:
-#                 Category.objects.update_or_create(
-#                     categoryId=category['categoryId'],
-#                     defaults={
-#                         'name': category['name'],
-#                         'description': category['description'],
-#                         'icon': category['icon']
-#                     }
-#                 )
-            
-#             # Then, update or create product types
-#             for product_type in product_types:
-#                 category = Category.objects.get(categoryId=product_type['category'])
-#                 ProductType.objects.update_or_create(
-#                     name=product_type['name'],
-#                     defaults={
-#                         'description': product_type['description'],
-#                         'category': category
-#                     }
-#                 )
-            
-#             # Finally, update or create products
-#             for product in products:
-#                 category_id = product['category']
-#                 category = Category.objects.get(categoryId=category_id)
-                
-#                 product_defaults = {
-#                     'name': product['name'],
-#                     'description': product['description'],
-#                     'type': product.get('type', 'Default Type'),
-#                     'price': product['price'],
-#                     'quantity': product['quantity'],
-#                     'reserved': product.get('reserved', 0),
-#                     'broken_damaged': product.get('broken_damaged', 0),
-#                     'category': category,# Set default image for all products
-#                 }
-                
-#                 Product.objects.update_or_create(
-#                     productId=product['productId'],  # Match on productId to avoid duplicates
-#                     defaults=product_defaults
-#                 )
-            
-#             return Response({
-#                 'message': 'Products, categories, and product types uploaded and updated successfully'
-#             }, status=201)
-#         except Exception as e:
-#             return Response({
-#                 'message': f'An error occurred: {str(e)}'
-#             }, status=400)
 
 class ExportImportProductView(APIView):
     def get(self, request):
-        # Export data for all models
-        categories = Category.objects.all()
-        product_types = ProductType.objects.all()
-        products = Product.objects.all()
-        
-        category_serializer = CategorySerializer(categories, many=True)
-        product_type_serializer = ProductTypeSerializer(product_types, many=True)
-        product_serializer = ProductImageSerializer(products, many=True)
-        
-        category_data = category_serializer.data
-        product_type_data = product_type_serializer.data
-        product_data = product_serializer.data
-        
-        # Process image URLs to extract only the path part
-        for product in product_data:
-            if 'image' in product and product['image']:
-                parsed_url = urlparse(product['image'])
-                product['image'] = parsed_url.path
-        
-        # Convert data to DataFrame
-        category_df = pd.DataFrame(category_data)
-        product_type_df = pd.DataFrame(product_type_data)
-        product_df = pd.DataFrame(product_data)
-        
-        # Create an in-memory output file for the HTTP response
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            category_df.to_excel(writer, index=False, sheet_name='Categories')
-            product_type_df.to_excel(writer, index=False, sheet_name='ProductTypes')
-            product_df.to_excel(writer, index=False, sheet_name='Products')
-        
-        output.seek(0)  # Move to the beginning of the BytesIO object
-        
-        # Create the HTTP response with the Excel file
-        response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename="all_models.xlsx"'
-        
-        return response
+        try:
+            current_time = timezone.localtime(timezone.now()).replace(tzinfo=None)
+            
+            # Gather all data
+            categories = Category.objects.all()
+            product_types = ProductType.objects.all()
+            products = Product.objects.all()
+            
+            # Get returned items data
+            returned_items = ReturnedItem.objects.select_related(
+                'reservation_item__product', 
+                'reservation_item__reservation'
+            ).all()
+            
+            # Serialize basic data
+            category_data = CategorySerializer(categories, many=True).data
+            product_type_data = ProductTypeSerializer(product_types, many=True).data
+            product_data = ProductImageSerializer(products, many=True).data
+            
+            # Process URLs for product images
+            for product in product_data:
+                if 'image' in product and product['image']:
+                    parsed_url = urlparse(product['image'])
+                    product['image'] = parsed_url.path
+            
+            # Create DataFrames
+            category_df = pd.DataFrame(category_data)
+            product_type_df = pd.DataFrame(product_type_data)
+            product_df = pd.DataFrame(product_data)
+            
+            # Create returned items analysis DataFrame
+            returned_items_data = []
+            for item in returned_items:
+                returned_items_data.append({
+                    'product_id': item.reservation_item.product.productId,
+                    'product_name': item.reservation_item.product.name,
+                    'reservation_id': item.reservation_item.reservation.reservation_id,
+                    'original_quantity': item.reservation_item.quantity,
+                    'returned_quantity': item.quantity_returned,
+                    'damaged_quantity': item.quantity_damaged,
+                    'missing_quantity': item.quantity_missing,
+                    'return_date': item.reservation_item.reservation.reserved_date
+                })
+            returned_items_df = pd.DataFrame(returned_items_data)
+            
+            # Create inventory analysis
+            low_stock_threshold = 10
+            low_stock_products = products.filter(quantity__lt=low_stock_threshold)
+            low_stock_data = ProductImageSerializer(low_stock_products, many=True).data
+            low_stock_df = pd.DataFrame(low_stock_data)
+            
+            if not low_stock_df.empty:
+                low_stock_df['export_date'] = current_time
+                low_stock_df['days_until_stockout'] = low_stock_df.apply(
+                    lambda x: x['quantity'] / (x['reserved'] + 1) * 30 
+                    if x['reserved'] > 0 else float('inf'), 
+                    axis=1
+                )
+            
+            # Generate statistics
+            stats_data = {
+                'timestamp': [current_time],
+                'total_products': [len(products)],
+                'low_stock_count': [len(low_stock_products)],
+                'out_of_stock_count': [products.filter(quantity=0).count()],
+                'total_reserved': [products.aggregate(Sum('reserved'))['reserved__sum'] or 0],
+                'total_damaged': [products.aggregate(Sum('broken_damaged'))['broken_damaged__sum'] or 0],
+                'total_returned_items': [ReturnedItem.objects.aggregate(Sum('quantity_returned'))['quantity_returned__sum'] or 0],
+                'total_damaged_returns': [ReturnedItem.objects.aggregate(Sum('quantity_damaged'))['quantity_damaged__sum'] or 0],
+            }
+            stats_df = pd.DataFrame(stats_data)
+            
+            # Create Excel file
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                # Write main sheets
+                category_df.to_excel(writer, index=False, sheet_name='Categories')
+                product_type_df.to_excel(writer, index=False, sheet_name='ProductTypes')
+                product_df.to_excel(writer, index=False, sheet_name='Products')
+                
+                # Write analysis sheets
+                if not low_stock_df.empty:
+                    low_stock_df.to_excel(writer, index=False, sheet_name='LowStockAnalysis')
+                if not returned_items_df.empty:
+                    returned_items_df.to_excel(writer, index=False, sheet_name='ReturnedItems')
+                stats_df.to_excel(writer, index=False, sheet_name='Statistics')
+                
+                # Format workbook
+                workbook = writer.book
+                
+                # Format Statistics sheet
+                stats_sheet = workbook['Statistics']
+                stats_sheet.column_dimensions['A'].width = 25
+                for cell in stats_sheet['A'][1:]:
+                    cell.number_format = 'yyyy-mm-dd hh:mm:ss'
+                
+                # Format other sheets
+                self._format_sheets(workbook, low_stock_df, low_stock_threshold, returned_items_df)
+            
+            output.seek(0)
+            filename = f"Reservoia_Export_{current_time.strftime('%Y%m%d_%H%M%S')}.xlsx"
+            
+            response = HttpResponse(
+                output,
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            
+            return response
+            
+        except Exception as e:
+            logging.error(f"Export error: {str(e)}", exc_info=True)
+            return JsonResponse({
+                'message': f'An error occurred during export: {str(e)}'
+            }, status=400)
+
+    def _format_sheets(self, workbook, low_stock_df, low_stock_threshold, returned_items_df):
+        # Format LowStockAnalysis sheet
+        if not low_stock_df.empty and 'LowStockAnalysis' in workbook.sheetnames:
+            low_stock_sheet = workbook['LowStockAnalysis']
+            low_stock_sheet.column_dimensions['A'].width = 15
+            
+            color_scale = ColorScaleRule(
+                start_type='num', start_value=0,
+                end_type='num', end_value=low_stock_threshold,
+                start_color='F8696B', end_color='63BE7B'
+            )
+            low_stock_sheet.conditional_formatting.add(
+                f'D2:D{len(low_stock_df) + 1}', 
+                color_scale
+            )
+
+        # Format ReturnedItems sheet
+        if not returned_items_df.empty and 'ReturnedItems' in workbook.sheetnames:
+            returned_sheet = workbook['ReturnedItems']
+            returned_sheet.column_dimensions['A'].width = 15
+            returned_sheet.column_dimensions['B'].width = 30
+            
+            # Add conditional formatting for damaged/missing items
+            damage_color_scale = ColorScaleRule(
+                start_type='num', start_value=0,
+                end_type='num', end_value=10,
+                start_color='63BE7B', end_color='F8696B'
+            )
+            returned_sheet.conditional_formatting.add(
+                f'E2:F{len(returned_items_df) + 1}', 
+                damage_color_scale
+            )
 
     def post(self, request):
         try:
@@ -262,102 +278,103 @@ class ExportImportProductView(APIView):
                 return JsonResponse({'error': 'No file uploaded'}, status=400)
 
             file = request.FILES['file']
-            df_categories = pd.read_excel(file, sheet_name='Categories')
-            df_product_types = pd.read_excel(file, sheet_name='ProductTypes')
-            df_products = pd.read_excel(file, sheet_name='Products')
             
-            categories = df_categories.to_dict(orient='records')
-            product_types = df_product_types.to_dict(orient='records')
-            products = df_products.to_dict(orient='records')
+            # Read all sheets
+            excel_data = pd.read_excel(file, sheet_name=None)
             
-            logging.info(f"Categories: {categories}")
-            logging.info(f"Product Types: {product_types}")
-            logging.info(f"Products: {products}")
+            # Process each sheet
+            if 'Categories' in excel_data:
+                self._process_categories(excel_data['Categories'])
             
-            # First, update or create categories
-            for category in categories:
-                Category.objects.update_or_create(
-                    categoryId=category['categoryId'],
-                    defaults={
-                        'name': category['name'],
-                        'description': category['description'],
-                        'icon': category.get('icon', 'IconToolsKitchen')  # Use default icon if not provided
-                    }
-                )
+            if 'ProductTypes' in excel_data:
+                self._process_product_types(excel_data['ProductTypes'])
             
-            # Then, update or create product types
-            for product_type in product_types:
-                category = Category.objects.get(categoryId=product_type['category'])
-                ProductType.objects.update_or_create(
-                    name=product_type['name'],
-                    defaults={
-                        'description': product_type['description'],
-                        'category': category
-                    }
-                )
+            if 'Products' in excel_data:
+                self._process_products(excel_data['Products'])
             
-            # Finally, update or create products
-            for product in products:
-                category_id = product['category']
-                category = Category.objects.get(categoryId=category_id)
-                
-                product_defaults = {
-                    'name': product['name'],
-                    'description': product['description'],
-                    'type': product.get('type', 'Default Type'),
-                    'price': product['price'],
-                    'quantity': product['quantity'],
-                    'reserved': product.get('reserved', 0),
-                    'broken_damaged': product.get('broken_damaged', 0),
-                    'category': category,
-                    'image': product.get('image', 'products/images/default.png')  # Use the default image if not provided
-                }
-                
-                # Ensure 'image' attribute is a valid file path or URL
-                if isinstance(product['image'], float):
-                    product_defaults['image'] = 'products/images/default.png'
-                
-                Product.objects.update_or_create(
-                    productId=product['productId'],  # Match on productId to avoid duplicates
-                    defaults=product_defaults
-                )
-            
+            if 'ReturnedItems' in excel_data:
+                self._process_returned_items(excel_data['ReturnedItems'])
+
             return JsonResponse({
-                'message': 'Categories, product types, and products uploaded and updated successfully'
+                'message': 'Data imported successfully'
             }, status=201)
+        
         except Exception as e:
-            logging.error(f"An error occurred: {str(e)}")
+            logging.error(f"Import error: {str(e)}", exc_info=True)
             return JsonResponse({
-                'message': f'An error occurred: {str(e)}'
+                'message': f'An error occurred during import: {str(e)}'
             }, status=400)
 
-# class ExportImportProductView(APIView):
-#     permission_classes = [IsAuthenticated]
+    def _process_categories(self, df):
+        for _, row in df.iterrows():
+            Category.objects.update_or_create(
+                categoryId=row['categoryId'],
+                defaults={
+                    'name': row['name'],
+                    'description': row['description'],
+                    'icon': row.get('icon', 'IconToolsKitchen')
+                }
+            )
 
-#     def post(self, request):
-#         try:
-#             file = request.FILES['file']
-#             df = pd.read_excel(file)
-#             categories = df.to_dict(orient='records')
+    def _process_product_types(self, df):
+        for _, row in df.iterrows():
+            category = Category.objects.get(categoryId=row['category'])
+            ProductType.objects.update_or_create(
+                name=row['name'],
+                defaults={
+                    'description': row['description'],
+                    'category': category
+                }
+            )
+
+    def _process_products(self, df):
+        for _, row in df.iterrows():
+            category = Category.objects.get(categoryId=row['category'])
+            product_defaults = {
+                'name': row['name'],
+                'description': row['description'],
+                'type': row.get('type', 'Default Type'),
+                'price': row['price'],
+                'quantity': row['quantity'],
+                'reserved': row.get('reserved', 0),
+                'broken_damaged': row.get('broken_damaged', 0),
+                'category': category,
+                'image': row.get('image', 'products/images/default.png')
+            }
             
-#             for category in categories:
-#                 Category.objects.update_or_create(
-#                     categoryId=category['categoryId'],
-#                     defaults={
-#                         'name': category['name'],
-#                         'description': category['description'],
-#                         'icon': category.get('icon', 'IconToolsKitchen')  # Use default icon if not provided
-#                     }
-#                 )
+            if pd.isna(row['image']):
+                product_defaults['image'] = 'products/images/default.png'
             
-#             return Response({
-#                 'message': 'Categories uploaded and updated successfully'
-#             }, status=201)
-#         except Exception as e:
-#             return Response({
-#                 'message': f'An error occurred: {str(e)}'
-#             }, status=400)
-        
+            Product.objects.update_or_create(
+                productId=row['productId'],
+                defaults=product_defaults
+            )
+
+    def _process_returned_items(self, df):
+        for _, row in df.iterrows():
+            try:
+                reservation_item = ReservationItem.objects.get(
+                    reservation__reservation_id=row['reservation_id'],
+                    product__productId=row['product_id']
+                )
+                
+                ReturnedItem.objects.update_or_create(
+                    reservation_item=reservation_item,
+                    defaults={
+                        'quantity_returned': row['returned_quantity'],
+                        'quantity_damaged': row['damaged_quantity']
+                    }
+                )
+                
+                # Update product inventory
+                product = reservation_item.product
+                product.quantity = (product.quantity + row['returned_quantity'] - 
+                                  row['damaged_quantity'])
+                product.broken_damaged += row['damaged_quantity']
+                product.save()
+                
+            except ReservationItem.DoesNotExist:
+                logging.warning(f"ReservationItem not found for reservation_id: {row['reservation_id']}")
         
 class createCategory(APIView):
     permission_classes = [IsAuthenticated]
@@ -872,3 +889,40 @@ class SearchProductView(APIView):
                 'message': 'An error occurred',
                 'error': str(e)  # Include the actual error message in the response
             }, status=400)
+
+
+
+class GetProductStats(APIView):
+    def get(self, request):
+        try:
+            category_id = request.query_params.get('categoryId')
+            
+            # Base queryset
+            products = Product.objects.all()
+            
+            # Filter by category if provided
+            if category_id:
+                products = products.filter(category__categoryId=category_id)
+            
+            # Get top 3 most reserved products
+            most_reserved = products.order_by('-reserved')[:3]
+            
+            # Get top 3 lowest stock products (excluding out of stock)
+            lowest_stock = products.filter(quantity__gt=0).order_by('quantity')[:3]
+            
+            # Serialize the data
+            most_reserved_data = ProductImageSerializer(most_reserved, many=True).data
+            lowest_stock_data = ProductImageSerializer(lowest_stock, many=True).data
+            
+            return Response({
+                'most_reserved': most_reserved_data,
+                'lowest_stock': lowest_stock_data,
+                'message': 'Stats retrieved successfully'
+            }, status=200)
+            
+        except Exception as e:
+            return Response({
+                'message': f'An error occurred: {str(e)}'
+            }, status=400)
+   
+       

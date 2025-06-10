@@ -1,6 +1,6 @@
 # urls.py (app auth level)
 from django.urls import path
-from .views import ReservationCreateUpdateAPIView, ReservationDetailAPIView,  ReservationDeleteView, ReservationSearchView ,showNotification,readNotification,AdminUpdateReservationStatusAPIView,AdminReservationDetailAPIView,ReservationCartAPIView,ReservationImportExportView, ClassScheduleCRUDAPIView
+from .views import ReservationCreateUpdateAPIView, ReservationDetailAPIView,  ReservationDeleteView, ReservationSearchView ,showNotification,readNotification,AdminUpdateReservationStatusAPIView,AdminReservationDetailAPIView,ReservationCartAPIView,ReservationImportExportView, ClassScheduleCRUDAPIView, PaymentProofUploadView, PaymentProofListView, GeneratePaymentProofPresignedUrl
 urlpatterns = [
     path('classScheduleCRUD/', ClassScheduleCRUDAPIView.as_view(), name='classScheduleCRUD'),
     path('reservationsCreateUpdate/', ReservationCreateUpdateAPIView.as_view(), name='reservationsCreate'),
@@ -16,6 +16,11 @@ urlpatterns = [
     path('mark_as_read/', readNotification.as_view(), name='mark_as_read'),
     path('reservationsCart/', ReservationCartAPIView.as_view(), name='reservationsCart'),
     path('importExportReservations/', ReservationImportExportView.as_view(), name='importExportReservations'),
+    path('payment-proof-upload/', PaymentProofUploadView.as_view(), name='payment-proof-upload'),
+    path('payment-proof-list/', PaymentProofListView.as_view(), name='payment-proof-list'),
+    path('generate-payment-proof-url/', GeneratePaymentProofPresignedUrl.as_view(), name='generate-payment-proof-url'),
+
+    
 
     #  path('user/notifications/', UserNotificationsAPIView.as_view(), name='user_notifications'),
     # path('admin/notifications/', AdminNotificationsAPIView.as_view(), name='admin_notifications'),

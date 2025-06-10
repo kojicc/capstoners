@@ -33,6 +33,8 @@ import {
   TagsInput,
   Paper,
   Image,
+  Badge,
+  SimpleGrid,
 } from '@mantine/core';
 import {
   IconSelector,
@@ -45,6 +47,7 @@ import {
   IconUpload,
   IconX,
   IconClock,
+  IconPhoto,
 } from '@tabler/icons-react';
 import classes from '@/components/modules.css/TableSort.module.css';
 import { notifications } from '@mantine/notifications';
@@ -63,10 +66,26 @@ import { useRouter } from 'next/router';
 // import classes from '../components/modules.css/Demo.module.css';
 import useSWR from 'swr';
 import dayjs from 'dayjs';
+import { Dropzone, IMAGE_MIME_TYPE, FileWithPath } from '@mantine/dropzone';
 
 interface Product {
   image: string;
   productId: string;
+  quantity_available?: number; // Add this field
+}
+
+// Add these fields to the ReservationItem interface
+interface ReservationItem {
+  id: number;
+  reservation: string;
+  product: Product;
+  quantity: number;
+  returned_quantity?: number;
+  damaged_quantity?: number;
+  return_info?: {
+    quantity_returned: number;
+    quantity_damaged: number;
+  };
 }
 
 interface Users {
@@ -123,6 +142,18 @@ interface ClassSchedule {
   class_instructor: string;
 }
 
+interface ReturnedItem {
+  returned: number;
+  damaged: number;
+}
+
+interface ReturnFormData {
+  [itemId: string]: {
+    returned: number;
+    damaged: number;
+  };
+}
+
 export interface ThProps {
   children: React.ReactNode;
   sorted?: boolean;
@@ -153,6 +184,8 @@ const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 
 export default function TransactionHistory() {
   // #region useStates
+  const [completeConfirmModalOpen, setCompleteConfirmModalOpen] = useState(false);
+  const [returnedItems, setReturnedItems] = useState<ReturnFormData>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<keyof Reservation | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
@@ -178,11 +211,23 @@ export default function TransactionHistory() {
   const [selectedClassTime, setSelectedClassTime] = useState('');
   const [subject, setSubject] = useState('');
   const [buttonLoading, setButtonLoading] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'excel' | 'pdf'>('excel');
+  const [exportTimeframe, setExportTimeframe] = useState<'daily' | 'weekly' | 'all'>('daily');
 
   const [isGroupCheckout, setIsGroupCheckout] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [selectedReservationPurpose, setSelectedReservationPurpose] = useState('');
 
+  // Add state for managing files
+  const [paymentFiles, setPaymentFiles] = useState<FileWithPath[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [paymentProofs, setPaymentProofs] = useState<any[]>([]);
+
+  // Add these new states after other useState declarations
+  const [exportType, setExportType] = useState<'pdf' | 'excel' | 'both'>('excel');
+  const [isAdvancedExport, setIsAdvancedExport] = useState(false);
+  const [exportPeriod, setExportPeriod] = useState<string>('all');
+  const [showCustomDateRange, setShowCustomDateRange] = useState(false);
   // #endregion
 
   const itemsPerPage = 5;
@@ -236,51 +281,127 @@ export default function TransactionHistory() {
     }
   }, [reservationsData]);
 
-  // if (error) {
-  //   console.log('Error:', error);
-  //   return (
-  //     <Flex justify="center" align="center" style={{ height: '100vh' }}>
-  //       <Title c={'white'}>Error loading reservations: {error.message}</Title>
-  //     </Flex>
-  //   );
-  // }
+  const validateReturnForm = () => {
+    if (!selectedReservation?.items) return true;
+
+    for (const item of selectedReservation.items) {
+      const currentReturned = returnedItems[item.product.productId]?.returned || 0;
+      const currentDamaged = returnedItems[item.product.productId]?.damaged || 0;
+
+      if (
+        currentDamaged > currentReturned ||
+        currentReturned > item.quantity ||
+        currentDamaged > item.quantity
+      ) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleExportPeriodChange = (value: string | null) => {
+    if (value) {
+      setExportPeriod(value);
+      setShowCustomDateRange(value === 'custom');
+      if (value !== 'custom') {
+        setSelectedDate(null);
+        setSelectedMonthYear(null);
+      }
+    }
+  };
 
   const handleExport = async () => {
     try {
       setButtonLoading(true);
       setLoadingImportExport(true);
-      let formattedDate = null;
-      if (selectedDate) {
-        formattedDate = formatDateWithMilliseconds(selectedDate);
-      } else if (selectedMonthYear) {
-        formattedDate = formatMonthandYear(selectedMonthYear);
+
+      // Get current date and time for filename
+      const now = new Date();
+      const timestamp = now
+        .toLocaleString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        })
+        .replace(/[/:]/g, '-');
+
+      const params: {
+        period: string;
+        export_format: string;
+        username?: string;
+        timestamp: string;
+        start_date?: string;
+        end_date?: string;
+        [key: string]: any;
+      } = {
+        period: exportPeriod,
+        export_format: exportType === 'both' ? 'excel' : exportType,
+        username: isAdvancedExport ? username : undefined,
+        timestamp: timestamp, // Pass timestamp to backend
+      };
+
+      if (showCustomDateRange) {
+        if (selectedDate) params.start_date = formatDateWithMilliseconds(selectedDate);
+        if (selectedMonthYear) params.end_date = formatMonthandYear(selectedMonthYear);
       }
 
-      console.log('formattedDate:', formattedDate);
-      const response = await axiosInstance.get('importExportReservations/', {
-        responseType: 'blob',
-        params: {
-          username,
-          reserved_date: formattedDate, // Send formatted date
-        },
+      const formats = exportType === 'both' ? ['excel', 'pdf'] : [exportType];
+
+      for (const format of formats) {
+        try {
+          const response = await axiosInstance.get('importExportReservations/', {
+            responseType: 'blob',
+            params: {
+              ...params,
+              export_format: format,
+            },
+          });
+
+          if (response.status === 200 && response.data.size > 0) {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+
+            // Create descriptive filename
+            const periodStr = showCustomDateRange
+              ? `custom_${selectedDate ? formatDateWithMilliseconds(selectedDate) : ''}_${selectedMonthYear ? formatMonthandYear(selectedMonthYear) : ''}`
+              : exportPeriod;
+
+            const extension = format === 'pdf' ? 'pdf' : 'xlsx';
+            const filename = `Reservoia_${periodStr}_${timestamp}.${extension}`;
+
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+          }
+        } catch (error) {
+          console.error(`Error exporting ${format} format:`, error);
+          notifications.show({
+            message: `Failed to export ${format} format`,
+            color: 'red',
+          });
+        }
+      }
+
+      notifications.show({
+        message: 'Export completed successfully!',
+        color: 'green',
       });
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'reservations.xlsx');
-      document.body.appendChild(link);
-      link.click();
-
-      notifications.show({ message: 'Export successful!', color: 'green' });
     } catch (error) {
-      notifications.show({ message: 'Export failed.', color: 'red' });
+      console.error('Export error:', error);
+      notifications.show({
+        message: 'Export failed.',
+        color: 'red',
+      });
     } finally {
       setLoadingImportExport(false);
-      setUsername('');
       setOpenedExport(false);
-      setSelectedDate(null);
-      setSelectedMonthYear(null);
       setButtonLoading(false);
     }
   };
@@ -326,21 +447,25 @@ export default function TransactionHistory() {
   const handleCheckboxChange = (selectedValues: string[]) => {
     setValue(selectedValues);
 
-    selectedReservation?.items.forEach((item, index) => {
-      if (selectedValues.includes(item.product.productId)) {
-        setDisabled((prevDisabled) => {
-          const newDisabled = [...prevDisabled];
-          newDisabled[index] = false; // Enable the corresponding NumberInput
-          return newDisabled;
-        });
-      } else {
-        setDisabled((prevDisabled) => {
-          const newDisabled = [...prevDisabled];
-          newDisabled[index] = true; // Disable the corresponding NumberInput
-          return newDisabled;
-        });
-      }
-    });
+    // Create a new disabled array based on whether each item is selected
+    const newDisabled =
+      selectedReservation?.items.map((item) => !selectedValues.includes(item.product.productId)) ||
+      [];
+
+    setDisabled(newDisabled);
+
+    // Keep existing quantities for checked items, reset others
+    setQuantity(
+      (prevQuantities) =>
+        selectedReservation?.items.map((item, index) => {
+          if (selectedValues.includes(item.product.productId)) {
+            // Keep existing quantity if item is checked
+            return prevQuantities[index] || item.quantity;
+          }
+          // Reset quantity if item is unchecked
+          return item.quantity;
+        }) || []
+    );
   };
 
   useEffect(() => {
@@ -350,6 +475,111 @@ export default function TransactionHistory() {
       setDisabled(new Array(selectedReservation.items.length).fill(true));
     }
   }, [selectedReservation]);
+
+  // Function to handle payment proof upload
+  const handlePaymentProofUpload = async () => {
+    if (paymentFiles.length === 0 || !selectedReservation) {
+      notifications.show({
+        title: 'Error',
+        message: 'Please select at least one image for proof of payment',
+        color: 'red',
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Array to store uploaded image names
+      const uploadedImageNames: string[] = [];
+
+      // Process each file for S3 upload
+      for (const file of paymentFiles) {
+        try {
+          // Get presigned URL from backend
+          const presignedResponse = await axiosInstance.post(
+            'generate-payment-proof-presigned-url/',
+            {
+              file_name: file.name,
+              file_type: file.type,
+            }
+          );
+
+          const { url, fields } = presignedResponse.data;
+
+          // Create form data for S3 upload
+          const s3FormData = new FormData();
+          Object.entries(fields).forEach(([key, value]) => {
+            s3FormData.append(key, value as string);
+          });
+          s3FormData.append('file', file);
+
+          // Use fetch for S3 upload to handle redirects properly
+          const uploadResponse = await fetch(url, {
+            method: 'POST',
+            body: s3FormData,
+            // Don't set Content-Type header, let browser set it with boundary
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.status}`);
+          }
+
+          // Add filename to the array after successful upload
+          uploadedImageNames.push(file.name);
+        } catch (error) {
+          console.error('Error uploading to S3:', error);
+          notifications.show({
+            title: 'Error',
+            message: `Failed to upload image ${file.name} to S3`,
+            color: 'red',
+          });
+        }
+      }
+
+      // If we have successfully uploaded files, send their names to our backend
+      if (uploadedImageNames.length > 0) {
+        const response = await axiosInstance.post('payment-proof-upload/', {
+          reservationId: selectedReservation.reservation_id,
+          imageNames: uploadedImageNames,
+        });
+
+        setPaymentProofs(response.data.payment_proofs);
+        setPaymentFiles([]);
+
+        notifications.show({
+          title: 'Success',
+          message: 'Payment proof uploaded successfully',
+          color: 'green',
+        });
+
+        mutate(); // Refresh data
+      } else {
+        notifications.show({
+          title: 'Warning',
+          message: 'No files were successfully uploaded',
+          color: 'yellow',
+        });
+      }
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to upload payment proof',
+        color: 'red',
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Add this function to load existing payment proofs
+  const loadPaymentProofs = async (reservationId: string) => {
+    try {
+      const response = await axiosInstance.get(`payment-proofs/${reservationId}/`);
+      setPaymentProofs(response.data.payment_proofs);
+    } catch (error) {
+      console.error('Failed to load payment proofs:', error);
+    }
+  };
 
   // Filter and sort data
   const filterData = (data: Reservation[], search: string): Reservation[] => {
@@ -436,55 +666,97 @@ export default function TransactionHistory() {
     event.preventDefault();
 
     if (!selectedReservation) {
-      console.error('No reservation selected');
       return;
     }
 
-    // Split class time string into components
-    const day = dayjs(selectedReservation.reserved_date).format('dddd');
+    // Get only the checked products and their quantities
+    const selectedProducts = selectedReservation.items
+      .filter((item, index) => !disabled[index])
+      .map((item, index) => {
+        const itemIndex = selectedReservation.items.findIndex(
+          (i) => i.product.productId === item.product.productId
+        );
+        return {
+          productId: item.product.productId,
+          quantity: quantity[itemIndex],
+          originalQuantity: item.quantity,
+        };
+      });
 
-    // Create payload with separate date and time fields
     const data = {
-      // username: selectedReservation.reservation_id.split('_')[0],
       username: selectedReservation.user,
       reservationId: selectedReservation.reservation_id,
       status: selectedReservation.status,
-      reservation_purpose: selectedReservation.reservation_purpose,
-      productIds: value.map((item) => item),
-      quantities: quantity.map((item) => item),
-      subject: selectedReservation.subject,
-      reservation_day: day,
-      reservation_date: selectedReservation.reservation_date, // Send time as HH:mm:ss
-      reservation_date_end: selectedReservation.reservation_date_end, // Send time as HH:mm:ss
-      is_group: selectedReservation.is_group,
-      group_members: selectedReservation.group_members ? selectedReservation.group_members : [],
-      reserved_date: selectedReservation.reserved_date,
-      user_class_section: selectedReservation.user_class_section,
-      remarks: selectedReservation.remarks,
+      productIds: selectedProducts.map((p) => p.productId),
+      quantities: selectedProducts.map((p) => p.quantity),
+      remarks: selectedReservation.remarks || '', // Send remarks as is, without appending
+      returned_items: returnedItems,
     };
 
     try {
       setLoader(true);
-      await axiosInstance.post('adminUpdateReservationStatus/', data);
+      const response = await axiosInstance.post('adminUpdateReservationStatus/', data);
+      console.log('API response:', response.data);
       handleCloseModal();
       mutate();
       notifications.show({
         title: 'Success',
-        message: 'Reservation updated successfully.',
+        message: 'Reservation updated successfully',
         color: 'green',
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating reservation:', error);
       notifications.show({
         title: 'Error',
-        message: 'Failed to update reservation.',
+        message: error.response?.data?.message || 'Failed to update reservation',
         color: 'red',
       });
     } finally {
-      setIsGroupCheckout(false);
-      setSelectedUsers([]);
       setLoader(false);
     }
+  };
+
+  const getAvailableStatusOptions = () => {
+    if (!selectedReservation) return [];
+
+    // Only include these base statuses, removing PARTIALLY_RETURNED and AWAITING PAYMENT
+    const allOptions = [
+      'PENDING',
+      'APPROVED/AWAITING RETURN',
+      'REJECTED',
+      'CANCELLED',
+      'DAMAGED/LOST/PARTIALLY_COMPLETED',
+      'COMPLETED',
+    ];
+
+    // Calculate totals for status validation
+    let totalItems = 0;
+    let totalReturned = 0;
+    let totalDamaged = 0;
+
+    selectedReservation.items.forEach((item) => {
+      totalItems += item.quantity;
+      const returnInfo = returnedItems[item.product.productId];
+      if (returnInfo) {
+        totalReturned += returnInfo.returned || 0;
+        totalDamaged += returnInfo.damaged || 0;
+      } else if (item.returned_quantity) {
+        totalReturned += item.returned_quantity;
+        totalDamaged += item.damaged_quantity || 0;
+      }
+    });
+
+    // Add simple labels without the "not recommended" text
+    return allOptions.map((option) => {
+      let label = option;
+
+      // Only add recommendations for the COMPLETED status
+      if (option === 'COMPLETED') {
+        label = `${option}`;
+      }
+
+      return { value: option, label: label };
+    });
   };
 
   const selectedDay = selectedDate ? dayjs(selectedDate).format('dddd').toUpperCase() : '';
@@ -511,6 +783,7 @@ export default function TransactionHistory() {
     setQuantity([]);
     setDisabled([]);
     setValue([]);
+    setReturnedItems({}); // Reset return form data
   };
 
   const paginatedData = sortedData.slice(
@@ -540,6 +813,55 @@ export default function TransactionHistory() {
     const month = String(date.getMonth() + 1).padStart(2, '0');
 
     return `${year}-${month}`;
+  };
+
+  // Add this function to initialize returned items data from existing return info
+  // Update the initializeReturnedItems function to handle return_info properly
+  const initializeReturnedItems = (reservation: Reservation) => {
+    const initialReturnData: ReturnFormData = {};
+
+    if (reservation.items && reservation.items.length > 0) {
+      reservation.items.forEach((item) => {
+        if (item.product && item.product.productId) {
+          // First try to get data from return_info if available
+          if (item.return_info) {
+            initialReturnData[item.product.productId] = {
+              returned: item.return_info.quantity_returned || 0,
+              damaged: item.return_info.quantity_damaged || 0,
+            };
+          }
+          // Fallback to returned_quantity and damaged_quantity
+          else {
+            initialReturnData[item.product.productId] = {
+              returned: item.returned_quantity || 0,
+              damaged: item.damaged_quantity || 0,
+            };
+          }
+        }
+      });
+    }
+
+    return initialReturnData;
+  };
+
+  // When opening the edit modal, initialize the returned items
+  const handleOpenEditModal = (reservation: Reservation) => {
+    setSelectedReservation(reservation);
+    setEditModalOpened(true);
+
+    // Initialize returnedItems state with actual values from return_info or fallback values
+    const initialReturnData: ReturnFormData = {};
+    reservation.items.forEach((item) => {
+      if (item.product?.productId) {
+        initialReturnData[item.product.productId] = {
+          returned: item.return_info?.quantity_returned ?? item.returned_quantity ?? 0,
+          damaged: item.return_info?.quantity_damaged ?? item.damaged_quantity ?? 0,
+        };
+      }
+    });
+    setReturnedItems(initialReturnData);
+    loadPaymentProofs(reservation.reservation_id);
+    console.log('Opening edit modal with returned items:', initialReturnData);
   };
 
   return (
@@ -630,69 +952,100 @@ export default function TransactionHistory() {
                     </Tooltip>
                   </Popover.Target>
                   <Popover.Dropdown onClick={(e) => e.stopPropagation()}>
-                    <Autocomplete
-                      autoComplete="new-password"
-                      placeholder="Input username to filter"
-                      value={username}
-                      onChange={setUsername}
-                      leftSection={
-                        <IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                      }
-                      my={20}
-                      data={[
-                        {
-                          group: 'Usernames',
-                          items: users.map((user) => ({
-                            value: user.username,
-                            label: user.username,
-                          })),
-                        },
-                      ]}
-                      limit={5}
-                      comboboxProps={{
-                        transitionProps: { transition: 'pop', duration: 200 },
-                        dropdownPadding: 10,
-                        shadow: 'xl',
-                      }}
-                    />
+                    <Paper shadow="sm" p="lg" style={{ maxWidth: '600px', width: '100%' }}>
+                      <Stack gap="md">
+                        <Title order={4}>Export Transactions</Title>
 
-                    {/* Date Picker for Filtering Data */}
-                    <DatePickerInput
-                      placeholder="Select Date"
-                      label="Pick Date"
-                      value={selectedDate}
-                      onChange={(date) => {
-                        setSelectedDate(date);
-                        // Prevent closing the popover
-                        setTimeout(() => setOpenedExport(true), 0);
-                      }}
-                      clearable
-                      disabled={!!selectedMonthYear} // Disable if MonthPickerInput has a value
-                    />
+                        <Paper withBorder p="md" radius="md">
+                          <Stack>
+                            <Text fw={500} size="sm" c="dimmed">
+                              Time Period
+                            </Text>
+                            <Select
+                              label="Select Period"
+                              placeholder="Choose time period"
+                              value={exportPeriod}
+                              onChange={handleExportPeriodChange}
+                              data={[
+                                { value: 'daily', label: 'Daily View' },
+                                { value: 'weekly', label: 'Weekly View' },
+                                { value: 'monthly', label: 'Monthly View' },
+                                { value: 'annually', label: 'Annual View' },
+                                { value: 'custom', label: 'Custom Date Range' },
+                                { value: 'all', label: 'All Time Data' },
+                              ]}
+                            />
 
-                    <Divider orientation="horizontal" my="md" label="or" />
-                    <MonthPickerInput
-                      label="Pick Month and Year"
-                      placeholder="Pick date"
-                      value={selectedMonthYear}
-                      onChange={(date) => {
-                        setSelectedMonthYear(date);
-                        // Prevent closing the popover
-                        setTimeout(() => setOpenedExport(true), 0);
-                      }}
-                      disabled={!!selectedDate} // Disable if DatePickerInput has a value
-                      clearable
-                    />
-                    <Divider orientation="horizontal" my="md" />
+                            {showCustomDateRange && (
+                              <Stack gap="xs">
+                                <Group grow>
+                                  <DatePickerInput
+                                    label="Start Date"
+                                    placeholder="Pick date"
+                                    value={selectedDate}
+                                    onChange={(date) => {
+                                      setSelectedDate(date);
+                                      setSelectedMonthYear(null);
+                                    }}
+                                    clearable
+                                  />
+                                  <MonthPickerInput
+                                    label="End Date"
+                                    placeholder="Pick month/year"
+                                    value={selectedMonthYear}
+                                    onChange={(date) => {
+                                      setSelectedMonthYear(date);
+                                      setSelectedDate(null);
+                                    }}
+                                    clearable
+                                    minDate={selectedDate || undefined}
+                                  />
+                                </Group>
+                              </Stack>
+                            )}
+                          </Stack>
+                        </Paper>
 
-                    <Group justify="apart" mt="md">
-                      <Button onClick={handleExport} disabled={loading} loading={buttonLoading}>
-                        {loading ? <Loader size="xs" /> : 'Export'}
-                      </Button>
-                      <Button variant="outline" onClick={() => setOpenedExport(false)}>
-                        Close
-                      </Button>
-                    </Group>
+                        <Paper withBorder p="md" radius="md">
+                          <Stack>
+                            <Text fw={500} size="sm" c="dimmed">
+                              Export Format
+                            </Text>
+                            <Select
+                              value={exportType}
+                              onChange={(value: string | null) => {
+                                if (value === 'pdf' || value === 'excel' || value === 'both') {
+                                  setExportType(value);
+                                }
+                              }}
+                              data={[
+                                { value: 'excel', label: 'Excel (.xlsx)' },
+                                { value: 'pdf', label: 'PDF Report (.pdf)' },
+                                { value: 'both', label: 'Both Formats' },
+                              ]}
+                            />
+                          </Stack>
+                        </Paper>
+
+                        {/* Action Buttons */}
+                        <Group justify="flex-end" mt="md">
+                          <Button variant="light" onClick={() => setOpenedExport(false)}>
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleExport}
+                            loading={buttonLoading}
+                            disabled={
+                              loading ||
+                              (showCustomDateRange && !selectedDate && !selectedMonthYear)
+                            }
+                            leftSection={<IconDownload size={16} />}
+                          >
+                            Export
+                          </Button>
+                        </Group>
+                      </Stack>
+                    </Paper>
                   </Popover.Dropdown>
                 </Popover>
 
@@ -754,13 +1107,11 @@ export default function TransactionHistory() {
                   group: 'Reservation Status',
                   items: [
                     'PENDING',
-                    'APPROVED',
+                    'APPROVED/AWAITING RETURN',
                     'REJECTED',
                     'CANCELLED',
-                    'COMPLETED',
-                    'AWAITING RETURN',
                     'DAMAGED/LOST/PARTIALLY_COMPLETED',
-                    'AWAITING PAYMENT',
+                    'COMPLETED',
                   ],
                 },
               ]}
@@ -922,6 +1273,7 @@ export default function TransactionHistory() {
                                 >
                                   Remarks
                                 </Th>
+                                <Th>Return Status</Th>
                                 <Th>Actions</Th>
                               </Table.Tr>
                             </Table.Thead>
@@ -934,6 +1286,164 @@ export default function TransactionHistory() {
                                 const quantities = reservation.items
                                   .map((item: { quantity: any }) => item.quantity)
                                   .join(', ');
+                                const getReturnStatus = (
+                                  items: ReservationItem[],
+                                  reservationStatus: string
+                                ) => {
+                                  if (!items || items.length === 0)
+                                    return {
+                                      status: 'N/A',
+                                      color: 'gray',
+                                      details: 'No items in reservation',
+                                    };
+
+                                  let totalReturned = 0;
+                                  let totalDamaged = 0;
+                                  let totalQuantity = 0;
+
+                                  items.forEach((item) => {
+                                    totalQuantity += item.quantity;
+                                    if (item.returned_quantity) {
+                                      totalReturned += item.returned_quantity;
+                                    }
+                                    if (item.damaged_quantity) {
+                                      totalDamaged += item.damaged_quantity;
+                                    }
+                                  });
+
+                                  // Special handling based on reservation status
+                                  switch (reservationStatus) {
+                                    case 'AWAITING PAYMENT':
+                                      if (totalDamaged === 0) {
+                                        return {
+                                          status: 'Status Mismatch',
+                                          color: 'yellow',
+                                          details: `Warning: Marked as awaiting payment but no damaged items recorded`,
+                                        };
+                                      }
+                                      return {
+                                        status: 'Payment Required',
+                                        color: 'violet',
+                                        details: `${totalDamaged} damaged items require payment`,
+                                      };
+
+                                    case 'APPROVED/AWAITING RETURN':
+                                      if (totalReturned > 0) {
+                                        return {
+                                          status: 'Status Mismatch',
+                                          color: 'yellow',
+                                          details: `Warning: ${totalReturned}/${totalQuantity} items returned but still marked as awaiting return`,
+                                        };
+                                      }
+                                      return {
+                                        status: 'Pending Return',
+                                        color: 'blue',
+                                        details: `0/${totalQuantity} items returned`,
+                                      };
+
+                                    case 'COMPLETED':
+                                      // If status is COMPLETED but not all items are returned, show a warning
+                                      if (totalReturned < totalQuantity) {
+                                        return {
+                                          status: 'Incomplete Return',
+                                          color: 'yellow',
+                                          details: `Warning: Only ${totalReturned}/${totalQuantity} items returned but marked as complete`,
+                                        };
+                                      }
+
+                                      // Regular completed status with all items returned
+                                      if (totalDamaged > 0) {
+                                        return {
+                                          status: 'Returned with Damage',
+                                          color: 'red',
+                                          details: `${totalReturned}/${totalQuantity} returned (${totalDamaged} damaged)`,
+                                        };
+                                      }
+
+                                      return {
+                                        status: 'Fully Returned',
+                                        color: 'green',
+                                        details: `${totalReturned}/${totalQuantity} items returned`,
+                                      };
+
+                                    case 'DAMAGED/LOST/PARTIALLY_COMPLETED':
+                                      // Verify there are actually damaged items
+                                      if (totalDamaged === 0) {
+                                        return {
+                                          status: 'Status Mismatch',
+                                          color: 'yellow',
+                                          details: `Warning: Marked as damaged but no damaged items recorded`,
+                                        };
+                                      }
+
+                                      return {
+                                        status: 'Returned with Damage',
+                                        color: 'red',
+                                        details: `${totalReturned}/${totalQuantity} returned (${totalDamaged} damaged)`,
+                                      };
+
+                                    case 'PARTIALLY_RETURNED':
+                                      // Verify it's actually partially returned
+                                      if (totalReturned === 0) {
+                                        return {
+                                          status: 'Status Mismatch',
+                                          color: 'yellow',
+                                          details: `Warning: Marked as partially returned but no items returned`,
+                                        };
+                                      }
+
+                                      if (totalReturned === totalQuantity) {
+                                        return {
+                                          status: 'Status Mismatch',
+                                          color: 'yellow',
+                                          details: `Warning: All items returned but marked as partial`,
+                                        };
+                                      }
+
+                                      return {
+                                        status: 'Partially Returned',
+                                        color: 'orange',
+                                        details: `${totalReturned}/${totalQuantity} items returned`,
+                                      };
+
+                                    default:
+                                      // For other statuses like PENDING, REJECTED, CANCELLED
+                                      // Base on actual returned counts
+                                      if (totalReturned === 0) {
+                                        return {
+                                          status: 'Not Returned',
+                                          color: 'gray',
+                                          details: `0/${totalQuantity} items returned`,
+                                        };
+                                      }
+
+                                      if (totalReturned === totalQuantity) {
+                                        if (totalDamaged > 0) {
+                                          return {
+                                            status: 'Returned with Damage',
+                                            color: 'red',
+                                            details: `${totalReturned}/${totalQuantity} returned (${totalDamaged} damaged)`,
+                                          };
+                                        }
+                                        return {
+                                          status: 'Fully Returned',
+                                          color: 'green',
+                                          details: `${totalReturned}/${totalQuantity} items returned`,
+                                        };
+                                      }
+
+                                      return {
+                                        status: 'Partially Returned',
+                                        color: 'orange',
+                                        details: `${totalReturned}/${totalQuantity} items returned`,
+                                      };
+                                  }
+                                };
+
+                                const returnStatus = getReturnStatus(
+                                  reservation.items,
+                                  reservation.status
+                                );
 
                                 return (
                                   <Table.Tr
@@ -986,17 +1496,29 @@ export default function TransactionHistory() {
                                     <Table.Td className={styles.td}>{products}</Table.Td>
                                     <Table.Td className={styles.td}>{quantities}</Table.Td>
                                     <Table.Td className={styles.td}>{reservation.status}</Table.Td>
-                                    <Table.Td className={styles.td}>
-                                      {reservation.remarks
-                                        ? reservation.remarks
-                                        : 'No remarks yet.'}
-                                    </Table.Td>
+
                                     <Table.Td className={styles.td}>
                                       {reservation.same_day_reservation ? (
                                         <Text c={'red'}>Yes</Text>
                                       ) : (
                                         <Text c={'green'}>No</Text>
                                       )}
+                                    </Table.Td>
+
+                                    <Table.Td className={styles.td}>
+                                      {reservation.remarks ? reservation.remarks : 'N/A'}
+                                    </Table.Td>
+                                    <Table.Td className={styles.td}>
+                                      <Group gap="xs" justify="column">
+                                        <Text c={returnStatus.color} fw={500}>
+                                          {returnStatus.status}
+                                        </Text>
+                                        {returnStatus.details && (
+                                          <Text size="sm" c="dimmed">
+                                            {returnStatus.details}
+                                          </Text>
+                                        )}
+                                      </Group>
                                     </Table.Td>
                                     <Table.Td className={styles.td}>
                                       <Group gap="xs">
@@ -1073,7 +1595,6 @@ export default function TransactionHistory() {
                       }
                       required
                     />
-
                     <TextInput
                       disabled
                       label="User"
@@ -1085,7 +1606,6 @@ export default function TransactionHistory() {
                       }
                       required
                     />
-
                     <TextInput
                       label="User Class Section"
                       value={selectedReservation?.user_class_section || ''}
@@ -1122,19 +1642,21 @@ export default function TransactionHistory() {
                         }
                         mb="md"
                         data={Object.entries(
-                          users.reduce(
-                            (acc, user) => {
-                              if (!acc[user.class_section]) {
-                                acc[user.class_section] = [];
-                              }
-                              acc[user.class_section].push({
-                                value: user.username,
-                                label: user.username,
-                              });
-                              return acc;
-                            },
-                            {} as Record<string, { value: string; label: string }[]>
-                          )
+                          users
+                            .filter((user) => user.role !== 'admin') // Filter out admin users
+                            .reduce(
+                              (acc, user) => {
+                                if (!acc[user.class_section]) {
+                                  acc[user.class_section] = [];
+                                }
+                                acc[user.class_section].push({
+                                  value: user.username,
+                                  label: user.username,
+                                });
+                                return acc;
+                              },
+                              {} as Record<string, { value: string; label: string }[]>
+                            )
                         ).map(([classSection, items]) => ({
                           group: classSection || 'Unknown Section',
                           items,
@@ -1142,7 +1664,6 @@ export default function TransactionHistory() {
                         required
                       />
                     )}
-
                     <TextInput
                       label="Reservation Purpose"
                       value={selectedReservation?.reservation_purpose || ''}
@@ -1157,29 +1678,418 @@ export default function TransactionHistory() {
                       }}
                       required
                     />
-
                     <Select
                       label="Status"
                       description="Select the status of the reservation"
-                      defaultSearchValue={selectedReservation?.status || ''}
-                      onChange={(value) =>
+                      defaultValue={selectedReservation?.status || ''}
+                      onChange={(value) => {
+                        // If changing to COMPLETED, show confirmation modal
+                        if (value === 'COMPLETED' && selectedReservation?.status !== 'COMPLETED') {
+                          setCompleteConfirmModalOpen(true);
+                          return; // Don't update yet until confirmed
+                        }
+
                         setSelectedReservation(
                           (prev) => ({ ...prev, status: value! }) as Reservation
-                        )
-                      }
-                      data={[
-                        'APPROVED',
-                        'REJECTED',
-                        'CANCELLED',
-                        'COMPLETED',
-                        'AWAITING RETURN',
-                        'DAMAGED/LOST/PARTIALLY_COMPLETED',
-                        'AWAITING PAYMENT',
-                      ]}
+                        );
+
+                        // Initialize return data for statuses that require it
+                        if (
+                          value === 'APPROVED/AWAITING RETURN' ||
+                          value === 'DAMAGED/LOST/PARTIALLY_COMPLETED' ||
+                          value === 'COMPLETED'
+                        ) {
+                          // Create initial return data based on existing returned quantities
+                          const initialReturnData: ReturnFormData = {};
+                          selectedReservation?.items.forEach((item) => {
+                            if (item.product && item.product.productId) {
+                              initialReturnData[item.product.productId] = {
+                                returned: item.returned_quantity || 0,
+                                damaged: item.damaged_quantity || 0,
+                              };
+                            }
+                          });
+                          setReturnedItems(initialReturnData);
+                        }
+                      }}
+                      data={getAvailableStatusOptions()}
                       placeholder="Select status"
                       required
                     />
+                    {/* Add Return Form Section */}
+                    {selectedReservation?.status === 'DAMAGED/LOST/PARTIALLY_COMPLETED' ? (
+                      <Stack>
+                        <Title order={4}>Return Details</Title>
+                        {selectedReservation?.items.map((item) => {
+                          const currentReturned =
+                            returnedItems[item.product.productId]?.returned || 0;
+                          const currentDamaged =
+                            returnedItems[item.product.productId]?.damaged || 0;
+                          const remainingQuantity = item.quantity - currentDamaged;
+                          const remainingForDamage = item.quantity - currentReturned;
 
+                          return (
+                            <Paper p="md" withBorder key={item.id}>
+                              <Stack>
+                                <Text>Product ID: {item.product.productId}</Text>
+                                <Text>Original Quantity: {item.quantity}</Text>
+                                <Text c="blue">
+                                  Remaining to Return/Damage:{' '}
+                                  {item.quantity - Math.max(currentReturned, currentDamaged)}
+                                </Text>
+                                <Group grow>
+                                  <NumberInput
+                                    label="Returned Quantity"
+                                    description={`Max allowed: ${item.quantity}`}
+                                    value={
+                                      returnedItems[item.product.productId]?.returned ??
+                                      item.return_info?.quantity_returned ??
+                                      item.returned_quantity ??
+                                      0
+                                    }
+                                    onChange={(value) => {
+                                      const newValue = Number(value);
+                                      if (newValue > item.quantity) {
+                                        notifications.show({
+                                          title: 'Error',
+                                          message: `Cannot exceed original quantity (${item.quantity})`,
+                                          color: 'red',
+                                        });
+                                        return;
+                                      }
+
+                                      const currentDamaged =
+                                        returnedItems[item.product.productId]?.damaged ??
+                                        item.return_info?.quantity_damaged ??
+                                        item.damaged_quantity ??
+                                        0;
+
+                                      // Update returned quantity and ensure damaged doesn't exceed it
+                                      setReturnedItems((prev) => ({
+                                        ...prev,
+                                        [item.product.productId]: {
+                                          ...prev[item.product.productId],
+                                          returned: newValue,
+                                          damaged:
+                                            currentDamaged > newValue ? newValue : currentDamaged,
+                                        },
+                                      }));
+                                    }}
+                                    max={item.quantity}
+                                    min={0}
+                                    error={
+                                      (returnedItems[item.product.productId]?.returned ?? 0) >
+                                      item.quantity
+                                        ? `Cannot exceed ${item.quantity} items`
+                                        : null
+                                    }
+                                  />
+
+                                  <NumberInput
+                                    label="Damaged Quantity"
+                                    description="Must be less than or equal to returned quantity"
+                                    value={
+                                      returnedItems[item.product.productId]?.damaged ??
+                                      item.return_info?.quantity_damaged ??
+                                      item.damaged_quantity ??
+                                      0
+                                    }
+                                    onChange={(value) => {
+                                      const newValue = Number(value);
+                                      const currentReturned =
+                                        returnedItems[item.product.productId]?.returned ??
+                                        item.return_info?.quantity_returned ??
+                                        item.returned_quantity ??
+                                        0;
+
+                                      if (newValue > currentReturned) {
+                                        notifications.show({
+                                          title: 'Error',
+                                          message:
+                                            'Damaged quantity cannot exceed returned quantity',
+                                          color: 'red',
+                                        });
+                                        return;
+                                      }
+
+                                      setReturnedItems((prev) => ({
+                                        ...prev,
+                                        [item.product.productId]: {
+                                          ...prev[item.product.productId],
+                                          damaged: newValue,
+                                        },
+                                      }));
+                                    }}
+                                    max={
+                                      returnedItems[item.product.productId]?.returned ??
+                                      item.return_info?.quantity_returned ??
+                                      item.returned_quantity ??
+                                      0
+                                    }
+                                    min={0}
+                                    error={
+                                      (returnedItems[item.product.productId]?.damaged ?? 0) >
+                                      (returnedItems[item.product.productId]?.returned ?? 0)
+                                        ? `Cannot exceed returned quantity`
+                                        : null
+                                    }
+                                  />
+                                </Group>
+                                {/* Add validation message */}
+                                {currentDamaged > currentReturned && (
+                                  <Text c="red" size="sm">
+                                    Damaged quantity cannot exceed returned quantity
+                                  </Text>
+                                )}
+                                {(currentReturned > item.quantity ||
+                                  currentDamaged > item.quantity) && (
+                                  <Text c="red" size="sm">
+                                    Quantities cannot exceed original amount: {item.quantity}
+                                  </Text>
+                                )}
+                              </Stack>
+                            </Paper>
+                          );
+                        })}
+                      </Stack>
+                    ) : null}
+                    {/* Add this after the Return Form Section */}
+                    {selectedReservation?.status === 'DAMAGED/LOST/PARTIALLY_COMPLETED' ||
+                    selectedReservation?.status === 'COMPLETED' ? (
+                      <Paper p="md" withBorder shadow="sm">
+                        <Stack>
+                          <Title order={4}>Returns Summary</Title>
+                          <Table striped highlightOnHover withColumnBorders>
+                            <Table.Thead>
+                              <Table.Tr>
+                                <Table.Th>Product ID</Table.Th>
+                                <Table.Th>Original Qty</Table.Th>
+                                <Table.Th>Returned (Good)</Table.Th>
+                                <Table.Th>Damaged</Table.Th>
+                                <Table.Th>Outstanding</Table.Th>
+                                <Table.Th>Status</Table.Th>
+                              </Table.Tr>
+                            </Table.Thead>
+                            <Table.Tbody>
+                              {selectedReservation?.items.map((item) => {
+                                const currentReturned =
+                                  returnedItems[item.product.productId]?.returned || 0;
+                                const currentDamaged =
+                                  returnedItems[item.product.productId]?.damaged || 0;
+                                const outstanding = item.quantity - currentReturned;
+
+                                let status = 'Not Returned';
+                                if (currentReturned > 0) {
+                                  if (currentReturned === item.quantity) {
+                                    status =
+                                      currentDamaged > 0
+                                        ? 'Returned with Damage'
+                                        : 'Fully Returned';
+                                  } else {
+                                    status = 'Partially Returned';
+                                  }
+                                }
+
+                                return (
+                                  <Table.Tr key={item.product.productId}>
+                                    <Table.Td>{item.product.productId}</Table.Td>
+                                    <Table.Td>{item.quantity}</Table.Td>
+                                    <Table.Td>{currentReturned - currentDamaged}</Table.Td>
+                                    <Table.Td>
+                                      <Text c={currentDamaged > 0 ? 'red' : 'inherit'}>
+                                        {currentDamaged}
+                                      </Text>
+                                    </Table.Td>
+                                    <Table.Td>
+                                      <Text c={outstanding > 0 ? 'orange' : 'green'}>
+                                        {outstanding}
+                                      </Text>
+                                    </Table.Td>
+                                    <Table.Td>
+                                      <Text
+                                        c={
+                                          status === 'Fully Returned'
+                                            ? 'green'
+                                            : status === 'Returned with Damage'
+                                              ? 'red'
+                                              : status === 'Partially Returned'
+                                                ? 'orange'
+                                                : 'gray'
+                                        }
+                                      >
+                                        {status}
+                                      </Text>
+                                    </Table.Td>
+                                  </Table.Tr>
+                                );
+                              })}
+                            </Table.Tbody>
+                            <Table.Tfoot>
+                              <Table.Tr>
+                                <Table.Th colSpan={2}>Totals:</Table.Th>
+                                <Table.Th>
+                                  {selectedReservation?.items.reduce((total, item) => {
+                                    const returned =
+                                      returnedItems[item.product.productId]?.returned || 0;
+                                    const damaged =
+                                      returnedItems[item.product.productId]?.damaged || 0;
+                                    return total + (returned - damaged);
+                                  }, 0)}
+                                </Table.Th>
+                                <Table.Th>
+                                  {selectedReservation?.items.reduce((total, item) => {
+                                    const damaged =
+                                      returnedItems[item.product.productId]?.damaged || 0;
+                                    return total + damaged;
+                                  }, 0)}
+                                </Table.Th>
+                                <Table.Th>
+                                  {selectedReservation?.items.reduce((total, item) => {
+                                    const returned =
+                                      returnedItems[item.product.productId]?.returned || 0;
+                                    return total + (item.quantity - returned);
+                                  }, 0)}
+                                </Table.Th>
+                                <Table.Th></Table.Th>
+                              </Table.Tr>
+                            </Table.Tfoot>
+                          </Table>
+                        </Stack>
+                      </Paper>
+                    ) : null}
+                    {selectedReservation?.status === 'DAMAGED/LOST/PARTIALLY_COMPLETED' &&
+                      (() => {
+                        // Check if there are any damaged items
+                        const hasDamagedItems = selectedReservation.items.some((item) => {
+                          const damaged =
+                            returnedItems[item.product.productId]?.damaged ||
+                            item.damaged_quantity ||
+                            0;
+                          return damaged > 0;
+                        });
+
+                        // Only show payment proof section if there are damaged items
+                        return hasDamagedItems ? (
+                          <Stack>
+                            <Title order={4}>Payment Proof Upload</Title>
+                            <Text size="sm" c="dimmed">
+                              Please upload proof of payment for damaged or lost items
+                            </Text>
+
+                            <Dropzone
+                              accept={IMAGE_MIME_TYPE}
+                              onDrop={setPaymentFiles}
+                              maxFiles={5}
+                              maxSize={5 * 1024 * 1024} // 5MB
+                              loading={isUploading}
+                            >
+                              <Group justify="center" style={{ pointerEvents: 'none' }}>
+                                <Dropzone.Accept>
+                                  <IconUpload
+                                    style={{ width: rem(50), height: rem(50) }}
+                                    stroke={1.5}
+                                  />
+                                </Dropzone.Accept>
+                                <Dropzone.Reject>
+                                  <IconX style={{ width: rem(50), height: rem(50) }} stroke={1.5} />
+                                </Dropzone.Reject>
+                                <Dropzone.Idle>
+                                  <IconPhoto
+                                    style={{ width: rem(50), height: rem(50) }}
+                                    stroke={1.5}
+                                  />
+                                </Dropzone.Idle>
+                              </Group>
+
+                              <Text ta="center" fw={700} fz="lg" mt="sm">
+                                Drop proof of payment here or click to select
+                              </Text>
+                              <Text ta="center" fz="sm" mt="xs" c="dimmed">
+                                Attach proof of payment for damaged or lost items. JPG, PNG files up
+                                to 5MB each.
+                              </Text>
+                            </Dropzone>
+
+                            {paymentFiles.length > 0 && (
+                              <>
+                                <Text fw={500} mt="md">
+                                  Selected files:
+                                </Text>
+                                <Center>
+                                  {paymentFiles.map((file, index) => {
+                                    const imageUrl = URL.createObjectURL(file);
+                                    return (
+                                      <div key={index} style={{ position: 'relative' }}>
+                                        <Image
+                                          src={imageUrl}
+                                          radius="md"
+                                          h={550}
+                                          w={550}
+                                          onLoad={() => URL.revokeObjectURL(imageUrl)}
+                                        />
+                                        <ActionIcon
+                                          color="red"
+                                          variant="filled"
+                                          radius="xl"
+                                          size="sm"
+                                          style={{ position: 'absolute', top: 5, right: 5 }}
+                                          onClick={() => {
+                                            setPaymentFiles((current) =>
+                                              current.filter((_, i) => i !== index)
+                                            );
+                                          }}
+                                        >
+                                          <IconX size="1rem" />
+                                        </ActionIcon>
+                                      </div>
+                                    );
+                                  })}
+                                </Center>
+                                <Button
+                                  onClick={handlePaymentProofUpload}
+                                  loading={isUploading}
+                                  mt="md"
+                                >
+                                  Upload Payment Proof
+                                </Button>
+                              </>
+                            )}
+
+                            {/* Display existing payment proofs */}
+                            {paymentProofs.length > 0 && (
+                              <>
+                                <Text fw={500} mt="md">
+                                  Uploaded payment proofs:
+                                </Text>
+                                <SimpleGrid cols={{ base: 1, sm: 4 }} mt="md">
+                                  {paymentProofs.map((proof, index) => (
+                                    <div key={index} style={{ position: 'relative' }}>
+                                      <Image
+                                        src={proof.image}
+                                        radius="md"
+                                        alt={`Payment proof ${index + 1}`}
+                                      />
+                                      {proof.verified && (
+                                        <Badge
+                                          color="green"
+                                          style={{ position: 'absolute', top: 5, right: 5 }}
+                                        >
+                                          Verified
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  ))}
+                                </SimpleGrid>
+                              </>
+                            )}
+                          </Stack>
+                        ) : (
+                          <Text c="dimmed">
+                            No damaged items to process payment for. If items are damaged, mark them
+                            in the Return Details section.
+                          </Text>
+                        );
+                      })()}
                     <DateInput
                       label="Date input"
                       placeholder="Pick a date"
@@ -1199,7 +2109,6 @@ export default function TransactionHistory() {
                       mb="md"
                       clearable
                     />
-
                     <TimeInput
                       label="Start Time"
                       placeholder="Enter start time"
@@ -1214,7 +2123,6 @@ export default function TransactionHistory() {
                       }
                       mb="md"
                     />
-
                     <TimeInput
                       label="End Time"
                       placeholder="Enter end time"
@@ -1260,22 +2168,18 @@ export default function TransactionHistory() {
                       mb="md"
                       required
                     />
-
                     <TextInput
                       label="Remarks"
                       value={selectedReservation?.remarks || ''}
                       onChange={(event) => {
                         const { value } = event.currentTarget;
-                        setSelectedReservation((prev) => {
-                          if (prev) {
-                            return { ...prev, remarks: value };
-                          }
-                          return prev;
-                        });
+                        // Directly set the remarks value without appending
+                        setSelectedReservation((prev) =>
+                          prev ? { ...prev, remarks: value } : null
+                        );
                       }}
-                      required
+                      placeholder="Enter any remarks about this reservation"
                     />
-
                     <Checkbox.Group
                       value={value}
                       onChange={handleCheckboxChange}
@@ -1336,12 +2240,51 @@ export default function TransactionHistory() {
                         })}
                       </Stack>
                     </Checkbox.Group>
-
-                    <Button type="submit">Save Changes</Button>
+                    <Button
+                      type="submit"
+                      disabled={
+                        (selectedReservation?.status === 'AWAITING RETURN' ||
+                          selectedReservation?.status === 'DAMAGED/LOST/PARTIALLY_COMPLETED') &&
+                        !validateReturnForm()
+                      }
+                    >
+                      Save Changes
+                    </Button>
                     {/* <Button onClick={handleEdit}>Save Changes</Button> */}
                   </Stack>
                 </form>
               </div>
+            </Modal>
+
+            {/* payment proof modal */}
+            <Modal
+              opened={completeConfirmModalOpen}
+              onClose={() => setCompleteConfirmModalOpen(false)}
+              title="Confirm Complete Status"
+            >
+              <Stack>
+                <Text>Are you sure all items have been returned in perfect condition?</Text>
+                <Text size="sm" c="dimmed">
+                  Setting status to COMPLETED confirms that all items have been returned and are in
+                  good condition.
+                </Text>
+                <Group justify="flex-end" mt="md">
+                  <Button variant="outline" onClick={() => setCompleteConfirmModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    color="green"
+                    onClick={() => {
+                      setSelectedReservation(
+                        (prev) => ({ ...prev, status: 'COMPLETED' }) as Reservation
+                      );
+                      setCompleteConfirmModalOpen(false);
+                    }}
+                  >
+                    Confirm
+                  </Button>
+                </Group>
+              </Stack>
             </Modal>
 
             {/* Delete Modal */}

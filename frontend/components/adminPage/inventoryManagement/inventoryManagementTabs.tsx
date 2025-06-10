@@ -39,8 +39,10 @@ import {
   IconCategoryFilled,
   IconFileDescription,
   IconIdBadge2,
+  IconAlertTriangle,
+  IconChartBar,
 } from '@tabler/icons-react';
-import ActionsGridViewAdmin from '@/components/ActionsGridViewAdmin';
+import ActionsGridViewAdmin from '@/components/CategoryCrudGridComponent';
 import UpdateCrudProductsAdmin from '@/components/adminPage/inventoryManagement/productCrudAdmin';
 import { useCategoryID } from '../../../utils/CategoryIDContext';
 import axiosInstance from '../../../utils/axiosInstance';
@@ -48,6 +50,7 @@ import { notifications } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
 import { readLocalStorageValue, useLocalStorage } from '@mantine/hooks';
 import useSWR from 'swr';
+import ProductStatsCard from './ProductStatsCard';
 
 interface Product {
   id: number;
@@ -59,6 +62,8 @@ interface Product {
   productId: string;
   category: string;
   type: string;
+  reserved: number;
+  broken_damaged?: number;
 }
 
 interface Category {
@@ -73,6 +78,12 @@ interface ProductType {
   name: string;
   description: string;
 }
+interface ProductStats {
+  most_reserved: Product[];
+  lowest_stock: Product[];
+}
+
+// Add inside the component before return
 
 // // Fetcher function
 // ganto mag fetch ng data from backend with query
@@ -118,11 +129,22 @@ const ProductAddPage = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [filtered, setFiltered] = useState<Boolean>(false);
   const iconStyle = { width: rem(12), height: rem(12) };
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   let categoryData = [];
   const [categories, setCategories] = useState<Category[]>([]);
 
   // #endregion
+
+  const { data: productStats, error: statsError } = useSWR<ProductStats>(
+    selectedCategory ? `getProductStats/?categoryId=${selectedCategory}` : 'getProductStats/',
+    fetcher,
+    { refreshInterval: 1000 }
+  );
+
+  const handleCategoryChange = (categoryId: string | null) => {
+    setSelectedCategory(categoryId);
+  };
 
   const { data: allProducts, error: productsError } = useSWR('getImages/', fetcher, {
     refreshInterval: 1000,
@@ -192,10 +214,14 @@ const ProductAddPage = () => {
 
   const { data: categoriesData, error: categoriesError } = useSWR('getCategories/', fetcher, {
     refreshInterval: 1000,
-    onSuccess: (categoriesData) => {
-      setCategories(categoriesData.categories);
-    },
   });
+
+  useEffect(() => {
+    if (categoriesData?.categories) {
+      setCategories(categoriesData.categories);
+      console.log('Categories loaded:', categoriesData.categories); // Debug log
+    }
+  }, [categoriesData]);
 
   useEffect(() => {
     removeValue();
@@ -204,16 +230,6 @@ const ProductAddPage = () => {
   useEffect(() => {
     const value = readLocalStorageValue({ key: 'categoryChanged' });
   }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await axios.get('getCategories/');
-      categoryData = response.data.categories;
-      setCategories(response.data.categories);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
 
   const handleSearch = (value: string) => {
     const searchValue = value.trim().toLowerCase().split(' - ')[0];
@@ -239,6 +255,67 @@ const ProductAddPage = () => {
         </Tabs.List>
 
         <Tabs.Panel value="Create">
+          <Paper shadow="sm" radius={'md'} p={'lg'}>
+            <Group justify="center" grow>
+              <Select
+                placeholder="Filter by category"
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                data={categories.map((cat) => ({
+                  value: cat.categoryId,
+                  label: cat.name,
+                }))}
+                clearable
+                style={{ width: 200 }}
+                p={'xs'}
+              />
+            </Group>
+            <Group grow mb="md">
+              <Paper shadow="sm" radius="md" p="md" withBorder>
+                <Stack>
+                  <Group justify="apart">
+                    <Group>
+                      <IconChartBar size={24} color="blue" />
+                      <Title order={4}>Most Reserved Products</Title>
+                    </Group>
+                  </Group>
+                  {productStats?.most_reserved && productStats.most_reserved.length > 0 ? (
+                    productStats.most_reserved.map((product) => (
+                      <ProductStatsCard
+                        key={product.productId}
+                        product={product}
+                        label="Reserved"
+                      />
+                    ))
+                  ) : (
+                    <Text c="dimmed" ta="center" py="md">
+                      No reserved products {selectedCategory ? 'in this category' : ''}
+                    </Text>
+                  )}
+                </Stack>
+              </Paper>
+
+              <Paper shadow="sm" radius="md" p="md" withBorder>
+                <Stack>
+                  <Group justify="apart">
+                    <Group>
+                      <IconAlertTriangle size={24} color="orange" />
+                      <Title order={4}>Low Stock Alert</Title>
+                    </Group>
+                  </Group>
+                  {productStats?.lowest_stock && productStats.lowest_stock.length > 0 ? (
+                    productStats.lowest_stock.map((product) => (
+                      <ProductStatsCard key={product.productId} product={product} label="Stock" />
+                    ))
+                  ) : (
+                    <Text c="dimmed" ta="center" py="md">
+                      No low stock products {selectedCategory ? 'in this category' : ''}
+                    </Text>
+                  )}
+                </Stack>
+              </Paper>
+            </Group>
+          </Paper>
           <Paper shadow="xl" radius={'md'} withBorder p={'xl'} mt={20}>
             <ActionsGridViewAdmin />
 
@@ -302,6 +379,10 @@ const ProductAddPage = () => {
                             <Text>
                               <b>Product Category:</b> {product.category}
                             </Text>
+
+                            <Text>
+                              <b>Product Type:</b> {product.type}
+                            </Text>
                             <Text>
                               <b>Product Name:</b> {product.name}
                             </Text>
@@ -310,6 +391,14 @@ const ProductAddPage = () => {
                             </Text>
                             <Text>
                               <b>Quantity:</b> {product.quantity}
+                            </Text>
+                            <Text c = "green">
+                              <b>Reserved:</b> {product.reserved}
+                              {product.reserved > 0 ? '(Reserved)' : ''}
+                            </Text>
+                            <Text c="red">
+                              <b>Damaged Count:</b> {product.broken_damaged || 0}
+                              {(product.broken_damaged ?? 0) > 0 ? '(Damaged)' : ''}
                             </Text>
                           </Stack>
                           <Image

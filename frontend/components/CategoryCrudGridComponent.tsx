@@ -239,9 +239,14 @@ const ActionsGridViewAdmin = () => {
       </Popover.Target>
       <Popover.Dropdown>
         <Flex direction="column" gap="md" p="md">
-          <Text>Do you want to edit or delete this category or add a product?</Text>
-          <Button color="red" onClick={() => handleDeleteButtonClick(item.id)}>
-            Delete
+          <Button
+            color="green"
+            onClick={() => {
+              handleAddButtonClick(item.id);
+              setAddOpened(true);
+            }}
+          >
+            Add
           </Button>
           <Button
             color="blue"
@@ -252,18 +257,10 @@ const ActionsGridViewAdmin = () => {
           >
             Edit
           </Button>
-          <Button
-            color="green"
-            onClick={() => {
-              handleAddButtonClick(item.id);
-              setAddOpened(true);
-            }}
-          >
-            Add
+
+          <Button color="red" onClick={() => handleDeleteButtonClick(item.id)}>
+            Delete
           </Button>
-          {/* <Button onClick={() => setEditOpened(true)}>
-            Edit
-            </Button>  */}
         </Flex>
       </Popover.Dropdown>
     </Popover>

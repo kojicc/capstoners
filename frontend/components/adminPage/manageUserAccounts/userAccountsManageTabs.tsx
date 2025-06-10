@@ -40,7 +40,7 @@ import {
   IconFileDescription,
   IconIdBadge2,
 } from '@tabler/icons-react';
-import ActionsGridViewAdmin from '@/components/ActionsGridViewAdmin';
+import ActionsGridViewAdmin from '@/components/CategoryCrudGridComponent';
 import { useCategoryID } from '@/utils/CategoryIDContext';
 import axiosInstance from '@/utils/axiosInstance';
 import { notifications } from '@mantine/notifications';

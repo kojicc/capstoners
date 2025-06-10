@@ -29,6 +29,7 @@ import {
   ScrollArea,
   TableScrollContainer,
   Paper,
+  Select,
 } from '@mantine/core';
 import {
   IconSelector,
@@ -42,6 +43,8 @@ import {
   IconUpload,
   IconDownload,
   IconX,
+  IconAlertTriangle,
+  IconChartBar,
 } from '@tabler/icons-react';
 import classes from '@/components/modules.css/TableSort.module.css';
 import { notifications } from '@mantine/notifications';
@@ -52,8 +55,15 @@ import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 // import { ReusableTable } from '@/components/transactionsUser';
 // import classes from '../components/modules.css/Demo.module.css';
 import useSWR, { mutate } from 'swr';
+import ProductStatsCard from './ProductStatsCard';
+
+interface ProductStats {
+  most_reserved: Product[];
+  lowest_stock: Product[];
+}
 
 interface Product {
+  id: number;
   category: string;
   name: string;
   description: string;
@@ -62,6 +72,7 @@ interface Product {
   image: string;
   productId: string;
   type: string;
+  reserved: number;
 }
 
 interface Category {
@@ -151,6 +162,14 @@ const UpdateCrudProductsAdmin = () => {
   const [error, setError] = useState('');
   const [fileExportImport, setFileExportImport] = useState<File | null>(null);
   const [openedExportImport, setOpenedExportImport] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [exportFormat, setExportFormat] = useState<'excel' | 'pdf'>('excel');
+
+  const { data: productStats, error: statsError } = useSWR<ProductStats>(
+    selectedCategory ? `getProductStats/?categoryId=${selectedCategory}` : 'getProductStats/',
+    fetcher,
+    { refreshInterval: 1000 }
+  );
 
   const [files, setFiles] = useState<FileWithPath[]>([]);
 
@@ -160,6 +179,11 @@ const UpdateCrudProductsAdmin = () => {
     `producttypeCrud/?category_id=${selectedProducts?.category || ''}`,
     fetcher
   );
+
+  const handleCategoryChange = (categoryId: string | null) => {
+    setSelectedCategory(categoryId);
+  };
+
   const productTypesArray =
     data?.product_types.map((type: { id: string; name: string; description: string }) => ({
       value: type.name, // or type.name, depending on what you want to use as value
@@ -233,43 +257,6 @@ const UpdateCrudProductsAdmin = () => {
       setLoading(false);
     }
   };
-
-  // const handleEdit = async () => {
-  //   const formData = new FormData();
-  //   formData.append('productId', selectedProducts?.productId || '');
-  //   formData.append('name', selectedProducts?.name || '');
-  //   formData.append('description', selectedProducts?.description || '');
-  //   formData.append('price', selectedProducts?.price.toString() || '');
-  //   formData.append('quantity', selectedProducts?.quantity.toString() || '');
-
-  //   if (files.length > 0) {
-  //     formData.append('image', files[0]); // Only append if files is not empty
-  //   }
-
-  //   formData.append('type', selectedProducts?.type || '');
-  //   console.log('formData Image:', formData.get('image'));
-
-  //   try {
-  //     setLoading(true);
-  //     await axiosInstance.put('updateProduct/', formData, {
-  //       headers: {
-  //         'Content-Type': 'multipart/form-data',
-  //       },
-  //     });
-  //     // Revalidate the SWR data to fetch the updated products
-  //     mutate('getadminProductDetail/');
-  //     handleCloseModal();
-  //     notifications.show({
-  //       title: 'Success',
-  //       message: 'Product updated successfully.',
-  //       color: 'green',
-  //     });
-  //   } catch (error) {
-  //     console.error('Error updating products:', error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const handleEdit = async () => {
     try {
@@ -465,7 +452,71 @@ const UpdateCrudProductsAdmin = () => {
               </Popover.Dropdown>
             </Popover>
           </Group>
+          <Paper shadow="sm" radius={'md'} p={'lg'}>
+            <Group justify="center" grow>
+              <Select
+                placeholder="Filter by category"
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                data={categories.map((cat: { categoryId: any; name: any }) => ({
+                  value: cat.categoryId,
+                  label: cat.name,
+                }))}
+                clearable
+                style={{ width: 200 }}
+                p={'xs'}
+              />
+            </Group>
+            <Group grow mb="md">
+              <Paper shadow="sm" radius="md" p="md" withBorder>
+                <Stack>
+                  <Group justify="apart">
+                    <Group>
+                      <IconChartBar size={24} color="blue" />
+                      <Title order={4}>Most Reserved Products</Title>
+                    </Group>
+                  </Group>
+                  {productStats?.most_reserved && productStats.most_reserved.length > 0 ? (
+                    productStats.most_reserved.map((product) => (
+                      <ProductStatsCard
+                        key={product.productId}
+                        product={{ ...product, price: product.price.toString() }}
+                        label="Reserved"
+                      />
+                    ))
+                  ) : (
+                    <Text c="dimmed" ta="center" py="md">
+                      No reserved products {selectedCategory ? 'in this category' : ''}
+                    </Text>
+                  )}
+                </Stack>
+              </Paper>
 
+              <Paper shadow="sm" radius="md" p="md" withBorder>
+                <Stack>
+                  <Group justify="apart">
+                    <Group>
+                      <IconAlertTriangle size={24} color="orange" />
+                      <Title order={4}>Low Stock Alert</Title>
+                    </Group>
+                  </Group>
+                  {productStats?.lowest_stock && productStats.lowest_stock.length > 0 ? (
+                    productStats.lowest_stock.map((product) => (
+                      <ProductStatsCard
+                        key={product.productId}
+                        product={{ ...product, price: product.price.toString() }}
+                        label="Stock"
+                      />
+                    ))
+                  ) : (
+                    <Text c="dimmed" ta="center" py="md">
+                      No low stock products {selectedCategory ? 'in this category' : ''}
+                    </Text>
+                  )}
+                </Stack>
+              </Paper>
+            </Group>
+          </Paper>
           <Autocomplete
             placeholder="Search products using products ids"
             value={searchQuery}

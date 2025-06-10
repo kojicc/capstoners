@@ -1,7 +1,7 @@
 # products/urls.py
 
 from django.urls import path
-from .views import RetrieveProductImage, UploadProduct, updateProductView, deleteProductView, createCategory, RetrieveCategory, RetrieveProductIDView,RetrieveProductAdmin,deleteCategory,editCategory,ExportImportProductView,ProductTypeCRUD,GeneratePresignedUrl
+from .views import RetrieveProductImage, UploadProduct, updateProductView, deleteProductView, createCategory, RetrieveCategory, RetrieveProductIDView,RetrieveProductAdmin,deleteCategory,editCategory,ExportImportProductView,ProductTypeCRUD,GeneratePresignedUrl,GetProductStats
 
 urlpatterns = [
     path('generate-presigned-url/', GeneratePresignedUrl.as_view(), name='generate_presigned_url'),
@@ -15,6 +15,7 @@ urlpatterns = [
     path('getadminProductDetail/', RetrieveProductAdmin.as_view()),
     path('deleteCategory/', deleteCategory.as_view()),
     path('editCategory/', editCategory.as_view()),
-    path('exportimportProduct/', ExportImportProductView.as_view()),
+    path('exportimportProduct/', ExportImportProductView.as_view(), name='export-import-product'),
     path('producttypeCrud/', ProductTypeCRUD.as_view()),
+    path('getProductStats/', GetProductStats.as_view(), name='get-product-stats'),
 ]

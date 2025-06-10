@@ -1,4 +1,3 @@
-
 """
 Django settings for capBackend project.
 
@@ -34,7 +33,7 @@ SECRET_KEY = 'django-insecure-)91p!o&_y1&fx1a@uc^vdk7$f$g#12kpngbf(q5-3v!b95ga%@
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 
-ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000','https://capstoners-backend.vercel.app','127.0.0.1','.vercel.app']
+ALLOWED_HOSTS = ['https://capstoners.vercel.app','http://localhost:3000','https://capstoners-backend.vercel.app','127.0.0.1','.vercel.app','localhost']
 
 
 # Application definition
@@ -110,18 +109,27 @@ WSGI_APPLICATION = 'capBackend.wsgi.application'
 #     'default': dj_database_url.config(default=DATABASE_URL)
 #  }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'cthmDB_AWS',
+#         'USER': 'ben10',
+#         'PASSWORD': 'cthmDB2024!',
+#         'HOST': 'cthmdb.cti06g6uca7v.ap-southeast-1.rds.amazonaws.com',
+#         'PORT': '5432',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cthmDB_AWS',
-        'USER': 'ben10',
-        'PASSWORD': 'cthmDB2024!',
-        'HOST': 'cthmdb.cti06g6uca7v.ap-southeast-1.rds.amazonaws.com',
-        'PORT': '5432',
+        'NAME': 'cthmDBLOCAL',
+        'USER': 'postgres',
+        'PASSWORD': '123',
+        'HOST': 'localhost',
+        'PORT': '5432'
     }
 }
-
-
 # Password validation
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -247,7 +255,12 @@ AWS_S3_FILE_OVERWRITE = os.getenv('AWS_S3_FILE_OVERWRITE', 'False') == 'True'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-MEDIA_URL = f'https://capstonecthmbucket.s3.ap-southeast-1.amazonaws.com/media/'
-MEDIA_ROOT = None
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+# Make sure to create this directory for storing l logos
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
